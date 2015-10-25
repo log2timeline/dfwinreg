@@ -1,0 +1,22 @@
+Acknowledgements: dfwinreg
+
+Copyright 2015 The dfWinReg Project Authors.
+Please see the AUTHORS file for details on individual authors.
+
+dfWinReg, or Digital Forensics Windows Registry, provides read-only access to
+Windows Registry objects. The goal of dfWinReg is to provide a generic
+interface for accessing Windows Registry objects that resembles the Registry
+key hierarchy as seen on a live Windows system.
+
+dfWinReg originates from the Plaso project [https://github.com/log2timeline/plaso]
+and the WinReg-KB project [https://github.com/libyal/winreg-kb]. It was largely
+rewritten and made into a stand-alone project to provide more flexibility and
+allow other projects to make use of the Windows Registry functionality.
+
+dfWinReg is developed and maintained by:
+* Kristinn Gudjonsson
+* Joachim Metz
+
+Copied with permission granted by Rob Lee.
+Copyright SANS Institute - Digital Forensics and Incident Response.
+* Ntuser.dat (multiple instances)

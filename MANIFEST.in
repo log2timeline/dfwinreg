@@ -1,0 +1,16 @@
+include ACKNOWLEDGEMENTS AUTHORS LICENSE README
+include run_tests.py
+include utils/check_dependencies.py
+exclude .gitignore
+exclude *.pyc
+recursive-include config *
+recursive-exclude dfwinreg *.pyc
+# The example scripts are not required in a binary distribution package they
+# are considered source distribution files and excluded in find_package()
+# in setup.py.
+recursive-include examples *.py
+recursive-include test_data *
+# The test scripts are not required in a binary distribution package they 
+# are considered source distribution files and excluded in find_package()
+# in setup.py.
+recursive-include tests *.py
