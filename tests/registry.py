@@ -16,7 +16,7 @@ class TestWinRegistryFileReader(interface.WinRegistryFileReader):
   """A single file Windows Registry file reader."""
 
   def Open(self, path, ascii_codepage=u'cp1252'):
-    """Opens the Windows Registry file specificed by the path.
+    """Opens the Windows Registry file specified by the path.
 
     Args:
       path: the path of the Windows Registry file.
@@ -62,7 +62,7 @@ class RegistryTest(test_lib.WinRegTestCase):
   def testGetRegistryFileType(self):
     """Tests the GetRegistryFileType function."""
     test_path = self._GetTestFilePath([u'NTUSER.DAT'])
-    registry_file = self._registry.OpenFile(test_path)
+    registry_file = self._registry._OpenFile(test_path)
 
     key_path_prefix = self._registry.GetRegistryFileMapping(registry_file)
     self.assertEqual(key_path_prefix, u'HKEY_CURRENT_USER')
@@ -70,7 +70,7 @@ class RegistryTest(test_lib.WinRegTestCase):
     registry_file.Close()
 
     test_path = self._GetTestFilePath([u'SYSTEM'])
-    registry_file = self._registry.OpenFile(test_path)
+    registry_file = self._registry._OpenFile(test_path)
 
     key_path_prefix = self._registry.GetRegistryFileMapping(registry_file)
     self.assertEqual(key_path_prefix, u'HKEY_LOCAL_MACHINE\\System')

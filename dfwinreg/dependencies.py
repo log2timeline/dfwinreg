@@ -14,7 +14,8 @@ LIBYAL_DEPENDENCIES = {
 # The tuple values are:
 # module_name, version_attribute_name, minimum_version, maximum_version
 PYTHON_DEPENDENCIES = [
-    (u'construct', u'__version__', u'2.5.2', None)]
+    (u'construct', u'__version__', u'2.5.2', None),
+    (u'six', u'__version__', u'1.1.0', None)]
 
 
 def DownloadPageContent(download_url):
@@ -69,49 +70,6 @@ def GetLibyalGithubReleasesLatestVersion(library_name):
   return int(max(matches))
 
 
-# TODO: Remove when Google Drive support is no longer needed.
-def GetLibyalGoogleDriveLatestVersion(library_name):
-  """Retrieves the latest version number of a libyal library on Google Drive.
-
-  Args:
-    library_name: the name of the libyal library.
-
-  Returns:
-    The latest version for a given libyal library on Google Drive
-    or 0 on error.
-  """
-  download_url = u'https://code.google.com/p/{0:s}/'.format(library_name)
-
-  page_content = DownloadPageContent(download_url)
-  if not page_content:
-    return 0
-
-  # The format of the library downloads URL is:
-  # https://googledrive.com/host/{random string}/
-  expression_string = (
-      b'<a href="(https://googledrive.com/host/[^/]*/)"[^>]*>Downloads</a>')
-  matches = re.findall(expression_string, page_content)
-
-  if not matches or len(matches) != 1:
-    return 0
-
-  page_content = DownloadPageContent(matches[0])
-  if not page_content:
-    return 0
-
-  # The format of the library download URL is:
-  # /host/{random string}/{library name}-{status-}{version}.tar.gz
-  # Note that the status is optional and will be: beta, alpha or experimental.
-  expression_string = b'/host/[^/]*/{0:s}-[a-z-]*([0-9]+)[.]tar[.]gz'.format(
-      library_name)
-  matches = re.findall(expression_string, page_content)
-
-  if not matches:
-    return 0
-
-  return int(max(matches))
-
-
 def CheckLibyal(libyal_python_modules, latest_version_check=False):
   """Checks the availability of libyal libraries.
 
@@ -145,12 +103,6 @@ def CheckLibyal(libyal_python_modules, latest_version_check=False):
         latest_version = GetLibyalGithubReleasesLatestVersion(libyal_name)
       except urllib2.URLError:
         latest_version = None
-
-      if not latest_version:
-        try:
-          latest_version = GetLibyalGoogleDriveLatestVersion(libyal_name)
-        except urllib2.URLError:
-          latest_version = None
 
       if not latest_version:
         print(

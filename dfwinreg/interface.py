@@ -101,7 +101,7 @@ class WinRegistryFileReader(object):
 
   @abc.abstractmethod
   def Open(self, path, ascii_codepage=u'cp1252'):
-    """Opens the Windows Registry file specificed by the path.
+    """Opens the Windows Registry file specified by the path.
 
     Args:
       path: string containing the path of the Windows Registry file. The path
@@ -259,10 +259,9 @@ class WinRegistryValue(object):
   _STRING_VALUE_TYPES = frozenset([
       definitions.REG_SZ, definitions.REG_EXPAND_SZ, definitions.REG_LINK])
 
-  # TODO: move data to GetData() and raw_data to data.
   @abc.abstractproperty
   def data(self):
-    """The value data as a Python object."""
+    """The value data as a byte string."""
 
   @abc.abstractproperty
   def data_type(self):
@@ -280,10 +279,6 @@ class WinRegistryValue(object):
   @abc.abstractproperty
   def offset(self):
     """The offset of the value within the Windows Registry file."""
-
-  @abc.abstractproperty
-  def raw_data(self):
-    """The value data as a byte string."""
 
   def DataIsInteger(self):
     """Determines, based on the data type, if the data is an integer.
@@ -327,3 +322,11 @@ class WinRegistryValue(object):
       True if the data is a string, false otherwise.
     """
     return self.data_type in [definitions.REG_SZ, definitions.REG_EXPAND_SZ]
+
+  @abc.abstractmethod
+  def GetData(self):
+    """Retrieves the data.
+
+    Returns:
+      The data as a Python type.
+    """
