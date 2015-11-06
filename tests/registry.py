@@ -59,6 +59,47 @@ class RegistryTest(test_lib.WinRegTestCase):
     # and not a list.
     return os.path.join(self._TEST_DATA_PATH, *path_segments)
 
+  def testGetKeyByPath(self):
+    """Tests the GetGetKeyByPath function."""
+    test_path = self._GetTestFilePath([u'SYSTEM'])
+    registry_file = self._registry._OpenFile(test_path)
+
+    win_registry = registry.WinRegistry()
+    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
+    win_registry.MapFile(key_path_prefix, registry_file)
+
+    # Test an existing key.
+    registry_key = win_registry.GetKeyByPath(
+        u'HKEY_LOCAL_MACHINE\\System\\ControlSet001')
+    self.assertIsNotNone(registry_key)
+
+    # Test a virtual key.
+    registry_key = win_registry.GetKeyByPath(
+        u'HKEY_LOCAL_MACHINE\\System\\CurrentControlSet')
+    self.assertIsNotNone(registry_key)
+
+    # Test a non-existing key.
+    registry_key = win_registry.GetKeyByPath(
+        u'HKEY_LOCAL_MACHINE\\System\\Bogus')
+    self.assertIsNone(registry_key)
+
+    test_path = self._GetTestFilePath([u'NTUSER.DAT'])
+    registry_file = self._registry._OpenFile(test_path)
+
+    win_registry = registry.WinRegistry()
+    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
+    win_registry.MapFile(key_path_prefix, registry_file)
+
+    # Test an existing key.
+    registry_key = win_registry.GetKeyByPath(
+        u'HKEY_CURRENT_USER\\Software\\Microsoft')
+    self.assertIsNotNone(registry_key)
+
+    # Test a non-existing key.
+    registry_key = win_registry.GetKeyByPath(
+        u'HKEY_CURRENT_USER\\Software\\Bogus')
+    self.assertIsNone(registry_key)
+
   def testGetRegistryFileType(self):
     """Tests the GetRegistryFileType function."""
     test_path = self._GetTestFilePath([u'NTUSER.DAT'])
@@ -76,6 +117,15 @@ class RegistryTest(test_lib.WinRegTestCase):
     self.assertEqual(key_path_prefix, u'HKEY_LOCAL_MACHINE\\System')
 
     registry_file.Close()
+
+  def testMapFile(self):
+    """Tests the MapFile function."""
+    test_path = self._GetTestFilePath([u'SYSTEM'])
+    registry_file = self._registry._OpenFile(test_path)
+
+    win_registry = registry.WinRegistry()
+    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
+    win_registry.MapFile(key_path_prefix, registry_file)
 
 
 if __name__ == '__main__':

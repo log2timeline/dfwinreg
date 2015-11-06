@@ -285,7 +285,8 @@ class WinRegistry(object):
               virtual_key_path))
 
         virtual_key_path_length = len(virtual_key_path)
-        if key_path[virtual_key_path_length] == self._PATH_SEPARATOR:
+        if (len(key_path) > virtual_key_path_length and
+            key_path[virtual_key_path_length] == self._PATH_SEPARATOR):
           virtual_key_path_length += 1
 
         key_path = self._PATH_SEPARATOR.join([
