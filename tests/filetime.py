@@ -39,22 +39,46 @@ class FiletimeTest(unittest.TestCase):
     self.assertEqual(filetime_object.timestamp, expected_timestamp)
 
     with self.assertRaises(ValueError):
+      filetime_object.CopyFromString(u'')
+
+    with self.assertRaises(ValueError):
+      filetime_object.CopyFromString(u'195a-01-02')
+
+    with self.assertRaises(ValueError):
       filetime_object.CopyFromString(u'10000-01-02')
 
     with self.assertRaises(ValueError):
       filetime_object.CopyFromString(u'1601-01-32')
 
     with self.assertRaises(ValueError):
+      filetime_object.CopyFromString(u'1601-01-b2')
+
+    with self.assertRaises(ValueError):
       filetime_object.CopyFromString(u'1601-13-02')
+
+    with self.assertRaises(ValueError):
+      filetime_object.CopyFromString(u'1601-a1-02')
+
+    with self.assertRaises(ValueError):
+      filetime_object.CopyFromString(u'1601-01-02 14:00')
 
     with self.assertRaises(ValueError):
       filetime_object.CopyFromString(u'1601-01-02 24:00:00')
 
     with self.assertRaises(ValueError):
+      filetime_object.CopyFromString(u'1601-01-02 1s:00:00')
+
+    with self.assertRaises(ValueError):
       filetime_object.CopyFromString(u'1601-01-02 00:60:00')
 
     with self.assertRaises(ValueError):
+      filetime_object.CopyFromString(u'1601-01-02 00:e0:00')
+
+    with self.assertRaises(ValueError):
       filetime_object.CopyFromString(u'1601-01-02 00:00:60')
+
+    with self.assertRaises(ValueError):
+      filetime_object.CopyFromString(u'1601-01-02 00:00:w0')
 
 
 if __name__ == '__main__':
