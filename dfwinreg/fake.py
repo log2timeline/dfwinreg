@@ -68,7 +68,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
   @property
   def number_of_subkeys(self):
     """The number of subkeys within the key."""
-    return len(self._sub_keys)
+    return len(self._subkeys)
 
   @property
   def number_of_values(self):
@@ -171,7 +171,7 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
   _INT32_LITTLE_ENDIAN = construct.SLInt32(u'value')
   _INT64_LITTLE_ENDIAN = construct.SLInt64(u'value')
 
-  def __init__(self, name, data=b'', data_type=0, offset=0):
+  def __init__(self, name, data=b'', data_type=definitions.REG_NONE, offset=0):
     """Initializes a Windows Registry value object.
 
     Args:
@@ -205,7 +205,7 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
   @property
   def offset(self):
     """The offset of the value within the Windows Registry file."""
-    return self._pyregf_value.offset
+    return self._offset
 
   def GetData(self):
     """Retrieves the data.
