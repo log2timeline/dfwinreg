@@ -207,8 +207,8 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
     """The offset of the value within the Windows Registry file."""
     return self._offset
 
-  def GetData(self):
-    """Retrieves the data.
+  def GetDataAsObject(self):
+    """Retrieves the data as an object.
 
     Returns:
       The data as a Python type.
