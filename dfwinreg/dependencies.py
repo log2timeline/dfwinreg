@@ -3,7 +3,15 @@
 
 from __future__ import print_function
 import re
-import urllib2
+import sys
+
+# pylint: disable=no-name-in-module
+if sys.version_info[0] < 3:
+  import urllib2 as urllib_error
+  from urllib2 import urlopen
+else:
+  import urllib.error as urllib_error
+  from urllib.request import urlopen
 
 
 # The dictionary values are:
@@ -30,7 +38,7 @@ def DownloadPageContent(download_url):
   if not download_url:
     return
 
-  url_object = urllib2.urlopen(download_url)
+  url_object = urlopen(download_url)
 
   if url_object.code != 200:
     return
@@ -86,7 +94,7 @@ def CheckLibyal(libyal_python_modules, latest_version_check=False):
   result = True
   for module_name, module_version in sorted(libyal_python_modules.items()):
     try:
-      module_object = map(__import__, [module_name])[0]
+      module_object = list(map(__import__, [module_name]))[0]
     except ImportError:
       print(u'[FAILURE]\tmissing: {0:s}.'.format(module_name))
       result = False
@@ -100,7 +108,7 @@ def CheckLibyal(libyal_python_modules, latest_version_check=False):
     if latest_version_check:
       try:
         latest_version = GetLibyalGithubReleasesLatestVersion(libyal_name)
-      except urllib2.URLError:
+      except urllib_error.URLError:
         latest_version = None
 
       if not latest_version:
@@ -155,7 +163,7 @@ def CheckPythonModule(
     version. False otherwise.
   """
   try:
-    module_object = map(__import__, [module_name])[0]
+    module_object = list(map(__import__, [module_name]))[0]
   except ImportError:
     print(u'[FAILURE]\tmissing: {0:s}.'.format(module_name))
     return False
@@ -169,8 +177,8 @@ def CheckPythonModule(
     # Split the version string and convert every digit into an integer.
     # A string compare of both version strings will yield an incorrect result.
     split_regex = re.compile(r'\.|\-')
-    module_version_map = map(int, split_regex.split(module_version))
-    minimum_version_map = map(int, split_regex.split(minimum_version))
+    module_version_map = list(map(int, split_regex.split(module_version)))
+    minimum_version_map = list(map(int, split_regex.split(minimum_version)))
 
     if module_version_map < minimum_version_map:
       print((
@@ -179,7 +187,7 @@ def CheckPythonModule(
       return False
 
     if maximum_version:
-      maximum_version_map = map(int, split_regex.split(maximum_version))
+      maximum_version_map = list(map(int, split_regex.split(maximum_version)))
       if module_version_map > maximum_version_map:
         print((
             u'[FAILURE]\t{0:s} version: {1:s} is too recent, {2:s} or earlier '
@@ -236,7 +244,7 @@ def CheckModuleVersion(module_name):
     return
 
   try:
-    module_object = map(__import__, [module_name])[0]
+    module_object = list(map(__import__, [module_name]))[0]
   except ImportError:
     raise
 
