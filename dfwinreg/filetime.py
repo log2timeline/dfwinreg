@@ -18,8 +18,8 @@ class Filetime(object):
   """
 
   # The difference between Jan 1, 1601 and Jan 1, 1970 in seconds.
-  _FILETIME_TO_POSIX_BASE = 11644473600L
-  _INT64_MAX = (1 << 63L) - 1
+  _FILETIME_TO_POSIX_BASE = 11644473600
+  _INT64_MAX = (1 << 63) - 1
 
   def __init__(self, timestamp=None):
     """Initializes the FILETIME object.

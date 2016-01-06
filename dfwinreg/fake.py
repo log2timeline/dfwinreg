@@ -243,7 +243,7 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
     elif self._data_type == definitions.REG_MULTI_SZ:
       try:
         utf16_string = self._data.decode(u'utf-16-le')
-        return filter(None, utf16_string.split(u'\x00'))
+        return list(filter(None, utf16_string.split(u'\x00')))
 
       except UnicodeError as exception:
         raise errors.WinRegistryValueError(
