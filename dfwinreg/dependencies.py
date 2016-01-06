@@ -63,6 +63,8 @@ def GetLibyalGithubReleasesLatestVersion(library_name):
   if not page_content:
     return 0
 
+  page_content = page_content.decode(u'utf-8')
+
   # The format of the project download URL is:
   # /libyal/{project name}/releases/download/{git tag}/
   # {project name}{status-}{version}.tar.gz
