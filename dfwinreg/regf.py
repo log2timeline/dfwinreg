@@ -181,7 +181,7 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
 
       try:
         utf16_string = self._pyregf_value.data.decode(u'utf-16-le')
-        return filter(None, utf16_string.split(u'\x00'))
+        return list(filter(None, utf16_string.split(u'\x00')))
 
       except (IOError, UnicodeError) as exception:
         raise errors.WinRegistryValueError(
