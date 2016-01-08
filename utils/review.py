@@ -779,8 +779,7 @@ class GitHubHelper(object):
               codereview_issue_number, exception))
       return False
 
-    if url_object.code != 200:
-      # TODO: determine why this is failing while PR is created.
+    if url_object.code not in (200, 201):
       logging.error(
           u'Failed creating pull request: {0!s} with status code: {1:d}'.format(
               codereview_issue_number, url_object.code))
