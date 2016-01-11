@@ -1339,7 +1339,14 @@ class ReviewHelper(object):
     Returns:
       A boolean value to indicate if the state is sane.
     """
-    if self._command in (u'create', u'close', u'update'):
+    if self._command == u'close':
+      if not self._git_helper.SynchronizeWithUpstream():
+        print((
+            u'{0:s} aborted - unable to synchronize with '
+            u'upstream/master.').format(self._command.title()))
+        return False
+
+    elif self._command in (u'create', u'update'):
       if not self._git_helper.CheckSynchronizedWithUpstream():
         if not self._git_helper.SynchronizeWithUpstream():
           print((
