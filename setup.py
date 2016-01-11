@@ -61,7 +61,8 @@ class BdistRPMCommand(bdist_rpm):
         line = 'BuildRequires: {0:s}-setuptools'.format(python_package)
 
       elif line.startswith('Requires: '):
-        line = 'Requires: libregf-{0:s}'.format(python_package)
+        if python_package == 'python3':
+          line = line.replace('python', 'python3')
 
       elif line.startswith('%description'):
         in_description = True
