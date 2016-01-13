@@ -9,6 +9,7 @@
 *.pyo
 
 # Specific auto-generated build files
+/.tox
 /__pycache__
 /build
 /dfwinreg.egg-info
