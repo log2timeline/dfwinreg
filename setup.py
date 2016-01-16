@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Installation and deployment script."""
 
+from __future__ import print_function
 import os
 import sys
 
@@ -18,8 +19,8 @@ except ImportError:
   from distutils.command.bdist_rpm import bdist_rpm
 
 if sys.version < '2.7':
-  print 'Unsupported Python version: {0:s}.'.format(sys.version)
-  print 'Supported Python versions are 2.7 or a later 2.x version.'
+  print('Unsupported Python version: {0:s}.'.format(sys.version))
+  print('Supported Python versions are 2.7 or a later 2.x version.')
   sys.exit(1)
 
 # Change PYTHONPATH to include dfwinreg so that we can get the version.
@@ -61,7 +62,8 @@ class BdistRPMCommand(bdist_rpm):
         line = 'BuildRequires: {0:s}-setuptools'.format(python_package)
 
       elif line.startswith('Requires: '):
-        line = 'Requires: libregf-{0:s}'.format(python_package)
+        if python_package == 'python3':
+          line = line.replace('python', 'python3')
 
       elif line.startswith('%description'):
         in_description = True
