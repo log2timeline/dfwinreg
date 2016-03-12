@@ -123,10 +123,13 @@ class FakeWinRegistryKeyTest(unittest.TestCase):
     registry_key = self._CreateTestKey()
     self.assertIsNotNone(registry_key)
 
-    self.assertEqual(registry_key.last_written_time, 0)
     self.assertEqual(registry_key.number_of_subkeys, 1)
     self.assertEqual(registry_key.number_of_values, 1)
     self.assertEqual(registry_key.offset, 0)
+
+    self.assertIsNotNone(registry_key.last_written_time)
+    timestamp = registry_key.last_written_time.timestamp
+    self.assertEqual(timestamp, 0)
 
   def testAddSubkey(self):
     """Tests the AddSubkey function."""

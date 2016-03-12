@@ -101,12 +101,15 @@ class REGFWinRegistryKeyTest(REGFWinRegTestCase):
     key_path = u'\\Software'
     registry_key = registry_file.GetKeyByPath(key_path)
     self.assertIsNotNone(registry_key)
-    self.assertEqual(registry_key.last_written_time, 128938728930133750)
     self.assertEqual(registry_key.name, u'Software')
     self.assertEqual(registry_key.number_of_subkeys, 7)
     self.assertEqual(registry_key.number_of_values, 0)
     self.assertEqual(registry_key.offset, 82652)
     self.assertEqual(registry_key.path, key_path)
+
+    self.assertIsNotNone(registry_key.last_written_time)
+    timestamp = registry_key.last_written_time.timestamp
+    self.assertEqual(timestamp, 128938728930133750)
 
     registry_file.Close()
 
