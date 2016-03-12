@@ -13,8 +13,8 @@ and the WinReg-KB project [https://github.com/libyal/winreg-kb]. It was largely
 rewritten and made into a stand-alone project to provide more flexibility and
 allow other projects to make use of the Windows Registry functionality.
 
-dfWinReg is developed and maintained by:
-* Kristinn Gudjonsson
+dfWinReg is currently developed and maintained by:
+* Daniel White
 * Joachim Metz
 
 Copied with permission granted by Rob Lee.
