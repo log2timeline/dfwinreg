@@ -3,7 +3,7 @@
 
 import pyregf
 
-from dfdatetime import filetime
+from dfdatetime import filetime as dfdatetime_filetime
 
 from dfwinreg import dependencies
 from dfwinreg import definitions
@@ -31,7 +31,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
   def last_written_time(self):
     """The last written time (instance of dfdatetime.DateTimeValues)."""
     timestamp = self._pyregf_key.get_last_written_time_as_integer()
-    return filetime.Filetime(timestamp=timestamp)
+    return dfdatetime_filetime.Filetime(timestamp=timestamp)
 
   @property
   def name(self):
