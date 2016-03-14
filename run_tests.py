@@ -5,7 +5,7 @@
 import sys
 import unittest
 
-# Change PYTHONPATH to include dfWinReg.
+# Change PYTHONPATH to include dfwinreg.
 sys.path.insert(0, u'.')
 
 import dfwinreg.dependencies
