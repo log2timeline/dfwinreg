@@ -40,6 +40,8 @@ class TestWinRegistryFileReader(interface.WinRegistryFileReader):
 class RegistryTest(test_lib.WinRegTestCase):
   """Tests for the Windows Registry library."""
 
+  # pylint: disable=protected-access
+
   def setUp(self):
     """Sets up the needed objects used throughout the test."""
     self._registry = registry.WinRegistry(

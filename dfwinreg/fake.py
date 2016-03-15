@@ -45,6 +45,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
           continue
         self._subkeys[name] = registry_key
 
+        # pylint: disable=protected-access
         registry_key._key_path = self._JoinKeyPath([
             self._key_path, registry_key.name])
 
@@ -96,6 +97,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
           u'Subkey: {0:s} already exists.'.format(registry_key.name))
 
     self._subkeys[name] = registry_key
+    # pylint: disable=protected-access
     registry_key._key_path = self._JoinKeyPath([
         self._key_path, registry_key.name])
 
