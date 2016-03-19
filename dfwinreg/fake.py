@@ -3,6 +3,8 @@
 
 import construct
 
+from dfdatetime import filetime as dfdatetime_filetime
+
 from dfwinreg import dependencies
 from dfwinreg import definitions
 from dfwinreg import errors
@@ -58,8 +60,8 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
 
   @property
   def last_written_time(self):
-    """The last written time of the key (contains a FILETIME timestamp)."""
-    return self._last_written_time
+    """The last written time (instance of dfdatetime.DateTimeValues)."""
+    return dfdatetime_filetime.Filetime(timestamp=self._last_written_time)
 
   @property
   def name(self):

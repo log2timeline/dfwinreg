@@ -130,7 +130,7 @@ class WinRegistryKey(object):
 
   @abc.abstractproperty
   def last_written_time(self):
-    """The last written time of the key (contains a FILETIME timestamp)."""
+    """The last written time (instance of dfdatetime.DateTimeValues)."""
 
   @abc.abstractproperty
   def name(self):
