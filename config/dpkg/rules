@@ -29,6 +29,9 @@ override_dh_auto_install:
 	set -ex; for python in $(shell py3versions -r); do \
 		$$python setup.py install --root=$(CURDIR)/debian/python3-dfwinreg --install-layout=deb; \
 	done;
+	# The shared doc files are provided via python-dfwinreg.docs and python3-dfwinreg.docs
+	rm -rf $(CURDIR)/debian/python-dfwinreg/usr/share/doc/dfwinreg
+	rm -rf $(CURDIR)/debian/python3-dfwinreg/usr/share/doc/dfwinreg
 
 .PHONY: override_dh_auto_test
 override_dh_auto_test:
