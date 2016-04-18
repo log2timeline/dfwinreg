@@ -183,7 +183,19 @@ class WinRegistryKey(object):
     """Retrieves a subkey by name.
 
     Args:
-      name: The name of the subkey.
+      name: a string containing the name of the subkey.
+
+    Returns:
+      The Windows Registry subkey (instances of WinRegistryKey) or
+      None if not found.
+    """
+
+  @abc.abstractmethod
+  def GetSubkeyByPath(self, path):
+    """Retrieves a subkey by path.
+
+    Args:
+      path: a string containing the path of the subkey.
 
     Returns:
       The Windows Registry subkey (instances of WinRegistryKey) or
@@ -204,7 +216,8 @@ class WinRegistryKey(object):
     """Retrieves a value by name.
 
     Args:
-      name: the name of the value or an empty string for the default value.
+      name: a string containing the name of the value or an empty string
+            for the default value.
 
     Returns:
       A Windows Registry value object (instance of WinRegistryValue) if

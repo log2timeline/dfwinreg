@@ -95,6 +95,13 @@ class FakeWinRegistryKeyTest(unittest.TestCase):
 
     registry_key.AddSubkey(registry_subkey)
 
+    test_registry_key = fake.FakeWinRegistryKey(
+        u'Internet Explorer',
+        key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer',
+        last_written_time=0)
+
+    registry_subkey.AddSubkey(test_registry_key)
+
     registry_value = fake.FakeWinRegistryValue(u'')
 
     registry_key.AddValue(registry_value)
@@ -166,15 +173,35 @@ class FakeWinRegistryKeyTest(unittest.TestCase):
     registry_subkey = registry_key.GetSubkeyByName(u'Microsoft')
     self.assertIsNotNone(registry_subkey)
 
+    expected_key_path = u'HKEY_CURRENT_USER\\Software\\Microsoft'
+    self.assertEqual(registry_subkey.path, expected_key_path)
+
     registry_subkey = registry_key.GetSubkeyByName(u'Bogus')
+    self.assertIsNone(registry_subkey)
+
+  def testGetSubkeyByPath(self):
+    """Tests the GetSubkeyByPath function."""
+    registry_key = self._CreateTestKey()
+
+    key_path = u'Microsoft\\Internet Explorer'
+    registry_subkey = registry_key.GetSubkeyByPath(key_path)
+    self.assertIsNotNone(registry_subkey)
+    self.assertEqual(registry_subkey.name, u'Internet Explorer')
+
+    expected_key_path = (
+        u'HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer')
+    self.assertEqual(registry_subkey.path, expected_key_path)
+
+    key_path = u'Microsoft\\Bogus'
+    registry_subkey = registry_key.GetSubkeyByPath(key_path)
     self.assertIsNone(registry_subkey)
 
   def testGetSubkeys(self):
     """Tests the GetSubkeys function."""
     registry_key = self._CreateTestKey()
 
-    subkeys = list(registry_key.GetSubkeys())
-    self.assertEqual(len(subkeys), 1)
+    registry_subkeys = list(registry_key.GetSubkeys())
+    self.assertEqual(len(registry_subkeys), 1)
 
   def testGetValueByName(self):
     """Tests the GetValueByName function."""

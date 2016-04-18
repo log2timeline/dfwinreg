@@ -57,7 +57,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     """Retrieves a subkey by name.
 
     Args:
-      name: The name of the subkey.
+      name: a string containing the name of the subkey.
 
     Returns:
       The Windows Registry subkey (instances of WinRegistryKey) or
@@ -68,6 +68,23 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
       return
 
     key_path = self._JoinKeyPath([self._key_path, pyregf_key.name])
+    return REGFWinRegistryKey(pyregf_key, key_path=key_path)
+
+  def GetSubkeyByPath(self, path):
+    """Retrieves a subkey by path.
+
+    Args:
+      path: a string containing the path of the subkey.
+
+    Returns:
+      The Windows Registry subkey (instances of WinRegistryKey) or
+      None if not found.
+    """
+    pyregf_key = self._pyregf_key.get_sub_key_by_path(path)
+    if not pyregf_key:
+      return
+
+    key_path = self._JoinKeyPath([self._key_path, path])
     return REGFWinRegistryKey(pyregf_key, key_path=key_path)
 
   def GetSubkeys(self):
@@ -88,7 +105,8 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     the value.
 
     Args:
-      name: Name of the value or an empty string for the default value.
+      name: a string containing the name of the value or an empty string
+            for the default value.
 
     Returns:
       A Windows Registry value object (instance of WinRegistryValue) if
@@ -202,7 +220,8 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
 
     Args:
       ascii_codepage: optional ASCII string codepage.
-      key_path_prefix: optional Windows Registry key path prefix.
+      key_path_prefix: optional string containing the Windows Registry key
+                       path prefix.
     """
     super(REGFWinRegistryFile, self).__init__(
         ascii_codepage=ascii_codepage, key_path_prefix=key_path_prefix)
