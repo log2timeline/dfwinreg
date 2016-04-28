@@ -83,6 +83,19 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     """The offset of the key within the Windows Registry file."""
     return self._offset
 
+  def _SplitKeyPath(self, path):
+    """Splits the key path into path segments.
+
+    Args:
+      path: a string containing the path.
+
+    Returns:
+      A list of path segements without the root path segment, which is an
+      empty string.
+    """
+    # Split the path with the path separator and remove empty path segments.
+    return filter(None, path.split(self._PATH_SEPARATOR))
+
   def AddSubkey(self, registry_key):
     """Adds a subkey.
 
@@ -124,13 +137,31 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     """Retrieves a subkey by name.
 
     Args:
-      name: The name of the subkey.
+      name: a string containing the name of the subkey.
 
     Returns:
       The Windows Registry subkey (instances of WinRegistryKey) or
       None if not found.
     """
     return self._subkeys.get(name.upper(), None)
+
+  def GetSubkeyByPath(self, path):
+    """Retrieves a subkey by path.
+
+    Args:
+      path: a string containing the path of the subkey.
+
+    Returns:
+      The Windows Registry subkey (instances of WinRegistryKey) or
+      None if not found.
+    """
+    subkey = self
+    for path_segment in self._SplitKeyPath(path):
+      subkey = subkey.GetSubkeyByName(path_segment)
+      if not subkey:
+        break
+
+    return subkey
 
   def GetSubkeys(self):
     """Retrieves all subkeys within the key.
@@ -145,11 +176,9 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
   def GetValueByName(self, name):
     """Retrieves a value by name.
 
-    Value names are not unique and pyregf provides first match for
-    the value.
-
     Args:
-      name: Name of the value or an empty string for the default value.
+      name: a string containing the name of the value or an empty string
+            for the default value.
 
     Returns:
       A Windows Registry value object (instance of WinRegistryValue) if
