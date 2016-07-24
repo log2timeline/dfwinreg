@@ -5,10 +5,10 @@
 import os
 import sys
 
-# Change PYTHONPATH to include dfvfs.
+# Change PYTHONPATH to include dfwinreg.
 sys.path.insert(0, u'.')
 
-import dfvfs.dependencies
+import dfwinreg.dependencies
 
 
 class DPKGControllWriter(object):
@@ -20,7 +20,7 @@ class DPKGControllWriter(object):
       u'Log2Timeline developers <log2timeline-dev@googlegroups.com>')
 
   _FILE_HEADER = [
-      u'Source: dfvfs',
+      u'Source: dfwinreg',
       u'Section: python',
       u'Priority: extra',
       u'Maintainer: {0:s}'.format(_MAINTAINER),
@@ -29,28 +29,26 @@ class DPKGControllWriter(object):
       u'Standards-Version: 3.9.5',
       u'X-Python-Version: >= 2.7',
       u'X-Python3-Version: >= 3.4',
-      u'Homepage: https://github.com/log2timeline/dfvfs',
+      u'Homepage: https://github.com/log2timeline/dfwinreg',
       u'']
 
   _PYTHON2_PACKAGE_HEADER = [
-      u'Package: python-dfvfs',
+      u'Package: python-dfwinreg',
       u'Architecture: all']
 
   _PYTHON3_PACKAGE_HEADER = [
-      u'Package: python3-dfvfs',
+      u'Package: python3-dfwinreg',
       u'Architecture: all']
 
   _PYTHON_PACKAGE_FOOTER = [
-      u'Description: Digital Forensics Virtual File System (dfVFS).',
-      (u' dfVFS, or Digital Forensics Virtual File System, provides '
+      u'Description: Digital Forensics Windows Registry (dfWinReg).',
+      (u' dfWinReg, or Digital Forensics Windows Registry, provides '
        u'read-only access to'),
-      (u' file-system objects from various storage media types and file '
-       u'formats. The goal'),
-      (u' of dfVFS is to provide a generic interface for accessing '
-       u'file-system objects,'),
-      (u' for which it uses several back-ends that provide the actual '
-       u'implementation of'),
-      u' the various storage media types, volume systems and file systems.',
+      (u' Windows Registry objects. The goal of dfWinReg is to provide a '
+       u'generic'),
+      (u' interface for accessing Windows Registry objects that resembles '
+       u'the Registry'),
+      u' key hierarchy as seen on a live Windows system.',
       u'']
 
   def Write(self):
@@ -59,7 +57,7 @@ class DPKGControllWriter(object):
     file_content.extend(self._FILE_HEADER)
     file_content.extend(self._PYTHON2_PACKAGE_HEADER)
 
-    dependencies = dfvfs.dependencies.GetDPKGDepends()
+    dependencies = dfwinreg.dependencies.GetDPKGDepends()
     dependencies = u', '.join(dependencies)
     file_content.append(
         u'Depends: {0:s}, ${{python:Depends}}, ${{misc:Depends}}'.format(
@@ -68,7 +66,7 @@ class DPKGControllWriter(object):
     file_content.extend(self._PYTHON_PACKAGE_FOOTER)
     file_content.extend(self._PYTHON3_PACKAGE_HEADER)
 
-    dependencies = dfvfs.dependencies.GetDPKGDepends()
+    dependencies = dfwinreg.dependencies.GetDPKGDepends()
     dependencies = u', '.join(dependencies)
     dependencies = dependencies.replace(u'python', u'python3')
     file_content.append(
@@ -107,7 +105,7 @@ class SetupCfgWriter(object):
     file_content = []
     file_content.extend(self._FILE_HEADER)
 
-    dependencies = dfvfs.dependencies.GetRPMRequires()
+    dependencies = dfwinreg.dependencies.GetRPMRequires()
     for index, dependency in enumerate(dependencies):
       if index == 0:
         file_content.append(u'requires = {0:s}'.format(dependency))
@@ -131,7 +129,6 @@ class ToxIniWriter(object):
       u'',
       u'[testenv]',
       u'pip_pre = True',
-      u'sitepackages = True',
       u'setenv =',
       u'    PYTHONPATH = {toxinidir}',
       u'deps =',
@@ -147,7 +144,7 @@ class ToxIniWriter(object):
     file_content = []
     file_content.extend(self._FILE_HEADER)
 
-    for dependency in dfvfs.dependencies.GetInstallRequires():
+    for dependency in dfwinreg.dependencies.GetInstallRequires():
       file_content.append(u'    {0:s}'.format(dependency))
 
     file_content.extend(self._FILE_FOOTER)
@@ -193,14 +190,13 @@ class TravisBeforeInstallScript(object):
     file_content = []
     file_content.extend(self._FILE_HEADER)
 
-    dependencies = dfvfs.dependencies.GetDPKGDepends(exclude_version=True)
-    dependencies.append(u'python-lzma')
+    dependencies = dfwinreg.dependencies.GetDPKGDepends(exclude_version=True)
     dependencies = u' '.join(dependencies)
     file_content.append(u'PYTHON2_DEPENDENCIES="{0:s}";'.format(dependencies))
 
     file_content.append(u'')
 
-    dependencies = dfvfs.dependencies.GetDPKGDepends(exclude_version=True)
+    dependencies = dfwinreg.dependencies.GetDPKGDepends(exclude_version=True)
     dependencies = u' '.join(dependencies)
     dependencies = dependencies.replace(u'python', u'python3')
     file_content.append(u'PYTHON3_DEPENDENCIES="{0:s}";'.format(dependencies))

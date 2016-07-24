@@ -22,9 +22,6 @@ else:
 LIBYAL_DEPENDENCIES = {
     u'pyregf': 20150315}
 
-# Optional import for now.
-# (u'lzma', None, None, None),
-
 # The tuple values are:
 # module_name, version_attribute_name, minimum_version, maximum_version
 PYTHON_DEPENDENCIES = [
@@ -174,107 +171,6 @@ def _CheckPythonModule(
   return True
 
 
-def _CheckPyTSK(verbose_output=True):
-  """Checks the availability of pytsk.
-
-  Args:
-    verbose_output (Optional[bool]): True if output should be verbose.
-
-  Returns:
-    bool: True if the pytsk Python module is available, False otherwise.
-  """
-  module_name = u'pytsk3'
-  minimum_version_libtsk = u'4.1.2'
-  minimum_version_pytsk = u'20140506'
-
-  module_object = _ImportPythonModule(module_name)
-  if not module_object:
-    print(u'[FAILURE]\tmissing: {0:s}.'.format(module_name))
-    return False
-
-  module_version = module_object.TSK_VERSION_STR
-
-  # Split the version string and convert every digit into an integer.
-  # A string compare of both version strings will yield an incorrect result.
-  module_version_map = list(map(int, module_version.split(u'.')))
-  minimum_version_map = list(map(int, minimum_version_libtsk.split(u'.')))
-  if module_version_map < minimum_version_map:
-    print((
-        u'[FAILURE]\tSleuthKit (libtsk) version: {0:s} is too old, {1:s} or '
-        u'later required.').format(module_version, minimum_version_libtsk))
-    return False
-
-  if verbose_output:
-    print(u'[OK]\t\tSleuthKit version: {0:s}'.format(module_version))
-
-  if not hasattr(module_object, u'get_version'):
-    print(u'[FAILURE]\t{0:s} is too old, {1:s} or later required.'.format(
-        module_name, minimum_version_pytsk))
-    return False
-
-  module_version = module_object.get_version()
-  if module_version < minimum_version_pytsk:
-    print((
-        u'[FAILURE]\t{0:s} version: {1:s} is too old, {2:s} or later '
-        u'required.').format(
-            module_name, module_version, minimum_version_pytsk))
-    return False
-
-  if verbose_output:
-    print(u'[OK]\t\t{0:s} version: {1:s}'.format(module_name, module_version))
-
-  return True
-
-
-def _CheckSQLite3(verbose_output=True):
-  """Checks the availability of sqlite3.
-
-  Args:
-    verbose_output (Optional[bool]): True if output should be verbose.
-
-  Returns:
-    bool: True if the sqlite3 Python module is available, False otherwise.
-  """
-  # On Windows sqlite3 can be provided by both pysqlite2.dbapi2 and
-  # sqlite3. sqlite3 is provided with the Python installation and
-  # pysqlite2.dbapi2 by the pysqlite2 Python module. Typically
-  # pysqlite2.dbapi2 would contain a newer version of sqlite3, hence
-  # we check for its presence first.
-  module_name = u'pysqlite2.dbapi2'
-  minimum_version = u'3.7.8'
-
-  module_object = _ImportPythonModule(module_name)
-  if not module_object:
-    module_name = u'sqlite3'
-
-  module_object = _ImportPythonModule(module_name)
-  if not module_object:
-    print(u'[FAILURE]\tmissing: {0:s}.'.format(module_name))
-    return False
-
-  module_version = getattr(module_object, u'sqlite_version', None)
-  if not module_version:
-    return False
-
-  # Split the version string and convert every digit into an integer.
-  # A string compare of both version strings will yield an incorrect result.
-  module_version_map = list(
-      map(int, _VERSION_SPLIT_REGEX.split(module_version)))
-  minimum_version_map = list(
-      map(int, _VERSION_SPLIT_REGEX.split(minimum_version)))
-
-  if module_version_map < minimum_version_map:
-    print((
-        u'[FAILURE]\t{0:s} version: {1:s} is too old, {2:s} or later '
-        u'required.').format(module_name, module_version, minimum_version))
-    return False
-
-  if verbose_output:
-    print(u'[OK]\t\t{0:s} version: {1:s}'.format(module_name, module_version))
-
-  return True
-
-
 def _DownloadPageContent(download_url):
   """Downloads the page content.
 
@@ -372,12 +268,6 @@ def CheckDependencies(latest_version_check=False, verbose_output=True):
         verbose_output=verbose_output):
       check_result = False
 
-  if not _CheckSQLite3(verbose_output=verbose_output):
-    check_result = False
-
-  if not _CheckPyTSK(verbose_output=verbose_output):
-    check_result = False
-
   libyal_check_result = _CheckLibyal(
       LIBYAL_DEPENDENCIES, latest_version_check=latest_version_check,
       verbose_output=verbose_output)
@@ -440,20 +330,11 @@ def GetDPKGDepends(exclude_version=False):
     # Map the import name to the DPKG package name.
     module_name = _DPKG_PACKAGE_NAMES.get(
         module_name, u'python-{0:s}'.format(module_name))
-    if module_name == u'python-libs':
-      # Override the python-libs version since it does not match
-      # the sqlite3 version.
-      module_version = None
 
     if exclude_version or not module_version:
       requires.append(module_name)
     else:
       requires.append(u'{0:s} (>= {1:s})'.format(module_name, module_version))
-
-  if exclude_version:
-    requires.append(u'python-pytsk3')
-  else:
-    requires.append(u'python-pytsk3 (>= 4.1.2)')
 
   for module_name, module_version in sorted(LIBYAL_DEPENDENCIES.items()):
     if exclude_version or not module_version:
@@ -478,10 +359,6 @@ def GetInstallRequires():
 
     # Map the import name to the PyPI project name.
     module_name = _PYPI_PROJECT_NAMES.get(module_name, module_name)
-    if module_name == u'pysqlite':
-      # Override the pysqlite version since it does not match
-      # the sqlite3 version.
-      module_version = None
 
     if not module_version:
       install_requires.append(module_name)
@@ -489,17 +366,12 @@ def GetInstallRequires():
       install_requires.append(u'{0:s} >= {1:s}'.format(
           module_name, module_version))
 
-  install_requires.append(u'pytsk3 >= 4.1.2')
-
   for module_name, module_version in sorted(LIBYAL_DEPENDENCIES.items()):
     if not module_version:
       install_requires.append(u'lib{0:s}-python'.format(module_name[2:]))
     else:
       install_requires.append(u'lib{0:s}-python >= {1:d}'.format(
           module_name[2:], module_version))
-
-  # Optional import for now.
-  install_requires.append(u'backports.lzma')
 
   return sorted(install_requires)
 
@@ -518,17 +390,11 @@ def GetRPMRequires():
     # Map the import name to the RPM package name.
     module_name = _RPM_PACKAGE_NAMES.get(
         module_name, u'python-{0:s}'.format(module_name))
-    if module_name == u'python-libs':
-      # Override the python-libs version since it does not match
-      # the sqlite3 version.
-      module_version = None
 
     if not module_version:
       requires.append(module_name)
     else:
       requires.append(u'{0:s} >= {1:s}'.format(module_name, module_version))
-
-  requires.append(u'pytsk3-python >= 4.1.2')
 
   for module_name, module_version in sorted(LIBYAL_DEPENDENCIES.items()):
     if not module_version:
