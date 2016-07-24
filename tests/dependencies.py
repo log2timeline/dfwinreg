@@ -43,22 +43,12 @@ class DependenciesTest(unittest.TestCase):
   def testCheckPythonModule(self):
     """Tests the _CheckPythonModule function."""
     result = dependencies._CheckPythonModule(
-        u'dfwinreg', u'__version__', u'20160510', verbose_output=False)
+        u'dfdatetime', u'__version__', u'20160319', verbose_output=False)
     self.assertTrue(result)
 
     result = dependencies._CheckPythonModule(
         u'bogus', u'__version__', u'0', verbose_output=False)
     self.assertFalse(result)
-
-  def testCheckPyTSK(self):
-    """Tests the _CheckPyTSK function."""
-    result = dependencies._CheckPyTSK(verbose_output=False)
-    self.assertTrue(result)
-
-  def testCheckSQLite3(self):
-    """Tests the _CheckSQLite3 function."""
-    result = dependencies._CheckSQLite3(verbose_output=False)
-    self.assertTrue(result)
 
   @unittest.skipUnless(hostname, 'no internet connectivity')
   def testDownloadPageContent(self):
@@ -95,7 +85,7 @@ class DependenciesTest(unittest.TestCase):
 
   def testCheckModuleVersion(self):
     """Tests the CheckModuleVersion function."""
-    dependencies.CheckModuleVersion(u'dfwinreg')
+    dependencies.CheckModuleVersion(u'dfdatetime')
 
     with self.assertRaises(ImportError):
       dependencies.CheckModuleVersion(u'bogus')
