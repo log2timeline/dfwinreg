@@ -17,7 +17,7 @@ class DPKGControllWriter(object):
   _PATH = os.path.join(u'config', u'dpkg', u'control')
 
   _MAINTAINER = (
-      u'Log2Timeline developers <log2timeline-dev@googlegroups.com>')
+      u'Log2Timeline maintainers <log2timeline-maintainers@googlegroups.com>')
 
   _FILE_HEADER = [
       u'Source: dfwinreg',
@@ -88,7 +88,7 @@ class SetupCfgWriter(object):
   _PATH = u'setup.cfg'
 
   _MAINTAINER = (
-      u'Log2Timeline developers <log2timeline-dev@googlegroups.com>')
+      u'Log2Timeline maintainers <log2timeline-maintainers@googlegroups.com>')
 
   _FILE_HEADER = [
       u'[bdist_rpm]',
