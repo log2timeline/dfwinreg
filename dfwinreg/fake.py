@@ -29,7 +29,8 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
       key_path (Optional[str]): Windows Registry key path.
       last_written_time (Optional[int]): last written time, formatted as
           a FILETIME timestamp.
-      offset (Optional[int]): offset of the key within the Windows Registry file.
+      offset (Optional[int]): offset of the key within the Windows Registry
+          file.
       subkeys (Optional[list[FakeWinRegistryKey]]): list of subkeys.
       values (Optional[list[FakeWinRegistryValue]]): list of values.
     """
@@ -203,7 +204,8 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
       name (str): name of the Windows Registry value.
       data (Optional[bytes]): value data.
       data_type (Optional[int]): value data type.
-      offset (Optional[int]): offset of the value within the Windows Registry file.
+      offset (Optional[int]): offset of the value within the Windows Registry
+          file.
     """
     super(FakeWinRegistryValue, self).__init__()
     self._data = data
