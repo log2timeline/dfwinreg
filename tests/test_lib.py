@@ -2,6 +2,7 @@
 """Windows Registry related functions and classes for testing."""
 
 import os
+import sys
 import unittest
 
 
