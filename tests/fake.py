@@ -5,6 +5,7 @@
 import unittest
 
 from dfwinreg import definitions
+from dfwinreg import errors
 from dfwinreg import fake
 
 from tests import test_lib
@@ -58,6 +59,11 @@ class FakeWinRegistryFileTest(FakeWinRegTestCase):
 
   def testGetKeyByPath(self):
     """Tests the GetKeyByPath function."""
+    registry_file = fake.FakeWinRegistryFile()
+
+    registry_key = registry_file.GetKeyByPath(u'\\')
+    self.assertIsNone(registry_key)
+
     registry_file = self._OpenFakeRegistryFile(
         key_path_prefix=u'HKEY_LOCAL_MACHINE')
 
@@ -320,6 +326,13 @@ class FakeWinRegistryValueTest(unittest.TestCase):
     value_data = registry_value.GetDataAsObject()
     self.assertEqual(value_data, u'ValueData')
 
+    data = u'\xed\x44'
+    registry_value = fake.FakeWinRegistryValue(
+        u'MRU', data=data, data_type=definitions.REG_SZ)
+
+    with self.assertRaises(errors.WinRegistryValueError):
+      registry_value.GetDataAsObject()
+
     registry_value = fake.FakeWinRegistryValue(
         u'Count', data=b'\x11\x22\x33\x44', data_type=definitions.REG_DWORD)
 
@@ -346,6 +359,13 @@ class FakeWinRegistryValueTest(unittest.TestCase):
 
     value_data = registry_value.GetDataAsObject()
     self.assertEqual(value_data, [u'Multi', u'String', u'ValueData'])
+
+    data = u'\xed\x44'
+    registry_value = fake.FakeWinRegistryValue(
+        u'MRU', data=data, data_type=definitions.REG_MULTI_SZ)
+
+    with self.assertRaises(errors.WinRegistryValueError):
+      registry_value.GetDataAsObject()
 
   def testDataIsBinaryData(self):
     """Tests the DataIsBinaryData function."""
