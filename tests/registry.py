@@ -37,7 +37,7 @@ class TestWinRegistryFileReader(interface.WinRegistryFileReader):
     return registry_file
 
 
-class RegistryTest(test_lib.WinRegTestCase):
+class RegistryTest(test_lib.BaseTestCase):
   """Tests for the Windows Registry library."""
 
   # pylint: disable=protected-access

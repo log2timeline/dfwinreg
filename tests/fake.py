@@ -11,7 +11,7 @@ from dfwinreg import fake
 from tests import test_lib
 
 
-class FakeWinRegTestCase(test_lib.WinRegTestCase):
+class FakeWinRegTestCase(test_lib.BaseTestCase):
   """The unit test case for fake Windows Registry related."""
 
   def _OpenFakeRegistryFile(self, key_path_prefix=u''):
