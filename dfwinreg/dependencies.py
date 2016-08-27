@@ -14,7 +14,7 @@ import re
 # property or method.
 PYTHON_DEPENDENCIES = {
     u'construct': (u'__version__', u'2.5.2', u'2.5.3'),
-    u'dfdatetime': (u'__version__', u'20160319', None),
+    u'dfdatetime': (u'__version__', u'20160814', None),
     u'pyregf': (u'get_version()', u'20150315', None),
     u'six': (u'__version__', u'1.1.0', None)}
 
