@@ -6,20 +6,21 @@ class WinRegistryFileMapping(object):
   """Class that defines a Windows Registry file mapping.
 
   Attributes:
-    key_path_prefix: the Windows Registry key path prefix.
-    unique_key_paths: list of key paths unique to the Windows Registry file.
-    windows_path: the Windows path to the Windows Registry file. E.g.
-                  C:\\Windows\\System32\\config\\SYSTEM
+    key_path_prefix (str): Windows Registry key path prefix.
+    unique_key_paths (list[str]): key paths unique to the Windows Registry file.
+    windows_path (str): Windows path to the Windows Registry file, such as:
+        C:\\Windows\\System32\\config\\SYSTEM
   """
 
   def __init__(self, key_path_prefix, windows_path, unique_key_paths):
     """Initializes the Windows Registry file mapping.
 
     Args:
-      key_path_prefix: the Windows Registry key path prefix.
-      windows_path: the Windows path to the Windows Registry file. E.g.
-                    C:\\Windows\\System32\\config\\SYSTEM
-      unique_key_paths: list of key paths unique to the Windows Registry file.
+      key_path_prefix (str): Windows Registry key path prefix.
+      windows_path (str): Windows path to the Windows Registry file, such as:
+          C:\\Windows\\System32\\config\\SYSTEM
+      unique_key_paths (list[str]): key paths unique to the Windows Registry
+          file.
     """
     super(WinRegistryFileMapping, self).__init__()
     self.key_path_prefix = key_path_prefix
@@ -102,9 +103,9 @@ class WinRegistry(object):
     """Initializes the Windows Registry.
 
     Args:
-      ascii_codepage: optional ASCII string codepage.
-      registry_file_reader: optional Windows Registry file reader (instance of
-                            WinRegistryFileReader).
+      ascii_codepage (Optional[str]): ASCII string codepage.
+      registry_file_reader (Optional[WinRegistryFileReader]): Windows Registry
+          file reader.
     """
     super(WinRegistry, self).__init__()
     self._ascii_codepage = ascii_codepage
@@ -123,12 +124,15 @@ class WinRegistry(object):
     """Retrieves a cached Windows Registry file for a specific path.
 
     Args:
-      key_path_upper: the Windows Registry key path, in upper case with
-                      a resolved root key alias.
+      key_path_upper (str): Windows Registry key path, in upper case with
+          a resolved root key alias.
 
     Returns:
-      A tuple of the key path prefix and the corresponding Windows Registry
-      file object (instance of WinRegistryFile) or None if not available.
+      tuple: consist:
+
+        str: key path prefix
+        WinRegistryFile: corresponding Windows Registry file or None if not
+            available.
     """
     longest_key_path_prefix_upper = u''
     longest_key_path_prefix_length = len(longest_key_path_prefix_upper)
@@ -150,8 +154,8 @@ class WinRegistry(object):
     """Virtual key callback to determine the current control set.
 
     Returns:
-      The resolved key path for the current control set key or
-      None if unable to resolve.
+      str: resolved key path for the current control set key or None if unable
+          to resolve.
     """
     select_key_path = u'HKEY_LOCAL_MACHINE\\System\\Select'
     select_key = self.GetKeyByPath(select_key_path)
@@ -163,7 +167,7 @@ class WinRegistry(object):
     # 2. The "Default" value.
     # 3. The "LastKnownGood" value.
     control_set = None
-    for value_name in [u'Current', u'Default', u'LastKnownGood']:
+    for value_name in (u'Current', u'Default', u'LastKnownGood'):
       value = select_key.GetValueByName(value_name)
       if not value or not value.DataIsInteger():
         continue
@@ -182,13 +186,15 @@ class WinRegistry(object):
     """Retrieves a Windows Registry file for a specific path.
 
     Args:
-      key_path_upper: the Windows Registry key path, in upper case with
-                      a resolved root key alias.
+      key_path_upper (str): Windows Registry key path, in upper case with
+          a resolved root key alias.
 
     Returns:
-      A tuple of the upper case key path prefix and the corresponding
-      Windows Registry file object (instance of WinRegistryFile) or
-      None if not available.
+      tuple: consists:
+
+        str: upper case key path prefix
+        WinRegistryFile: corresponding Windows Registry file or None if not
+            available.
     """
     # TODO: handle HKEY_USERS in both 9X and NT.
 
@@ -212,11 +218,11 @@ class WinRegistry(object):
     """Retrieves the Windows Registry file mappings for a specific path.
 
     Args:
-      key_path_upper: the Windows Registry key path, in upper case with
-                      a resolved root key alias.
+      key_path_upper (str): Windows Registry key path, in upper case with
+          a resolved root key alias.
 
     Yields:
-      Registry file mapping objects (instances of WinRegistryFileMapping).
+      WinRegistryFileMapping: Windows Registry file mapping.
     """
     candidate_mappings = []
     for mapping in self._REGISTRY_FILE_MAPPINGS_NT:
@@ -233,11 +239,10 @@ class WinRegistry(object):
     """Opens a Windows Registry file.
 
     Args:
-      path: the Windows Registry file path.
+      path (str): path of the Windows Registry file.
 
     Returns:
-      A corresponding Windows Registry file object (instance of
-      WinRegistryFile) or None if not available.
+      WinRegistryFile: Windows Registry file or None if not available.
     """
     if self._registry_file_reader:
       return self._registry_file_reader.Open(
@@ -247,11 +252,10 @@ class WinRegistry(object):
     """Retrieves the key for a specific path.
 
     Args:
-      key_path: the Windows Registry key path.
+      key_path (str): Windows Registry key path.
 
     Returns:
-      A Windows Registry key (instance of WinRegistryKey) or None if
-      not available.
+      WinRegistryKey: Windows Registry key or None if not available.
 
     Raises:
       RuntimeError: if the root key is not supported.
@@ -298,11 +302,10 @@ class WinRegistry(object):
     """Determines the Registry file mapping based on the content fo the file.
 
     Args:
-      registry_file: the Windows Registry file object (instance of
-                     WinRegistyFile).
+      registry_file (WinRegistyFile): Windows Registry file.
 
     Returns:
-      The key path prefix or an empty string.
+      str: key path prefix or an empty string.
 
     Raises:
       RuntimeError: if there are multiple matching mappings and
@@ -348,9 +351,8 @@ class WinRegistry(object):
     """Maps the Windows Registry file to a specific key path prefix.
 
     Args:
-      key_path_prefix: the key path prefix.
-      registry_file: a Windows Registry file (instance of
-                     dfwinreg.WinRegistryFile).
+      key_path_prefix (str): key path prefix.
+      registry_file (WinRegistryFile): Windows Registry file.
     """
     self._registry_files[key_path_prefix.upper()] = registry_file
     registry_file.SetKeyPathPrefix(key_path_prefix)

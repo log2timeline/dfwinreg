@@ -291,19 +291,6 @@ class WinRegistryValue(object):
   def offset(self):
     """The offset of the value within the Windows Registry file."""
 
-  def DataIsInteger(self):
-    """Determines, based on the data type, if the data is an integer.
-
-    The data types considered strings are: REG_DWORD (REG_DWORD_LITTLE_ENDIAN),
-    REG_DWORD_BIG_ENDIAN and REG_QWORD.
-
-    Returns:
-      True if the data is an integer, false otherwise.
-    """
-    return self.data_type in [
-        definitions.REG_DWORD, definitions.REG_DWORD_BIG_ENDIAN,
-        definitions.REG_QWORD]
-
   def DataIsBinaryData(self):
     """Determines, based on the data type, if the data is binary data.
 
@@ -313,6 +300,19 @@ class WinRegistryValue(object):
       True if the data is a multi string, false otherwise.
     """
     return self.data_type == definitions.REG_BINARY
+
+  def DataIsInteger(self):
+    """Determines, based on the data type, if the data is an integer.
+
+    The data types considered strings are: REG_DWORD (REG_DWORD_LITTLE_ENDIAN),
+    REG_DWORD_BIG_ENDIAN and REG_QWORD.
+
+    Returns:
+      True if the data is an integer, false otherwise.
+    """
+    return self.data_type in (
+        definitions.REG_DWORD, definitions.REG_DWORD_BIG_ENDIAN,
+        definitions.REG_QWORD)
 
   def DataIsMultiString(self):
     """Determines, based on the data type, if the data is a multi string.
@@ -332,7 +332,7 @@ class WinRegistryValue(object):
     Returns:
       True if the data is a string, false otherwise.
     """
-    return self.data_type in [definitions.REG_SZ, definitions.REG_EXPAND_SZ]
+    return self.data_type in (definitions.REG_SZ, definitions.REG_EXPAND_SZ)
 
   @abc.abstractmethod
   def GetDataAsObject(self):

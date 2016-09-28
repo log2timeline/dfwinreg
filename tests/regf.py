@@ -9,7 +9,7 @@ from dfwinreg import regf
 from tests import test_lib
 
 
-class REGFWinRegTestCase(test_lib.WinRegTestCase):
+class REGFWinRegTestCase(test_lib.BaseTestCase):
   """The unit test case for REGF Windows Registry related object."""
 
   def _OpenREGFRegistryFile(self, filename, key_path_prefix=u''):
@@ -36,11 +36,14 @@ class REGFWinRegTestCase(test_lib.WinRegTestCase):
 class REGFWinRegistryFileTest(REGFWinRegTestCase):
   """Tests for the REGF Windows Registry file object."""
 
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
   def testOpenClose(self):
     """Tests the Open and Close functions."""
     registry_file = self._OpenREGFRegistryFile(u'NTUSER.DAT')
     registry_file.Close()
 
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT.LOG'])
   def testGetRootKey(self):
     """Tests the GetRootKey function."""
     registry_file = self._OpenREGFRegistryFile(u'NTUSER.DAT')
@@ -56,6 +59,7 @@ class REGFWinRegistryFileTest(REGFWinRegTestCase):
     root_key = registry_file.GetRootKey()
     self.assertIsNone(root_key)
 
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
   def testGetKeyByPath(self):
     """Tests the GetKeyByPath function."""
     registry_file = self._OpenREGFRegistryFile(u'NTUSER.DAT')
@@ -76,6 +80,8 @@ class REGFWinRegistryFileTest(REGFWinRegTestCase):
 
     registry_file.Close()
 
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT.LOG'])
   def testRecurseKeys(self):
     """Tests the RecurseKeys function."""
     registry_file = self._OpenREGFRegistryFile(u'NTUSER.DAT')
@@ -96,6 +102,7 @@ class REGFWinRegistryFileTest(REGFWinRegTestCase):
 class REGFWinRegistryKeyTest(REGFWinRegTestCase):
   """Tests for the REGF Windows Registry key object."""
 
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
   def testProperties(self):
     """Tests the properties functions."""
     registry_file = self._OpenREGFRegistryFile(u'NTUSER.DAT')
@@ -157,6 +164,7 @@ class REGFWinRegistryKeyTest(REGFWinRegTestCase):
 
     registry_file.Close()
 
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
   def testGetSubkeys(self):
     """Tests the GetSubkeys function."""
     registry_file = self._OpenREGFRegistryFile(u'NTUSER.DAT')
@@ -169,6 +177,7 @@ class REGFWinRegistryKeyTest(REGFWinRegTestCase):
 
     registry_file.Close()
 
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
   def testGetValueByName(self):
     """Tests the GetValueByName function."""
     registry_file = self._OpenREGFRegistryFile(u'NTUSER.DAT')
@@ -194,6 +203,7 @@ class REGFWinRegistryKeyTest(REGFWinRegTestCase):
 
     registry_file.Close()
 
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
   def testGetValues(self):
     """Tests the GetValues function."""
     registry_file = self._OpenREGFRegistryFile(u'NTUSER.DAT')
@@ -206,6 +216,7 @@ class REGFWinRegistryKeyTest(REGFWinRegTestCase):
 
     registry_file.Close()
 
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
   def testRecurseKeys(self):
     """Tests the RecurseKeys function."""
     registry_file = self._OpenREGFRegistryFile(u'NTUSER.DAT')
@@ -221,8 +232,9 @@ class REGFWinRegistryKeyTest(REGFWinRegTestCase):
 class REGFWinRegistryValueTest(REGFWinRegTestCase):
   """Tests for the REGF Windows Registry value object."""
 
-  def testProperties(self):
-    """Tests the properties functions."""
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
+  def testPropertiesWindowsXP(self):
+    """Tests the properties functions on a Windows XP NTUSER.DAT file."""
     registry_file = self._OpenREGFRegistryFile(u'NTUSER.DAT')
 
     registry_key = registry_file.GetKeyByPath(u'\\Console')
@@ -271,6 +283,9 @@ class REGFWinRegistryValueTest(REGFWinRegTestCase):
 
     registry_file.Close()
 
+  @test_lib.skipUnlessHasTestFile([u'WIN7-NTUSER.DAT'])
+  def testPropertiesWindows7(self):
+    """Tests the properties functions on a Windows 7 NTUSER.DAT file."""
     registry_file = self._OpenREGFRegistryFile(u'WIN7-NTUSER.DAT')
 
     registry_key = registry_file.GetKeyByPath(

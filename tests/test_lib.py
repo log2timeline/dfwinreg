@@ -2,11 +2,33 @@
 """Windows Registry related functions and classes for testing."""
 
 import os
+import sys
 import unittest
 
 
-class WinRegTestCase(unittest.TestCase):
-  """The unit test case for Windows Registry related object."""
+def skipUnlessHasTestFile(path_segments):
+  """Decorator to skip a test if the test file does not exist.
+
+  Args:
+    path_segments (list[str]): path segments inside the test data directory.
+
+  Returns:
+    function: to invoke.
+  """
+  path = os.path.join(u'test_data', *path_segments)
+  if os.path.exists(path):
+    return lambda function: function
+
+  if sys.version_info[0] < 3:
+    path = path.encode(u'utf-8')
+
+  # Note that the message should be of type str which is different for
+  # different versions of Python.
+  return unittest.skip('missing test file: {0:s}'.format(path))
+
+
+class BaseTestCase(unittest.TestCase):
+  """The base test case."""
 
   _TEST_DATA_PATH = os.path.join(os.getcwd(), u'test_data')
 

@@ -14,24 +14,120 @@ from dfwinreg import interface
 dependencies.CheckModuleVersion(u'construct')
 
 
+class FakeWinRegistryFile(interface.WinRegistryFile):
+  """Fake implementation of a Windows Registry file."""
+
+  def __init__(self, ascii_codepage=u'cp1252', key_path_prefix=u''):
+    """Initializes a Windows Registry file.
+
+    Args:
+      ascii_codepage (str): ASCII string codepage.
+      key_path_prefix (str): Windows Registry key path prefix.
+    """
+    super(FakeWinRegistryFile, self).__init__(
+        ascii_codepage=ascii_codepage, key_path_prefix=key_path_prefix)
+    self._root_key = None
+
+  def AddKeyByPath(self, key_path, registry_key):
+    """Adds a Windows Registry key for a specific key path.
+
+    Args:
+      key_path (str): Windows Registry key path to add the key.
+      registry_key (FakeWinRegistryKey): Windows Registry key.
+
+    Raises:
+      KeyError: if the subkey already exists.
+      ValueError: if the Windows Registry key cannot be added.
+    """
+    if not key_path.startswith(self._KEY_PATH_SEPARATOR):
+      raise ValueError(u'Key path does not start with: {0:s}'.format(
+          self._KEY_PATH_SEPARATOR))
+
+    if not self._root_key:
+      self._root_key = FakeWinRegistryKey(self._key_path_prefix)
+
+    path_segments = self._SplitKeyPath(key_path)
+    parent_key = self._root_key
+    for path_segment in path_segments:
+      subkey = FakeWinRegistryKey(path_segment)
+      parent_key.AddSubkey(subkey)
+      parent_key = subkey
+
+    parent_key.AddSubkey(registry_key)
+
+  def Close(self):
+    """Closes the Windows Registry file."""
+    return
+
+  def GetKeyByPath(self, key_path):
+    """Retrieves the key for a specific path.
+
+    Args:
+      key_path (str): Windows Registry key path.
+
+    Returns:
+      WinRegistryKey: Windows Registry key or None if not available.
+    """
+    key_path_upper = key_path.upper()
+    if key_path_upper.startswith(self._key_path_prefix_upper):
+      relative_key_path = key_path[self._key_path_prefix_length:]
+    elif key_path.startswith(self._KEY_PATH_SEPARATOR):
+      relative_key_path = key_path
+      key_path = u''.join([self._key_path_prefix, key_path])
+    else:
+      return
+
+    path_segments = self._SplitKeyPath(relative_key_path)
+    registry_key = self._root_key
+    if not registry_key:
+      return
+
+    for path_segment in path_segments:
+      registry_key = registry_key.GetSubkeyByName(path_segment)
+      if not registry_key:
+        return
+
+    return registry_key
+
+  def GetRootKey(self):
+    """Retrieves the root key.
+
+    Returns:
+      WinRegistryKey: Windows Registry key or None if not available.
+    """
+    return self._root_key
+
+  def Open(self, unused_file_object):
+    """Opens the Windows Registry file using a file-like object.
+
+    Args:
+      file_object (file): file-like object.
+
+    Returns:
+      bool: True if successful or False if not.
+    """
+    return True
+
+
 class FakeWinRegistryKey(interface.WinRegistryKey):
   """Fake implementation of a Windows Registry key."""
 
   def __init__(
       self, name, key_path=u'', last_written_time=None, offset=0, subkeys=None,
       values=None):
-    """Initializes a Windows Registry key object.
+    """Initializes a Windows Registry key.
 
     Subkeys and values with duplicate names are silenty ignored.
 
     Args:
-      name: the name of the Windows Registry key.
-      key_path: optional Windows Registry key path.
-      last_written_time: optional last written time (contains
-                         a FILETIME timestamp).
-      offset: optional offset of the key within the Windows Registry file.
-      subkeys: optional list of subkeys (instances of FakeWinRegistryKey).
-      values: optional list of values (instances of FakeWinRegistryValue).
+      name (str): name of the Windows Registry key.
+      key_path (Optional[str]): Windows Registry key path.
+      last_written_time (Optional[int]): last written time, formatted as
+          a FILETIME timestamp.
+      offset (Optional[int]): offset of the key within the Windows Registry
+          file.
+      subkeys (Optional[list[FakeWinRegistryKey]]): list of subkeys.
+      values (Optional[list[FakeWinRegistryValue]]): list of values.
     """
     super(FakeWinRegistryKey, self).__init__(key_path=key_path)
     self._last_written_time = last_written_time
@@ -40,6 +136,40 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     self._subkeys = {}
     self._values = {}
 
+    self._BuildKeyHierarchy(subkeys, values)
+
+  @property
+  def last_written_time(self):
+    """dfdatetime.DateTimeValues: last written time."""
+    return dfdatetime_filetime.Filetime(timestamp=self._last_written_time)
+
+  @property
+  def name(self):
+    """str: name of the key."""
+    return self._name
+
+  @property
+  def number_of_subkeys(self):
+    """int: number of subkeys within the key."""
+    return len(self._subkeys)
+
+  @property
+  def number_of_values(self):
+    """int: number of values within the key."""
+    return len(self._values)
+
+  @property
+  def offset(self):
+    """int: offset of the key within the Windows Registry file."""
+    return self._offset
+
+  def _BuildKeyHierarchy(self, subkeys, values):
+    """Builds the Windows Registry key hierarchy.
+
+    Args:
+      subkeys (list[FakeWinRegistryKey]): list of subkeys.
+      values (list[FakeWinRegistryValue]): list of values.
+    """
     if subkeys:
       for registry_key in subkeys:
         name = registry_key.name.upper()
@@ -58,36 +188,11 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
           continue
         self._values[name] = registry_value
 
-  @property
-  def last_written_time(self):
-    """The last written time (instance of dfdatetime.DateTimeValues)."""
-    return dfdatetime_filetime.Filetime(timestamp=self._last_written_time)
-
-  @property
-  def name(self):
-    """The name of the key."""
-    return self._name
-
-  @property
-  def number_of_subkeys(self):
-    """The number of subkeys within the key."""
-    return len(self._subkeys)
-
-  @property
-  def number_of_values(self):
-    """The number of values within the key."""
-    return len(self._values)
-
-  @property
-  def offset(self):
-    """The offset of the key within the Windows Registry file."""
-    return self._offset
-
   def _SplitKeyPath(self, path):
     """Splits the key path into path segments.
 
     Args:
-      path: a string containing the path.
+      path (str): path.
 
     Returns:
       A list of path segements without the root path segment, which is an
@@ -100,8 +205,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     """Adds a subkey.
 
     Args:
-      registry_key: the Windows Registry subkey (instance of
-                    FakeWinRegistryKey).
+      registry_key (FakeWinRegistryKey): Windows Registry subkey.
 
     Raises:
       KeyError: if the subkey already exists.
@@ -120,8 +224,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     """Adds a value.
 
     Args:
-      registry_value: the Windows Registry value (instance of
-                      FakeWinRegistryValue).
+      registry_value (FakeWinRegistryValue): Windows Registry value.
 
     Raises:
       KeyError: if the value already exists.
@@ -137,11 +240,10 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     """Retrieves a subkey by name.
 
     Args:
-      name: a string containing the name of the subkey.
+      name (str): name of the subkey.
 
     Returns:
-      The Windows Registry subkey (instances of WinRegistryKey) or
-      None if not found.
+      WinRegistryKey: Windows Registry subkey or None if not found.
     """
     return self._subkeys.get(name.upper(), None)
 
@@ -149,11 +251,10 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     """Retrieves a subkey by path.
 
     Args:
-      path: a string containing the path of the subkey.
+      path (str): path of the subkey.
 
     Returns:
-      The Windows Registry subkey (instances of WinRegistryKey) or
-      None if not found.
+      WinRegistryKey: Windows Registry subkey or None if not found.
     """
     subkey = self
     for path_segment in self._SplitKeyPath(path):
@@ -167,8 +268,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     """Retrieves all subkeys within the key.
 
     Yields:
-      Windows Registry key objects (instances of WinRegistryKey) that represent
-      the subkeys stored within the key.
+      WinRegistryKey: Windows Registry subkey.
     """
     for registry_key in iter(self._subkeys.values()):
       yield registry_key
@@ -177,12 +277,10 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     """Retrieves a value by name.
 
     Args:
-      name: a string containing the name of the value or an empty string
-            for the default value.
+      name (str): name of the value or an empty string for the default value.
 
     Returns:
-      A Windows Registry value object (instance of WinRegistryValue) if
-      a corresponding value was found or None if not.
+      WinRegistryValue: Windows Registry value or None if not found.
     """
     return self._values.get(name.upper(), None)
 
@@ -190,8 +288,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     """Retrieves all values within the key.
 
     Yields:
-      Windows Registry value objects (instances of WinRegistryValue) that
-      represent the values stored within the key.
+      WinRegistryValue: Windows Registry value.
     """
     for registry_value in iter(self._values.values()):
       yield registry_value
@@ -205,13 +302,14 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
   _INT64_LITTLE_ENDIAN = construct.SLInt64(u'value')
 
   def __init__(self, name, data=b'', data_type=definitions.REG_NONE, offset=0):
-    """Initializes a Windows Registry value object.
+    """Initializes a Windows Registry value.
 
     Args:
-      name: the name of the Windows Registry value.
-      data: optional binary string containing the value data.
-      data_type: optional integer containing the value data type.
-      offset: optional offset of the value within the Windows Registry file.
+      name (str): name of the Windows Registry value.
+      data (Optional[bytes]): value data.
+      data_type (Optional[int]): value data type.
+      offset (Optional[int]): offset of the value within the Windows Registry
+          file.
     """
     super(FakeWinRegistryValue, self).__init__()
     self._data = data
@@ -222,29 +320,29 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
 
   @property
   def data(self):
-    """The value data as a byte string."""
+    """bytes: value data as a byte string."""
     return self._data
 
   @property
   def data_type(self):
-    """Numeric value that contains the data type."""
+    """int: data type."""
     return self._data_type
 
   @property
   def name(self):
-    """The name of the value."""
+    """str: name of the value."""
     return self._name
 
   @property
   def offset(self):
-    """The offset of the value within the Windows Registry file."""
+    """int: offset of the value within the Windows Registry file."""
     return self._offset
 
   def GetDataAsObject(self):
     """Retrieves the data as an object.
 
     Returns:
-      The data as a Python type.
+      object: data as a Python type.
 
     Raises:
       WinRegistryValueError: if the value data cannot be read.
@@ -276,6 +374,7 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
     elif self._data_type == definitions.REG_MULTI_SZ:
       try:
         utf16_string = self._data.decode(u'utf-16-le')
+        # TODO: evaluate the use of filter here is appropriate behavior.
         return list(filter(None, utf16_string.split(u'\x00')))
 
       except UnicodeError as exception:
@@ -284,95 +383,3 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
                 self._name, exception))
 
     return self._data
-
-
-class FakeWinRegistryFile(interface.WinRegistryFile):
-  """Fake implementation of a Windows Registry file."""
-
-  def __init__(self, ascii_codepage=u'cp1252', key_path_prefix=u''):
-    """Initializes the Windows Registry file.
-
-    Args:
-      ascii_codepage: optional ASCII string codepage.
-      key_path_prefix: optional Windows Registry key path prefix.
-    """
-    super(FakeWinRegistryFile, self).__init__(
-        ascii_codepage=ascii_codepage, key_path_prefix=key_path_prefix)
-    self._root_key = None
-
-  def AddKeyByPath(self, key_path, registry_key):
-    """Adds a Windows Registry for a specific key path.
-
-    Args:
-      key_path: the Windows Registry key path to add the key.
-      registry_key: the Windows Registry key (instance of FakeWinRegistryKey).
-
-    Returns:
-      A boolean containing True if successful or False if not.
-    """
-    if not key_path.startswith(self._KEY_PATH_SEPARATOR):
-      return False
-
-    if not self._root_key:
-      self._root_key = FakeWinRegistryKey(self._key_path_prefix)
-
-    path_segments = self._SplitKeyPath(key_path)
-    parent_key = self._root_key
-    for path_segment in path_segments:
-      subkey = FakeWinRegistryKey(path_segment)
-      if not parent_key.AddSubkey(subkey):
-        return False
-
-    return parent_key.AddSubkey(registry_key)
-
-  def Close(self):
-    """Closes the Windows Registry file."""
-    return
-
-  def GetKeyByPath(self, key_path):
-    """Retrieves the key for a specific path.
-
-    Args:
-      key_path: the Windows Registry key path.
-
-    Returns:
-      A Registry key (instance of WinRegistryKey) or None if not available.
-    """
-    key_path_upper = key_path.upper()
-    if key_path_upper.startswith(self._key_path_prefix_upper):
-      relative_key_path = key_path[self._key_path_prefix_length:]
-    elif key_path.startswith(self._KEY_PATH_SEPARATOR):
-      relative_key_path = key_path
-      key_path = u''.join([self._key_path_prefix, key_path])
-    else:
-      return
-
-    path_segments = self._SplitKeyPath(relative_key_path)
-    registry_key = self._root_key
-    for path_segment in path_segments:
-      if not registry_key:
-        return
-
-      registry_key = registry_key.GetSubkeyByName(path_segment)
-
-    return registry_key
-
-  def GetRootKey(self):
-    """Retrieves the root key.
-
-    Returns:
-      The Windows Registry root key (instance of WinRegistryKey) or
-      None if not available.
-    """
-    return self._root_key
-
-  def Open(self, unused_file_object):
-    """Opens the Windows Registry file using a file-like object.
-
-    Args:
-      file_object: the file-like object.
-
-    Returns:
-      A boolean containing True if successful or False if not.
-    """
-    return True
