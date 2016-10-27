@@ -4,7 +4,7 @@
 
 import unittest
 
-from plaso import dependencies
+from dfwinreg import dependencies
 
 
 class DependenciesTest(unittest.TestCase):
@@ -56,20 +56,20 @@ class DependenciesTest(unittest.TestCase):
   def testGetDPKGDepends(self):
     """Tests the GetDPKGDepends function."""
     install_requires = dependencies.GetDPKGDepends()
-    self.assertIn(u'libbde-python (>= 20140531)', install_requires)
+    self.assertIn(u'libregf-python (>= 20150315)', install_requires)
 
     install_requires = dependencies.GetDPKGDepends(exclude_version=True)
-    self.assertIn(u'libbde-python', install_requires)
+    self.assertIn(u'libregf-python', install_requires)
 
   def testGetInstallRequires(self):
     """Tests the GetInstallRequires function."""
     install_requires = dependencies.GetInstallRequires()
-    self.assertIn(u'libbde-python >= 20140531', install_requires)
+    self.assertIn(u'libregf-python >= 20150315', install_requires)
 
   def testGetRPMRequires(self):
     """Tests the GetRPMRequires function."""
     install_requires = dependencies.GetRPMRequires()
-    self.assertIn(u'libbde-python >= 20140531', install_requires)
+    self.assertIn(u'libregf-python >= 20150315', install_requires)
 
 
 if __name__ == '__main__':
