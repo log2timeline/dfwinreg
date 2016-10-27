@@ -1,6 +1,6 @@
 pip >= 7.0.0
 pytest
-construct >= 2.5.2
+construct >= 2.5.2,<= 2.5.3
 dfdatetime >= 20160319
 libregf-python >= 20150315
 six >= 1.1.0
