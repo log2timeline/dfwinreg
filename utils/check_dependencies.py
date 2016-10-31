@@ -12,7 +12,7 @@ import dfwinreg.dependencies
 
 
 if __name__ == u'__main__':
-  if not dfwinreg.dependencies.CheckDependencies(latest_version_check=True):
+  if not dfwinreg.dependencies.CheckDependencies():
     build_instructions_url = (
         u'https://github.com/log2timeline/dfwinreg/wiki/Building')
 
