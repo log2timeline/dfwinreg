@@ -4,6 +4,7 @@
 import pyregf
 
 from dfdatetime import filetime as dfdatetime_filetime
+from dfdatetime import semantic_time as dfdatetime_semantic_time
 
 from dfwinreg import dependencies
 from dfwinreg import definitions
@@ -21,9 +22,8 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     """Initializes the Windows Registry file.
 
     Args:
-      ascii_codepage: optional ASCII string codepage.
-      key_path_prefix: optional string containing the Windows Registry key
-                       path prefix.
+      ascii_codepage (Optional[str]): ASCII string codepage.
+      key_path_prefix (Optional[str]): Windows Registry key path prefix.
     """
     super(REGFWinRegistryFile, self).__init__(
         ascii_codepage=ascii_codepage, key_path_prefix=key_path_prefix)
@@ -41,10 +41,10 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     """Retrieves the key for a specific path.
 
     Args:
-      key_path: the Windows Registry key path.
+      key_path (str): the Windows Registry key path.
 
     Returns:
-      A Registry key (instance of WinRegistryKey) or None if not available.
+      WinRegistryKey: Registry key or None if not available.
     """
     key_path_upper = key_path.upper()
     if key_path_upper.startswith(self._key_path_prefix_upper):
@@ -68,8 +68,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     """Retrieves the root key.
 
     Returns:
-      The Windows Registry root key (instance of WinRegistryKey) or
-      None if not available.
+      WinRegistryKey: Windows Registry root key or None if not available.
     """
     regf_key = self._regf_file.get_root_key()
     if not regf_key:
@@ -81,10 +80,10 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     """Opens the Windows Registry file using a file-like object.
 
     Args:
-      file_object: the file-like object.
+      file_object (file): file-like object.
 
     Returns:
-      A boolean containing True if successful or False if not.
+      bool: True if successful or False if not.
     """
     self._file_object = file_object
     self._regf_file.open_file_object(self._file_object)
@@ -98,47 +97,49 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     """Initializes a Windows Registry key object.
 
     Args:
-      pyregf_key: a pyreg key object (instance of a pyregf.key).
-      key_path: optional Windows Registry key path.
+      pyregf_key (pyregf.key): pyreg key object.
+      key_path (Optional[str]): Windows Registry key path.
     """
     super(REGFWinRegistryKey, self).__init__(key_path=key_path)
     self._pyregf_key = pyregf_key
 
   @property
   def last_written_time(self):
-    """The last written time (instance of dfdatetime.DateTimeValues)."""
+    """dfdatetime.DateTimeValues: last written time."""
     timestamp = self._pyregf_key.get_last_written_time_as_integer()
+    if timestamp == 0:
+      return dfdatetime_semantic_time.SemanticTime(u'Not set')
+
     return dfdatetime_filetime.Filetime(timestamp=timestamp)
 
   @property
   def name(self):
-    """The name of the key."""
+    """str: name of the key."""
     return self._pyregf_key.name
 
   @property
   def number_of_subkeys(self):
-    """The number of subkeys within the key."""
+    """int: number of subkeys within the key."""
     return self._pyregf_key.number_of_sub_keys
 
   @property
   def number_of_values(self):
-    """The number of values within the key."""
+    """int: number of values within the key."""
     return self._pyregf_key.number_of_values
 
   @property
   def offset(self):
-    """The offset of the key within the Windows Registry file."""
+    """int: offset of the key within the Windows Registry file."""
     return self._pyregf_key.offset
 
   def GetSubkeyByName(self, name):
     """Retrieves a subkey by name.
 
     Args:
-      name: a string containing the name of the subkey.
+      name (str): name of the subkey.
 
     Returns:
-      The Windows Registry subkey (instances of WinRegistryKey) or
-      None if not found.
+      WinRegistryKey: Windows Registry subkey or None if not found.
     """
     pyregf_key = self._pyregf_key.get_sub_key_by_name(name)
     if not pyregf_key:
@@ -151,11 +152,10 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     """Retrieves a subkey by path.
 
     Args:
-      path: a string containing the path of the subkey.
+      path (str): path of the subkey.
 
     Returns:
-      The Windows Registry subkey (instances of WinRegistryKey) or
-      None if not found.
+      WinRegistryKey: Windows Registry subkey or None if not found.
     """
     pyregf_key = self._pyregf_key.get_sub_key_by_path(path)
     if not pyregf_key:
@@ -168,8 +168,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     """Retrieves all subkeys within the key.
 
     Yields:
-      Windows Registry key objects (instances of WinRegistryKey) that represent
-      the subkeys stored within the key.
+      WinRegistryKey: Windows Registry subkey.
     """
     for pyregf_key in self._pyregf_key.sub_keys:
       key_path = self._JoinKeyPath([self._key_path, pyregf_key.name])
@@ -182,12 +181,11 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     the value.
 
     Args:
-      name: a string containing the name of the value or an empty string
-            for the default value.
+      name (str): name of the value or an empty string for the default value.
 
     Returns:
-      A Windows Registry value object (instance of WinRegistryValue) if
-      a corresponding value was found or None if not.
+      WinRegistryValue: Windows Registry value if a corresponding value was
+          found or None if not.
     """
     pyregf_value = self._pyregf_key.get_value_by_name(name)
     if not pyregf_value:
@@ -199,8 +197,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     """Retrieves all values within the key.
 
     Yields:
-      Windows Registry value objects (instances of WinRegistryValue) that
-      represent the values stored within the key.
+      WinRegistryValue: Windows Registry value.
     """
     for pyregf_value in self._pyregf_key.values:
       yield REGFWinRegistryValue(pyregf_value)
@@ -210,17 +207,17 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
   """Implementation of a Windows Registry value using pyregf."""
 
   def __init__(self, pyregf_value):
-    """Initializes a Windows Registry value object.
+    """Initializes a Windows Registry value.
 
     Args:
-      pyregf_value: An instance of a pyregf.value object.
+      pyregf_value (pyregf.value): pyreg value object.
     """
     super(REGFWinRegistryValue, self).__init__()
     self._pyregf_value = pyregf_value
 
   @property
   def data(self):
-    """The value data as a byte string.
+    """bytes: value data as a byte string.
 
     Raises:
       WinRegistryValueError: if the value data cannot be read.
@@ -234,24 +231,24 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
 
   @property
   def data_type(self):
-    """Numeric value that contains the data type."""
+    """int: data type."""
     return self._pyregf_value.type
 
   @property
   def name(self):
-    """The name of the value."""
+    """str: name of the value."""
     return self._pyregf_value.name
 
   @property
   def offset(self):
-    """The offset of the value within the Windows Registry file."""
+    """int: offset of the value within the Windows Registry file."""
     return self._pyregf_value.offset
 
   def GetDataAsObject(self):
     """Retrieves the data as an object.
 
     Returns:
-      The data as a Python type.
+      object: data as a Python type.
 
     Raises:
       WinRegistryValueError: if the value data cannot be read.
