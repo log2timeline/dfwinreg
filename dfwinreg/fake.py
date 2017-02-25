@@ -49,8 +49,12 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
     path_segments = self._SplitKeyPath(key_path)
     parent_key = self._root_key
     for path_segment in path_segments:
-      subkey = FakeWinRegistryKey(path_segment)
-      parent_key.AddSubkey(subkey)
+      try:
+        subkey = FakeWinRegistryKey(path_segment)
+        parent_key.AddSubkey(subkey)
+      except KeyError:
+        subkey = parent_key.GetSubkeyByName(path_segment)
+
       parent_key = subkey
 
     parent_key.AddSubkey(registry_key)
