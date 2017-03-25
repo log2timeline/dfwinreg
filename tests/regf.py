@@ -78,6 +78,10 @@ class REGFWinRegistryFileTest(REGFWinRegTestCase):
     registry_key = registry_file.GetKeyByPath(key_path)
     self.assertIsNone(registry_key)
 
+    key_path = u'Bogus'
+    registry_key = registry_file.GetKeyByPath(key_path)
+    self.assertIsNone(registry_key)
+
     registry_file.Close()
 
   @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
