@@ -11,6 +11,7 @@ matrix:
     python: 3.4
   - os: osx
     language: generic
+    env: PYTHONPATH=/Library/Python/2.7/site-packages/
 install:
   - ./config/travis/install.sh
 script:
