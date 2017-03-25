@@ -8,15 +8,17 @@ import re
 # Dictionary that contains version tuples per module name.
 #
 # A version tuple consists of:
-# (version_attribute_name, minimum_version, maximum_version)
+# (version_attribute_name, minimum_version, maximum_version, is_required)
 #
 # Where ersion_attribute_name is either a name of an attribute,
 # property or method.
 PYTHON_DEPENDENCIES = {
-    u'construct': (u'__version__', u'2.5.2', u'2.5.3'),
-    u'dfdatetime': (u'__version__', u'20160814', None),
-    u'pyregf': (u'get_version()', u'20150315', None),
-    u'six': (u'__version__', u'1.1.0', None)}
+    u'construct': (u'__version__', u'2.5.2', u'2.5.3', True),
+    u'dfdatetime': (u'__version__', u'20160814', None, True),
+    u'pyregf': (u'get_version()', u'20150315', None, True),
+    u'six': (u'__version__', u'1.1.0', None, True)}
+
+PYTHON_TEST_DEPENDENCIES = {}
 
 # Maps Python module names to DPKG packages.
 _DPKG_PACKAGE_NAMES = {
@@ -35,13 +37,15 @@ _VERSION_SPLIT_REGEX = re.compile(r'\.|\-')
 
 def _CheckPythonModule(
     module_name, version_attribute_name, minimum_version,
-    maximum_version=None, verbose_output=True):
+    is_required=True, maximum_version=None, verbose_output=True):
   """Checks the availability of a Python module.
 
   Args:
     module_name (str): name of the module.
     version_attribute_name (str): name of the attribute that contains
        the module version or method to retrieve the module version.
+    is_required (Optional[bool]): True if the Python module is a required
+        dependency.
     minimum_version (str): minimum required version.
     maximum_version (Optional[str]): maximum required version. Should only be
         used if there is a later version that is not supported.
@@ -53,6 +57,10 @@ def _CheckPythonModule(
   """
   module_object = _ImportPythonModule(module_name)
   if not module_object:
+    if not is_required:
+      print(u'[OPTIONAL]\tmissing: {0:s}.'.format(module_name))
+      return True
+
     print(u'[FAILURE]\tmissing: {0:s}.'.format(module_name))
     return False
 
@@ -143,7 +151,8 @@ def CheckDependencies(verbose_output=True):
   for module_name, version_tuple in sorted(PYTHON_DEPENDENCIES.items()):
     if not _CheckPythonModule(
         module_name, version_tuple[0], version_tuple[1],
-        maximum_version=version_tuple[2], verbose_output=verbose_output):
+        is_required=version_tuple[3], maximum_version=version_tuple[2],
+        verbose_output=verbose_output):
       check_result = False
 
   if check_result and not verbose_output:
@@ -171,7 +180,7 @@ def CheckModuleVersion(module_name):
   if module_name not in PYTHON_DEPENDENCIES:
     return
 
-  version_attribute_name, minimum_version, maximum_version = (
+  version_attribute_name, minimum_version, maximum_version, _ = (
       PYTHON_DEPENDENCIES[module_name])
 
   module_version = None
@@ -217,10 +226,10 @@ def CheckTestDependencies():
     return False
 
   print(u'Checking availability and versions of test dependencies.')
-  for module_name, version_tuple in sorted(PYTHON_DEPENDENCIES.items()):
+  for module_name, version_tuple in sorted(PYTHON_TEST_DEPENDENCIES.items()):
     if not _CheckPythonModule(
         module_name, version_tuple[0], version_tuple[1],
-        maximum_version=version_tuple[2]):
+        is_required=version_tuple[3], maximum_version=version_tuple[2]):
       return False
 
   return True
