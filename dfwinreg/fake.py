@@ -361,12 +361,12 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
       # AttributeError is raised when self._data has no decode method.
       except AttributeError as exception:
         raise errors.WinRegistryValueError((
-            u'Unsupported data type: {0:s} of value: {1:s} with error: '
-            u'{2:s}').format(type(self._data), self._name, exception))
+            u'Unsupported data type: {0!s} of value: {1!s} with error: '
+            u'{2!s}').format(type(self._data), self._name, exception))
 
       except UnicodeError as exception:
         raise errors.WinRegistryValueError(
-            u'Unable to decode data of value: {0:s} with error: {1:s}'.format(
+            u'Unable to decode data of value: {0!s} with error: {1!s}'.format(
                 self._name, exception))
 
     elif (self._data_type == definitions.REG_DWORD and
@@ -387,9 +387,15 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
         # TODO: evaluate the use of filter here is appropriate behavior.
         return list(filter(None, utf16_string.split(u'\x00')))
 
+      # AttributeError is raised when self._data has no decode method.
+      except AttributeError as exception:
+        raise errors.WinRegistryValueError((
+            u'Unsupported data type: {0!s} of value: {1!s} with error: '
+            u'{2!s}').format(type(self._data), self._name, exception))
+
       except UnicodeError as exception:
         raise errors.WinRegistryValueError(
-            u'Unable to read data from value: {0:s} with error: {1:s}'.format(
+            u'Unable to read data from value: {0!s} with error: {1!s}'.format(
                 self._name, exception))
 
     return self._data

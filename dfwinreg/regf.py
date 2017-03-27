@@ -226,7 +226,7 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
       return self._pyregf_value.data
     except IOError as exception:
       raise errors.WinRegistryValueError(
-          u'Unable to read data from value: {0:s} with error: {1:s}'.format(
+          u'Unable to read data from value: {0:s} with error: {1!s}'.format(
               self._pyregf_value.name, exception))
 
   @property
@@ -258,7 +258,7 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
         return self._pyregf_value.get_data_as_string()
       except IOError as exception:
         raise errors.WinRegistryValueError(
-            u'Unable to read data from value: {0:s} with error: {1:s}'.format(
+            u'Unable to read data from value: {0:s} with error: {1!s}'.format(
                 self._pyregf_value.name, exception))
 
     elif self._pyregf_value.type in self._INTEGER_VALUE_TYPES:
@@ -266,7 +266,7 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
         return self._pyregf_value.get_data_as_integer()
       except (IOError, OverflowError) as exception:
         raise errors.WinRegistryValueError(
-            u'Unable to read data from value: {0:s} with error: {1:s}'.format(
+            u'Unable to read data from value: {0:s} with error: {1!s}'.format(
                 self._pyregf_value.name, exception))
 
     # TODO: Add support for REG_MULTI_SZ to pyregf.
@@ -280,7 +280,7 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
 
       except (IOError, UnicodeError) as exception:
         raise errors.WinRegistryValueError(
-            u'Unable to read data from value: {0:s} with error: {1:s}'.format(
+            u'Unable to read data from value: {0:s} with error: {1!s}'.format(
                 self._pyregf_value.name, exception))
 
     return self._pyregf_value.data
