@@ -126,6 +126,26 @@ class REGFWinRegistryKeyTest(REGFWinRegTestCase):
 
     registry_file.Close()
 
+  def testGetSubkeyByIndex(self):
+    """Tests the GetSubkeyByIndex function."""
+    registry_file = self._OpenREGFRegistryFile(
+        u'NTUSER.DAT', key_path_prefix=u'HKEY_CURRENT_USER')
+
+    registry_key = registry_file.GetRootKey()
+
+    key_name = u'AppEvents'
+    registry_subkey = registry_key.GetSubkeyByIndex(0)
+    self.assertIsNotNone(registry_subkey)
+    self.assertEqual(registry_subkey.name, key_name)
+
+    expected_key_path = u'HKEY_CURRENT_USER\\AppEvents'
+    self.assertEqual(registry_subkey.path, expected_key_path)
+
+    with self.assertRaises(IndexError):
+      registry_key.GetSubkeyByIndex(-1)
+
+    registry_file.Close()
+
   def testGetSubkeyByName(self):
     """Tests the GetSubkeyByName function."""
     registry_file = self._OpenREGFRegistryFile(

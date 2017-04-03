@@ -216,20 +216,24 @@ def CheckModuleVersion(module_name):
           u'required.').format(module_name, module_version, maximum_version))
 
 
-def CheckTestDependencies():
+def CheckTestDependencies(verbose_output=True):
   """Checks the availability of the dependencies when running tests.
+
+  Args:
+    verbose_output (Optional[bool]): True if output should be verbose.
 
   Returns:
     bool: True if the dependencies are available, False otherwise.
   """
-  if not CheckDependencies():
+  if not CheckDependencies(verbose_output=verbose_output):
     return False
 
   print(u'Checking availability and versions of test dependencies.')
   for module_name, version_tuple in sorted(PYTHON_TEST_DEPENDENCIES.items()):
     if not _CheckPythonModule(
         module_name, version_tuple[0], version_tuple[1],
-        is_required=version_tuple[3], maximum_version=version_tuple[2]):
+        is_required=version_tuple[3], maximum_version=version_tuple[2],
+        verbose_output=verbose_output):
       return False
 
   return True
@@ -278,10 +282,7 @@ def GetInstallRequires():
 
     # Map the import name to the PyPI project name.
     module_name = _PYPI_PROJECT_NAMES.get(module_name, module_name)
-    if module_name == u'efilter':
-      module_version = u'1-{0:s}'.format(module_version)
-
-    elif module_name == u'pysqlite':
+    if module_name == u'pysqlite':
       # Override the pysqlite version since it does not match
       # the sqlite3 version.
       module_version = None
@@ -298,8 +299,12 @@ def GetInstallRequires():
   return sorted(install_requires)
 
 
-def GetRPMRequires():
+def GetRPMRequires(exclude_version=False):
   """Retrieves the setup.cfg RPM installation requirements.
+
+  Args:
+    exclude_version (Optional[bool]): True if the version should be excluded
+        from the dependency definitions.
 
   Returns:
     list[str]: dependency definitions for requires for setup.cfg.
@@ -316,7 +321,7 @@ def GetRPMRequires():
       # the sqlite3 version.
       module_version = None
 
-    if not module_version:
+    if exclude_version or not module_version:
       requires.append(module_name)
     else:
       requires.append(u'{0:s} >= {1!s}'.format(module_name, module_version))

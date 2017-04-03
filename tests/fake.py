@@ -236,6 +236,19 @@ class FakeWinRegistryKeyTest(unittest.TestCase):
     with self.assertRaises(KeyError):
       registry_key.AddValue(registry_value)
 
+  def testGetSubkeyByIndex(self):
+    """Tests the GetSubkeyByIndex function."""
+    registry_key = self._CreateTestKey()
+
+    registry_subkey = registry_key.GetSubkeyByIndex(0)
+    self.assertIsNotNone(registry_subkey)
+
+    expected_key_path = u'HKEY_CURRENT_USER\\Software\\Microsoft'
+    self.assertEqual(registry_subkey.path, expected_key_path)
+
+    with self.assertRaises(IndexError):
+      registry_key.GetSubkeyByIndex(-1)
+
   def testGetSubkeyByName(self):
     """Tests the GetSubkeyByName function."""
     registry_key = self._CreateTestKey()

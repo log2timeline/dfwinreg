@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Fake Windows Registry objects implementation."""
 
+import collections
+
 import construct
 
 from dfdatetime import filetime as dfdatetime_filetime
@@ -137,8 +139,8 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     self._last_written_time = last_written_time
     self._name = name
     self._offset = offset
-    self._subkeys = {}
-    self._values = {}
+    self._subkeys = collections.OrderedDict()
+    self._values = collections.OrderedDict()
 
     self._BuildKeyHierarchy(subkeys, values)
 
@@ -239,6 +241,25 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
           u'Value: {0:s} already exists.'.format(registry_value.name))
 
     self._values[name] = registry_value
+
+  def GetSubkeyByIndex(self, index):
+    """Retrieves a subkey by index.
+
+    Args:
+      index (int): index of the subkey.
+
+    Returns:
+      WinRegistryKey: Windows Registry subkey or None if not found.
+
+    Raises:
+      IndexError: if the index is out of bounds.
+    """
+    subkeys = list(self._subkeys.values())
+
+    if index < 0 or index >= len(subkeys):
+      raise IndexError(u'Index out of bounds.')
+
+    return subkeys[index]
 
   def GetSubkeyByName(self, name):
     """Retrieves a subkey by name.

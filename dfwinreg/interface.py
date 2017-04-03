@@ -179,6 +179,20 @@ class WinRegistryKey(object):
     return key_path
 
   @abc.abstractmethod
+  def GetSubkeyByIndex(self, index):
+    """Retrieves a subkey by index.
+
+    Args:
+      index (int): index of the subkey.
+
+    Returns:
+      WinRegistryKey: Windows Registry subkey or None if not found.
+
+    Raises:
+      IndexError: if the index is out of bounds.
+    """
+
+  @abc.abstractmethod
   def GetSubkeyByName(self, name):
     """Retrieves a subkey by name.
 

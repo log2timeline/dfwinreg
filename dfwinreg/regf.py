@@ -132,6 +132,28 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     """int: offset of the key within the Windows Registry file."""
     return self._pyregf_key.offset
 
+  def GetSubkeyByIndex(self, index):
+    """Retrieves a subkey by index.
+
+    Args:
+      index (int): index of the subkey.
+
+    Returns:
+      WinRegistryKey: Windows Registry subkey or None if not found.
+
+    Raises:
+      IndexError: if the index is out of bounds.
+    """
+    if index < 0 or index >= self._pyregf_key.number_of_sub_keys:
+      raise IndexError(u'Index out of bounds.')
+
+    pyregf_key = self._pyregf_key.get_sub_key(index)
+    if not pyregf_key:
+      return
+
+    key_path = self._JoinKeyPath([self._key_path, pyregf_key.name])
+    return REGFWinRegistryKey(pyregf_key, key_path=key_path)
+
   def GetSubkeyByName(self, name):
     """Retrieves a subkey by name.
 
