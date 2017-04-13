@@ -410,7 +410,6 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
 
     elif (self._data_type == definitions.REG_DWORD_BIG_ENDIAN and
           self._data_size == 4):
-      print("XXX", self._INT32_BIG_ENDIAN._data_type_definition.__dict__)
       return self._INT32_BIG_ENDIAN.MapByteStream(self._data)
 
     elif (self._data_type == definitions.REG_QWORD and
