@@ -8,7 +8,7 @@ import unittest
 # Change PYTHONPATH to include dfwinreg.
 sys.path.insert(0, u'.')
 
-import dfwinreg.dependencies
+import dfwinreg.dependencies  # pylint: disable=wrong-import-position
 
 
 if __name__ == '__main__':

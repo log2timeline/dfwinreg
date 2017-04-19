@@ -281,7 +281,7 @@ def GetL2TBinaries():
     list[str]: dependency definitions for l2tbinaries.
   """
   requires = []
-  for module_name, version_tuple in sorted(PYTHON_DEPENDENCIES.items()):
+  for module_name, _ in sorted(PYTHON_DEPENDENCIES.items()):
     # Map the import name to the l2tbinaries package name.
     module_name = _L2TBINARIES_PACKAGE_NAMES.get(module_name, module_name)
 
