@@ -114,20 +114,17 @@ class DPKGControlWriter(object):
     file_content.extend(self._PYTHON2_PACKAGE_HEADER)
 
     dependencies = dfwinreg.dependencies.GetDPKGDepends()
+    dependencies.extend([u'${python:Depends}', u'${misc:Depends}'])
     dependencies = u', '.join(dependencies)
-    file_content.append(
-        u'Depends: {0:s}, ${{python:Depends}}, ${{misc:Depends}}'.format(
-            dependencies))
+
+    file_content.append(u'Depends: {0:s}'.format(dependencies))
 
     file_content.extend(self._PYTHON_PACKAGE_FOOTER)
     file_content.extend(self._PYTHON3_PACKAGE_HEADER)
 
-    dependencies = dfwinreg.dependencies.GetDPKGDepends()
-    dependencies = u', '.join(dependencies)
     dependencies = dependencies.replace(u'python', u'python3')
-    file_content.append(
-        u'Depends: {0:s}, ${{python:Depends}}, ${{misc:Depends}}'.format(
-            dependencies))
+
+    file_content.append(u'Depends: {0:s}'.format(dependencies))
 
     file_content.extend(self._PYTHON_PACKAGE_FOOTER)
 
