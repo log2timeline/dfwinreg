@@ -40,14 +40,16 @@ class AppveyorYmlWriter(object):
       (u'  - cmd: "%PYTHON%\\\\Scripts\\\\easy_install.exe '
        u'C:\\\\Projects\\\\WMI-1.4.9.win32.exe"'),
       (u'  - cmd: git clone https://github.com/log2timeline/l2tdevtools.git '
-       u'&& move l2tdevtools ..\\'),
-      (u'  - cmd: mkdir dependencies && set PYTHONPATH=..\\l2tdevtools && '
-       u'"%PYTHON%\\\\python.exe" ..\\l2tdevtools\\tools\\update.py '
-       u'--download-directory dependencies --machine-type x86 '
-       u'--msi-targetdir "%PYTHON%" --preset dfwinreg'),
-      u'']
+       u'&& move l2tdevtools ..\\')]
+
+  _L2TDEVTOOLS_UPDATE = (
+      u'  - cmd: mkdir dependencies && set PYTHONPATH=..\\l2tdevtools && '
+      u'"%PYTHON%\\\\python.exe" ..\\l2tdevtools\\tools\\update.py '
+      u'--download-directory dependencies --machine-type x86 '
+      u'--msi-targetdir "%PYTHON%" {0:s}')
 
   _FILE_FOOTER = [
+      u'',
       u'build: off',
       u'',
       u'test_script:',
@@ -58,6 +60,13 @@ class AppveyorYmlWriter(object):
     """Writes a setup.cfg file."""
     file_content = []
     file_content.extend(self._FILE_HEADER)
+
+    dependencies = dfwinreg.dependencies.GetL2TBinaries()
+    dependencies.extend([u'funcsigs', u'mock', u'pbr'])
+    dependencies = u' '.join(dependencies)
+
+    l2tdevtools_update = self._L2TDEVTOOLS_UPDATE.format(dependencies)
+    file_content.append(l2tdevtools_update)
 
     file_content.extend(self._FILE_FOOTER)
 
@@ -151,7 +160,8 @@ class RequirementsWriter(object):
     file_content = []
     file_content.extend(self._FILE_HEADER)
 
-    for dependency in dfwinreg.dependencies.GetInstallRequires():
+    dependencies = dfwinreg.dependencies.GetInstallRequires()
+    for dependency in dependencies:
       file_content.append(u'{0:s}'.format(dependency))
 
     file_content = u'\n'.join(file_content)

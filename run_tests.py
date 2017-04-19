@@ -19,7 +19,7 @@ if __name__ == '__main__':
     # the argparse tests.
     sys.argv.remove('--fail-unless-has-test-file')
 
-  if not dfwinreg.dependencies.CheckDependencies():
+  if not dfwinreg.dependencies.CheckTestDependencies():
     sys.exit(1)
 
   test_suite = unittest.TestLoader().discover('tests', pattern='*.py')

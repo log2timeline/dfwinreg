@@ -18,11 +18,16 @@ PYTHON_DEPENDENCIES = {
     u'pyregf': (u'get_version()', u'20150315', None, True),
     u'six': (u'__version__', u'1.1.0', None, True)}
 
-PYTHON_TEST_DEPENDENCIES = {}
+PYTHON_TEST_DEPENDENCIES = {
+    u'mock': (u'__version__', u'0.7.1', None, True)}
 
 # Maps Python module names to DPKG packages.
 _DPKG_PACKAGE_NAMES = {
     u'pyregf': u'libregf-python'}
+
+# Maps Python module names to l2tbinaries packages.
+_L2TBINARIES_PACKAGE_NAMES = {
+    u'pyregf': u'libregf'}
 
 # Maps Python module names to PyPI projects.
 _PYPI_PROJECT_NAMES = {
@@ -265,6 +270,22 @@ def GetDPKGDepends(exclude_version=False):
       requires.append(module_name)
     else:
       requires.append(u'{0:s} (>= {1!s})'.format(module_name, module_version))
+
+  return sorted(requires)
+
+
+def GetL2TBinaries():
+  """Retrieves the l2tbinaries requirements.
+
+  Returns:
+    list[str]: dependency definitions for l2tbinaries.
+  """
+  requires = []
+  for module_name, version_tuple in sorted(PYTHON_DEPENDENCIES.items()):
+    # Map the import name to the l2tbinaries package name.
+    module_name = _L2TBINARIES_PACKAGE_NAMES.get(module_name, module_name)
+
+    requires.append(module_name)
 
   return sorted(requires)
 
