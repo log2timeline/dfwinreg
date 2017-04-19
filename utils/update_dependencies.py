@@ -44,7 +44,8 @@ class AppveyorYmlWriter(object):
       (u'  - cmd: mkdir dependencies && set PYTHONPATH=..\\l2tdevtools && '
        u'"%PYTHON%\\\\python.exe" ..\\l2tdevtools\\tools\\update.py '
        u'--download-directory dependencies --machine-type x86 '
-       u'--msi-targetdir "%PYTHON%" --preset dfwinreg')]
+       u'--msi-targetdir "%PYTHON%" --preset dfwinreg'),
+      u'']
 
   _FILE_FOOTER = [
       u'build: off',
