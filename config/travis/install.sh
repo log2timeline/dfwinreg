@@ -4,6 +4,10 @@
 
 COVERALL_DEPENDENCIES="python-coverage python-coveralls python-docopt";
 
+L2TBINARIES_DEPENDENCIES="construct dfdatetime libregf six";
+
+L2TBINARIES_TEST_DEPENDENCIES="funcsigs mock pbr";
+
 PYTHON2_DEPENDENCIES="libregf-python python-construct python-dfdatetime python-six";
 
 PYTHON2_TEST_DEPENDENCIES="python-mock";
@@ -22,7 +26,7 @@ then
 	mv l2tdevtools ../;
 	mkdir dependencies;
 
-	PYTHONPATH=../l2tdevtools ../l2tdevtools/tools/update.py --download-directory=dependencies --preset=dfwinreg;
+	PYTHONPATH=../l2tdevtools ../l2tdevtools/tools/update.py --download-directory=dependencies ${L2TBINARIES_DEPENDENCIES} ${L2TBINARIES_TEST_DEPENDENCIES};
 
 elif test `uname -s` = "Linux";
 then

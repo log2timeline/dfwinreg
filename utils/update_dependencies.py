@@ -235,7 +235,8 @@ class TravisBeforeInstallScriptWriter(object):
       u'\tmkdir dependencies;',
       u'',
       (u'\tPYTHONPATH=../l2tdevtools ../l2tdevtools/tools/update.py '
-       u'--download-directory=dependencies --preset=dfwinreg;'),
+       u'--download-directory=dependencies ${L2TBINARIES_DEPENDENCIES} '
+       u'${L2TBINARIES_TEST_DEPENDENCIES};'),
       u'',
       u'elif test `uname -s` = "Linux";',
       u'then',
@@ -251,6 +252,16 @@ class TravisBeforeInstallScriptWriter(object):
     """Writes a setup.cfg file."""
     file_content = []
     file_content.extend(self._FILE_HEADER)
+
+    dependencies = dfwinreg.dependencies.GetL2TBinaries()
+    dependencies = u' '.join(dependencies)
+    file_content.append(u'L2TBINARIES_DEPENDENCIES="{0:s}";'.format(
+        dependencies))
+
+    file_content.append(u'')
+    file_content.append(u'L2TBINARIES_TEST_DEPENDENCIES="funcsigs mock pbr";')
+
+    file_content.append(u'')
 
     dependencies = dfwinreg.dependencies.GetDPKGDepends(exclude_version=True)
     dependencies = u' '.join(dependencies)
