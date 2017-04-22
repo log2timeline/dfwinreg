@@ -1,6 +1,7 @@
 pip >= 7.0.0
 pytest
+mock
 construct >= 2.5.2,<= 2.5.3
-dfdatetime >= 20160319
+dfdatetime >= 20160814
 libregf-python >= 20150315
 six >= 1.1.0
