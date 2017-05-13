@@ -6,13 +6,9 @@ import pyregf
 from dfdatetime import filetime as dfdatetime_filetime
 from dfdatetime import semantic_time as dfdatetime_semantic_time
 
-from dfwinreg import dependencies
 from dfwinreg import definitions
 from dfwinreg import errors
 from dfwinreg import interface
-
-
-dependencies.CheckModuleVersion(u'pyregf')
 
 
 class REGFWinRegistryFile(interface.WinRegistryFile):
