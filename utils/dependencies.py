@@ -131,25 +131,48 @@ class DependencyHelper(object):
     """
     module_object = self._ImportPythonModule(dependency.name)
     if not module_object:
-      status_message = u'missing: {0:s}.'.format(dependency.name)
+      status_message = u'missing: {0:s}'.format(dependency.name)
       return dependency.is_optional, status_message
 
     if not dependency.version_property or not dependency.minimum_version:
       return True, dependency.name
 
+    return self._CheckPythonModuleVersion(
+        dependency.name, module_object, dependency.version_property,
+        dependency.minimum_version, dependency.maximum_version)
+
+  def _CheckPythonModuleVersion(
+      self, module_name, module_object, version_property, minimum_version,
+      maximum_version):
+    """Checks the version of a Python module.
+
+    Args:
+      module_object (module): Python module.
+      module_name (str): name of the Python module.
+      version_property (str): version attribute or function.
+      minimum_version (str): minimum version.
+      maximum_version (str): maximum version.
+
+    Returns:
+      tuple: consists:
+
+        bool: True if the Python module is available and conforms to
+            the minimum required version, False otherwise.
+        str: status message.
+    """
     module_version = None
-    if not dependency.version_property.endswith(u'()'):
-      module_version = getattr(module_object, dependency.version_property, None)
+    if not version_property.endswith(u'()'):
+      module_version = getattr(module_object, version_property, None)
     else:
       version_method = getattr(
-          module_object, dependency.version_property[:-2], None)
+          module_object, version_property[:-2], None)
       if version_method:
         module_version = version_method()
 
     if not module_version:
       status_message = (
           u'unable to determine version information for: {0:s}').format(
-              dependency.name)
+              module_name)
       return False, status_message
 
     # Make sure the module version is a string.
@@ -160,26 +183,24 @@ class DependencyHelper(object):
     module_version_map = list(
         map(int, self._VERSION_SPLIT_REGEX.split(module_version)))
     minimum_version_map = list(
-        map(int, self._VERSION_SPLIT_REGEX.split(dependency.minimum_version)))
+        map(int, self._VERSION_SPLIT_REGEX.split(minimum_version)))
 
     if module_version_map < minimum_version_map:
       status_message = (
-          u'{0:s} version: {1!s} is too old, {2!s} or later required.').format(
-              dependency.name, module_version, dependency.minimum_version)
+          u'{0:s} version: {1!s} is too old, {2!s} or later required').format(
+              module_name, module_version, minimum_version)
       return False, status_message
 
-    if dependency.maximum_version:
+    if maximum_version:
       maximum_version_map = list(
-          map(int, self._VERSION_SPLIT_REGEX.split(dependency.maximum_version)))
+          map(int, self._VERSION_SPLIT_REGEX.split(maximum_version)))
       if module_version_map > maximum_version_map:
         status_message = (
             u'{0:s} version: {1!s} is too recent, {2!s} or earlier '
-            u'required.').format(
-                dependency.name, module_version, dependency.maximum_version)
+            u'required').format(module_name, module_version, maximum_version)
         return False, status_message
 
-    status_message = u'{0:s} version: {1!s}'.format(
-        dependency.name, module_version)
+    status_message = u'{0:s} version: {1!s}'.format(module_name, module_version)
     return True, status_message
 
   def _ImportPythonModule(self, module_name):
