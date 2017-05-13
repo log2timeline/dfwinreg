@@ -7,11 +7,6 @@ import os
 import sys
 
 try:
-  import run_tests
-except ImportError:
-  run_tests = None
-
-try:
   from setuptools import find_packages, setup, Command
 except ImportError:
   from distutils.core import find_packages, setup, Command
@@ -96,21 +91,6 @@ class BdistRPMCommand(bdist_rpm):
       python_spec_file.append(line)
 
     return python_spec_file
-
-
-class TestCommand(Command):
-  """Run tests, implementing an interface."""
-  user_options = []
-
-  def initialize_options(self):
-    self._dir = os.getcwd()
-
-  def finalize_options(self):
-    pass
-
-  def run(self):
-    if run_tests:
-      run_tests.RunTests(os.path.join('.', 'dfwinreg'))
 
 
 dfwinreg_version = dfwinreg.__version__
