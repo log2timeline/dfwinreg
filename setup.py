@@ -117,8 +117,7 @@ setup(
     maintainer='dfWinReg development team',
     maintainer_email='log2timeline-dev@googlegroups.com',
     cmdclass={
-        'bdist_rpm': BdistRPMCommand,
-        'test': TestCommand},
+        'bdist_rpm': BdistRPMCommand},
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
