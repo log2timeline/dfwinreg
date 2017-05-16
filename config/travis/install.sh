@@ -28,5 +28,7 @@ elif test ${TRAVIS_OS_NAME} = "linux";
 then
 	sudo add-apt-repository ppa:gift/dev -y;
 	sudo apt-get update -q;
+	# Only install the Python 2 dependencies.
+	# Also see: https://docs.travis-ci.com/user/languages/python/#Travis-CI-Uses-Isolated-virtualenvs
 	sudo apt-get install -y ${COVERALL_DEPENDENCIES} ${PYTHON2_DEPENDENCIES} ${PYTHON2_TEST_DEPENDENCIES};
 fi
