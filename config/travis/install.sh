@@ -6,7 +6,7 @@ COVERALL_DEPENDENCIES="python-coverage python-coveralls python-docopt";
 
 L2TBINARIES_DEPENDENCIES="dfdatetime dtfabric libregf";
 
-L2TBINARIES_TEST_DEPENDENCIES="funcsigs mock pbr";
+L2TBINARIES_TEST_DEPENDENCIES="funcsigs mock pbr six";
 
 PYTHON2_DEPENDENCIES="libregf-python python-dfdatetime python-dtfabric";
 
