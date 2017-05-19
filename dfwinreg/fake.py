@@ -7,13 +7,9 @@ import construct
 
 from dfdatetime import filetime as dfdatetime_filetime
 
-from dfwinreg import dependencies
 from dfwinreg import definitions
 from dfwinreg import errors
 from dfwinreg import interface
-
-
-dependencies.CheckModuleVersion(u'construct')
 
 
 class FakeWinRegistryFile(interface.WinRegistryFile):
