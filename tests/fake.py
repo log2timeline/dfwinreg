@@ -174,7 +174,7 @@ class FakeWinRegistryKeyTest(unittest.TestCase):
 
     self.assertEqual(registry_key.number_of_subkeys, 1)
     self.assertEqual(registry_key.number_of_values, 1)
-    self.assertEqual(registry_key.offset, 0)
+    self.assertEqual(registry_key.offset, None)
 
     self.assertIsNotNone(registry_key.last_written_time)
     timestamp = registry_key.last_written_time.timestamp
