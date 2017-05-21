@@ -2,213 +2,7 @@
 """Classes for Windows Registry access."""
 
 from dfwinreg import definitions
-from dfwinreg import fake
-from dfwinreg import interface
-
-
-class VirtualWinRegistryKey(interface.WinRegistryKey):
-  """Virtual Windows Registry key."""
-
-  def __init__(self, name, key_path=u'', registry=None, registry_key=None):
-    """Initializes a Windows Registry key.
-
-    Args:
-      name (str): name of the Windows Registry key.
-      key_path (Optional[str]): Windows Registry key path.
-      registry (Optional[WinRegistry]): Windows Registry.
-      registry_key (Optional[WinRegistryKey]): Windows Registry key.
-    """
-    if not registry and not registry_key:
-      registry_key = fake.FakeWinRegistryKey(name)
-
-    super(VirtualWinRegistryKey, self).__init__(key_path=key_path)
-    self._name = name
-    self._registry = registry
-    self._registry_key = registry_key
-
-  @property
-  def last_written_time(self):
-    """dfdatetime.DateTimeValues: last written time or None."""
-    if not self._registry_key:
-      self._GetKeyFromRegistry()
-
-    if self._registry_key:
-      return self._registry_key.last_written_time
-
-  @property
-  def name(self):
-    """str: name of the key."""
-    return self._name
-
-  @property
-  def number_of_subkeys(self):
-    """int: number of subkeys within the key."""
-    if not self._registry_key:
-      self._GetKeyFromRegistry()
-
-    if self._registry_key:
-      return self._registry_key.number_of_subkeys
-
-    return 0
-
-  @property
-  def number_of_values(self):
-    """int: number of values within the key."""
-    if not self._registry_key:
-      self._GetKeyFromRegistry()
-
-    if self._registry_key:
-      return self._registry_key.number_of_values
-
-    return 0
-
-  @property
-  def offset(self):
-    """int: offset of the key within the Windows Registry file or None."""
-    if not self._registry_key:
-      self._GetKeyFromRegistry()
-
-    if self._registry_key:
-      return self._registry_key.offset
-
-  def _GetKeyFromRegistry(self):
-    """Retrieves the key from the Windows Registry."""
-    if self._registry:
-      try:
-        self._registry_key = self._registry.GetKeyByPath(self._key_path)
-      except RuntimeError:
-        pass
-
-      self._registry = None
-
-  def _JoinKeyPath(self, path_segments):
-    """Joins the path segments into key path.
-
-    Args:
-      path_segment (list[str]): Windows Registry key path segments.
-    """
-    # This is an optimized way to combine the path segments into a single path
-    # and combine multiple successive path separators to one.
-
-    # Split all the path segments based on the path (segment) separator.
-    path_segments = [
-        segment.split(definitions.KEY_PATH_SEPARATOR)
-        for segment in path_segments]
-
-    # Flatten the sublists into one list.
-    path_segments = [
-        element for sublist in path_segments for element in sublist]
-
-    # Remove empty path segments.
-    path_segments = filter(None, path_segments)
-
-    return definitions.KEY_PATH_SEPARATOR.join(path_segments)
-
-  def AddSubkey(self, registry_key):
-    """Adds a subkey.
-
-    Args:
-      registry_key (WinRegistryKey): Windows Registry subkey.
-
-    Raises:
-      KeyError: if the subkey already exists.
-    """
-    if hasattr(self._registry_key, u'AddSubkey'):
-      self._registry_key.AddSubkey(registry_key)
-
-    key_path = self._JoinKeyPath([self._key_path, registry_key.name])
-    registry_key._key_path = key_path  # pylint: disable=protected-access
-
-  def GetSubkeyByIndex(self, index):
-    """Retrieves a subkey by index.
-
-    Args:
-      index (int): index of the subkey.
-
-    Returns:
-      WinRegistryKey: Windows Registry subkey or None if not found.
-
-    Raises:
-      IndexError: if the index is out of bounds.
-    """
-    if not self._registry_key:
-      self._GetKeyFromRegistry()
-
-    if self._registry_key:
-      return self._registry_key.GetSubkeyByIndex(index)
-
-  def GetSubkeyByName(self, name):
-    """Retrieves a subkey by name.
-
-    Args:
-      name (str): name of the subkey.
-
-    Returns:
-      WinRegistryKey: Windows Registry subkey or None if not found.
-    """
-    if not self._registry_key:
-      self._GetKeyFromRegistry()
-
-    if self._registry_key:
-      return self._registry_key.GetSubkeyByName(name)
-
-  def GetSubkeyByPath(self, path):
-    """Retrieves a subkey by path.
-
-    Args:
-      path (str): path of the subkey.
-
-    Returns:
-      WinRegistryKey: Windows Registry subkey or None if not found.
-    """
-    if not self._registry_key:
-      self._GetKeyFromRegistry()
-
-    if self._registry_key:
-      return self._registry_key.GetSubkeyByPath(path)
-
-  def GetSubkeys(self):
-    """Retrieves all subkeys within the key.
-
-    Yields:
-      WinRegistryKey: Windows Registry subkey.
-    """
-    if not self._registry_key:
-      self._GetKeyFromRegistry()
-
-    if self._registry_key:
-      return self._registry_key.GetSubkeys()
-
-    return iter([])
-
-  def GetValueByName(self, name):
-    """Retrieves a value by name.
-
-    Args:
-      name (str): name of the value or an empty string for the default value.
-
-    Returns:
-      WinRegistryValue: Windows Registry value or None if not found.
-    """
-    if not self._registry_key:
-      self._GetKeyFromRegistry()
-
-    if self._registry_key:
-      return self._registry_key.GetValueByName(name)
-
-  def GetValues(self):
-    """Retrieves all values within the key.
-
-    Yields:
-      WinRegistryValue: Windows Registry value.
-    """
-    if not self._registry_key:
-      self._GetKeyFromRegistry()
-
-    if self._registry_key:
-      return self._registry_key.GetValues()
-
-    return iter([])
+from dfwinreg import virtual
 
 
 class WinRegistryFileMapping(object):
@@ -573,7 +367,7 @@ class WinRegistry(object):
       RuntimeError: if there are multiple matching mappings and
           the correct mapping cannot be resolved.
     """
-    root_registry_key = VirtualWinRegistryKey(u'')
+    root_registry_key = virtual.VirtualWinRegistryKey(u'')
 
     for mapped_key in self._MAPPED_KEYS:
       key_path_segments = self.SplitKeyPath(mapped_key)
@@ -584,7 +378,7 @@ class WinRegistry(object):
       for name in key_path_segments[:-1]:
         sub_registry_key = registry_key.GetSubkeyByName(name)
         if not sub_registry_key:
-          sub_registry_key = VirtualWinRegistryKey(name)
+          sub_registry_key = virtual.VirtualWinRegistryKey(name)
           registry_key.AddSubkey(sub_registry_key)
 
         registry_key = sub_registry_key
@@ -594,10 +388,10 @@ class WinRegistry(object):
       registry_file = self._registry_files.get(key_path_prefix_upper, None)
       if registry_file:
         file_root_registry_key = registry_file.GetRootKey()
-        sub_registry_key = VirtualWinRegistryKey(
+        sub_registry_key = virtual.VirtualWinRegistryKey(
             key_path_segments[-1], registry_key=file_root_registry_key)
       else:
-        sub_registry_key = VirtualWinRegistryKey(
+        sub_registry_key = virtual.VirtualWinRegistryKey(
             key_path_segments[-1], registry=self)
 
       registry_key.AddSubkey(sub_registry_key)

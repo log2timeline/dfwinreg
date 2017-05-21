@@ -292,8 +292,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     Yields:
       WinRegistryKey: Windows Registry subkey.
     """
-    for registry_key in iter(self._subkeys.values()):
-      yield registry_key
+    return iter(self._subkeys.values())
 
   def GetValueByName(self, name):
     """Retrieves a value by name.
@@ -312,8 +311,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     Yields:
       WinRegistryValue: Windows Registry value.
     """
-    for registry_value in iter(self._values.values()):
-      yield registry_value
+    return iter(self._values.values())
 
 
 class FakeWinRegistryValue(interface.WinRegistryValue):
