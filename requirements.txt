@@ -1,6 +1,7 @@
 pip >= 7.0.0
 pytest
 mock
+PyYAML >= 3.10
 dfdatetime >= 20160814
 dtfabric >= 20170413
 libregf-python >= 20150315

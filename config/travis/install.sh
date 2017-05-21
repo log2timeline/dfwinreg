@@ -4,11 +4,11 @@
 
 COVERALL_DEPENDENCIES="python-coverage python-coveralls python-docopt";
 
-L2TBINARIES_DEPENDENCIES="dfdatetime dtfabric libregf";
+L2TBINARIES_DEPENDENCIES="PyYAML dfdatetime dtfabric libregf";
 
 L2TBINARIES_TEST_DEPENDENCIES="funcsigs mock pbr six";
 
-PYTHON2_DEPENDENCIES="libregf-python python-dfdatetime python-dtfabric";
+PYTHON2_DEPENDENCIES="libregf-python python-dfdatetime python-dtfabric python-yaml";
 
 PYTHON2_TEST_DEPENDENCIES="python-mock python-tox";
 
