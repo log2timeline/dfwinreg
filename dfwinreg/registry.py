@@ -510,7 +510,8 @@ class WinRegistry(object):
         key_path = definitions.KEY_PATH_SEPARATOR.join([
             resolved_key_path, key_path[virtual_key_path_length:]])
 
-    key_path = key_path[len(key_path_prefix_upper):]
+    key_path = (
+        key_path[len(key_path_prefix_upper):] or definitions.KEY_PATH_SEPARATOR)
     return registry_file.GetKeyByPath(key_path)
 
   def GetRegistryFileMapping(self, registry_file):
