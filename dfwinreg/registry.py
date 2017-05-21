@@ -31,6 +31,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """dfdatetime.DateTimeValues: last written time or None."""
     if not self._registry_key:
       self._GetKeyFromRegistry()
+
     if self._registry_key:
       return self._registry_key.last_written_time
 
@@ -44,8 +45,10 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """int: number of subkeys within the key."""
     if not self._registry_key:
       self._GetKeyFromRegistry()
+
     if self._registry_key:
       return self._registry_key.number_of_subkeys
+
     return 0
 
   @property
@@ -53,8 +56,10 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """int: number of values within the key."""
     if not self._registry_key:
       self._GetKeyFromRegistry()
+
     if self._registry_key:
       return self._registry_key.number_of_values
+
     return 0
 
   @property
@@ -62,6 +67,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """int: offset of the key within the Windows Registry file or None."""
     if not self._registry_key:
       self._GetKeyFromRegistry()
+
     if self._registry_key:
       return self._registry_key.offset
 
@@ -127,7 +133,9 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """
     if not self._registry_key:
       self._GetKeyFromRegistry()
-    return self._registry_key.GetSubkeyByIndex(index)
+
+    if self._registry_key:
+      return self._registry_key.GetSubkeyByIndex(index)
 
   def GetSubkeyByName(self, name):
     """Retrieves a subkey by name.
@@ -140,6 +148,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """
     if not self._registry_key:
       self._GetKeyFromRegistry()
+
     if self._registry_key:
       return self._registry_key.GetSubkeyByName(name)
 
@@ -154,6 +163,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """
     if not self._registry_key:
       self._GetKeyFromRegistry()
+
     if self._registry_key:
       return self._registry_key.GetSubkeyByPath(path)
 
@@ -165,8 +175,11 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """
     if not self._registry_key:
       self._GetKeyFromRegistry()
+
     if self._registry_key:
       return self._registry_key.GetSubkeys()
+
+    return iter([])
 
   def GetValueByName(self, name):
     """Retrieves a value by name.
@@ -179,6 +192,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """
     if not self._registry_key:
       self._GetKeyFromRegistry()
+
     if self._registry_key:
       return self._registry_key.GetValueByName(name)
 
@@ -190,8 +204,11 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """
     if not self._registry_key:
       self._GetKeyFromRegistry()
+
     if self._registry_key:
       return self._registry_key.GetValues()
+
+    return iter([])
 
 
 class WinRegistryFileMapping(object):
