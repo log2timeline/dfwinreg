@@ -67,6 +67,8 @@ class FindSpecTest(test_lib.BaseTestCase):
 class WinRegistrySearcherTest(test_lib.BaseTestCase):
   """Tests for the Windows Registry searcher."""
 
+  # pylint: disable=protected-access
+
   # TODO: add tests for _FindInKey
 
   @test_lib.skipUnlessHasTestFile([u'SYSTEM'])
@@ -102,7 +104,8 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
     self.assertEqual(key_paths, expected_key_paths)
 
     find_spec = registry_searcher.FindSpec(
-        key_path_regex=u'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\.*')
+        key_path_regex=[
+            u'HKEY_LOCAL_MACHINE', u'System', u'ControlSet001', u'.*'])
 
     expected_key_paths = [
         u'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Control',
