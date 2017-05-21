@@ -256,6 +256,8 @@ class RegistryTest(test_lib.BaseTestCase):
 
   # TODO: add GetRegistryFileMapping on UsrClass file test.
 
+  # TODO: add tests for GetRootKey
+
   @test_lib.skipUnlessHasTestFile([u'SYSTEM'])
   def testMapFile(self):
     """Tests the MapFile function."""
