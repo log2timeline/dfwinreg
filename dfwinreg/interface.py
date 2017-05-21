@@ -124,7 +124,7 @@ class WinRegistryKey(object):
 
   @abc.abstractproperty
   def last_written_time(self):
-    """dfdatetime.DateTimeValues: last written time."""
+    """dfdatetime.DateTimeValues: last written time or None."""
 
   @abc.abstractproperty
   def name(self):
@@ -140,7 +140,7 @@ class WinRegistryKey(object):
 
   @abc.abstractproperty
   def offset(self):
-    """int: offset of the key within the Windows Registry file."""
+    """int: offset of the key within the Windows Registry file or None."""
 
   @property
   def path(self):

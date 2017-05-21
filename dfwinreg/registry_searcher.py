@@ -73,6 +73,7 @@ class FindSpec(object):
         fnmatch_regex = fnmatch.translate(key_path_glob)
         fnmatch_regex, _, _ = fnmatch_regex.rpartition(r'\Z(?ms)')
         fnmatch_regex = fnmatch_regex.replace(u'\\/', '/')
+        fnmatch_regex = fnmatch_regex.replace(u'\\_', '_')
         self._key_path_regex = fnmatch_regex
       elif isinstance(key_path_glob, list):
         self._key_path_segments = []
@@ -80,6 +81,7 @@ class FindSpec(object):
           fnmatch_regex = fnmatch.translate(key_path_segment)
           fnmatch_regex, _, _ = fnmatch_regex.rpartition(r'\Z(?ms)')
           fnmatch_regex = fnmatch_regex.replace(u'\\/', '/')
+          fnmatch_regex = fnmatch_regex.replace(u'\\_', '_')
           self._key_path_segments.append(fnmatch_regex)
       else:
         raise TypeError(u'Unsupported key_path_glob type: {0:s}.'.format(
@@ -126,7 +128,7 @@ class FindSpec(object):
         if isinstance(segment_name, py2to3.STRING_TYPES):
           # Allow '\n' to be matched by '.' and make '\w', '\W', '\b', '\B',
           # '\d', '\D', '\s' and '\S' Unicode safe.
-          flags = re.DOTALL | re.UNICODE
+          flags = re.DOTALL | re.IGNORECASE | re.UNICODE
 
           try:
             segment_name = r'^{0:s}$'.format(segment_name)

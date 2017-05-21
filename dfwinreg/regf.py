@@ -68,10 +68,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     """
     regf_key = self._regf_file.get_root_key()
     if regf_key:
-      _, _, alias = self._key_path_prefix.rpartition(
-          definitions.KEY_PATH_SEPARATOR)
-      return REGFWinRegistryKey(
-          regf_key, alias=alias, key_path=self._key_path_prefix)
+      return REGFWinRegistryKey(regf_key, key_path=self._key_path_prefix)
 
   def Open(self, file_object):
     """Opens the Windows Registry file using a file-like object.
@@ -90,21 +87,19 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
 class REGFWinRegistryKey(interface.WinRegistryKey):
   """Implementation of a Windows Registry key using pyregf."""
 
-  def __init__(self, pyregf_key, alias=None, key_path=u''):
+  def __init__(self, pyregf_key, key_path=u''):
     """Initializes a Windows Registry key object.
 
     Args:
       pyregf_key (pyregf.key): pyreg key object.
-      alias (Optional[str]): alternative name of the Windows Registry key.
       key_path (Optional[str]): Windows Registry key path.
     """
     super(REGFWinRegistryKey, self).__init__(key_path=key_path)
-    self._alias = alias
     self._pyregf_key = pyregf_key
 
   @property
   def last_written_time(self):
-    """dfdatetime.DateTimeValues: last written time."""
+    """dfdatetime.DateTimeValues: last written time or None."""
     timestamp = self._pyregf_key.get_last_written_time_as_integer()
     if timestamp == 0:
       return dfdatetime_semantic_time.SemanticTime(u'Not set')
@@ -114,7 +109,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
   @property
   def name(self):
     """str: name of the key."""
-    return self._alias or self._pyregf_key.name
+    return self._pyregf_key.name
 
   @property
   def number_of_subkeys(self):
@@ -128,7 +123,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
 
   @property
   def offset(self):
-    """int: offset of the key within the Windows Registry file."""
+    """int: offset of the key within the Windows Registry file or None."""
     return self._pyregf_key.offset
 
   def GetSubkeyByIndex(self, index):

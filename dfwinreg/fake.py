@@ -31,7 +31,7 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
 
     Args:
       key_path (str): Windows Registry key path to add the key.
-      registry_key (FakeWinRegistryKey): Windows Registry key.
+      registry_key (WinRegistryKey): Windows Registry key.
 
     Raises:
       KeyError: if the subkey already exists.
@@ -142,8 +142,9 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
 
   @property
   def last_written_time(self):
-    """dfdatetime.DateTimeValues: last written time."""
-    return dfdatetime_filetime.Filetime(timestamp=self._last_written_time)
+    """dfdatetime.DateTimeValues: last written time or None."""
+    if self._last_written_time is not None:
+      return dfdatetime_filetime.Filetime(timestamp=self._last_written_time)
 
   @property
   def name(self):
@@ -162,7 +163,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
 
   @property
   def offset(self):
-    """int: offset of the key within the Windows Registry file."""
+    """int: offset of the key within the Windows Registry file or None."""
     return self._offset
 
   def _BuildKeyHierarchy(self, subkeys, values):
@@ -207,7 +208,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     """Adds a subkey.
 
     Args:
-      registry_key (FakeWinRegistryKey): Windows Registry subkey.
+      registry_key (WinRegistryKey): Windows Registry subkey.
 
     Raises:
       KeyError: if the subkey already exists.
@@ -218,15 +219,15 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
           u'Subkey: {0:s} already exists.'.format(registry_key.name))
 
     self._subkeys[name] = registry_key
-    # pylint: disable=protected-access
-    registry_key._key_path = self._JoinKeyPath([
-        self._key_path, registry_key.name])
+
+    key_path = self._JoinKeyPath([self._key_path, registry_key.name])
+    registry_key._key_path = key_path  # pylint: disable=protected-access
 
   def AddValue(self, registry_value):
     """Adds a value.
 
     Args:
-      registry_value (FakeWinRegistryValue): Windows Registry value.
+      registry_value (WinRegistryValue): Windows Registry value.
 
     Raises:
       KeyError: if the value already exists.
