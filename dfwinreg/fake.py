@@ -9,7 +9,6 @@ from dfdatetime import filetime as dfdatetime_filetime
 
 from dtfabric import fabric as dtfabric_fabric
 
-from dfwinreg import dependencies
 from dfwinreg import definitions
 from dfwinreg import errors
 from dfwinreg import interface
