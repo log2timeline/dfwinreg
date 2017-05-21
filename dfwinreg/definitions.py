@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """The Windows Registry definitions."""
 
+KEY_PATH_SEPARATOR = u'\\'
+
 # The Registry value types.
 REG_NONE = 0
 REG_SZ = 1

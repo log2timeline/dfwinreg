@@ -7,16 +7,14 @@ from dfwinreg import definitions
 
 
 class WinRegistryFile(object):
-  """Class that defines a Windows Registry file."""
-
-  _KEY_PATH_SEPARATOR = u'\\'
+  """Windows Registry file interface."""
 
   def __init__(self, ascii_codepage=u'cp1252', key_path_prefix=u''):
-    """Initializes the Windows Registry file.
+    """Initializes a Windows Registry file.
 
     Args:
-      ascii_codepage: optional ASCII string codepage.
-      key_path_prefix: optional Windows Registry key path prefix.
+      ascii_codepage (Optional[str]): ASCII string codepage.
+      key_path_prefix (Optional[str]): Windows Registry key path prefix.
     """
     super(WinRegistryFile, self).__init__()
     self._ascii_codepage = ascii_codepage
@@ -24,18 +22,18 @@ class WinRegistryFile(object):
     self._key_path_prefix_length = len(key_path_prefix)
     self._key_path_prefix_upper = key_path_prefix.upper()
 
-  def _SplitKeyPath(self, path):
+  def _SplitKeyPath(self, key_path):
     """Splits the key path into path segments.
 
     Args:
-      path: a string containing the path.
+      key_path (str): key path.
 
     Returns:
-      A list of path segements without the root path segment, which is an
-      empty string.
+      list[str]: key path segements without the root path segment, which is an
+          empty string.
     """
     # Split the path with the path separator and remove empty path segments.
-    return filter(None, path.split(self._KEY_PATH_SEPARATOR))
+    return filter(None, key_path.split(definitions.KEY_PATH_SEPARATOR))
 
   @abc.abstractmethod
   def Close(self):
@@ -46,11 +44,10 @@ class WinRegistryFile(object):
     """Retrieves the key for a specific path.
 
     Args:
-      key_path: the Windows Registry key path.
+      key_path (str): Windows Registry key path.
 
     Returns:
-      A Windows Registry key (instance of WinRegistryKey) or None if
-      not available.
+      WinRegistryKey: Windows Registry key or None if not available.
     """
 
   @abc.abstractmethod
@@ -58,8 +55,7 @@ class WinRegistryFile(object):
     """Retrieves the root key.
 
     Returns:
-      The Windows Registry root key (instance of WinRegistryKey) or
-      None if not available.
+      WinRegistryKey: Windows Registry root key or None if not available.
     """
 
   @abc.abstractmethod
@@ -67,17 +63,17 @@ class WinRegistryFile(object):
     """Opens the Windows Registry file using a file-like object.
 
     Args:
-      file_object: the file-like object.
+      file_object (file): file-like object.
 
     Returns:
-      A boolean containing True if successful or False if not.
+      bool: True if successful or False if not.
     """
 
   def RecurseKeys(self):
     """Recurses the Windows Registry keys starting with the root key.
 
     Yields:
-      A Windows Registry key (instance of WinRegistryKey).
+      WinRegistryKey: Windows Registry key.
     """
     root_key = self.GetRootKey()
     if root_key:
@@ -88,7 +84,7 @@ class WinRegistryFile(object):
     """Sets the Window Registry key path prefix.
 
     Args:
-      key_path_prefix: the Windows Registry key path prefix.
+      key_path_prefix (str): Windows Registry key path prefix.
     """
     self._key_path_prefix = key_path_prefix
     self._key_path_prefix_length = len(key_path_prefix)
@@ -96,75 +92,74 @@ class WinRegistryFile(object):
 
 
 class WinRegistryFileReader(object):
-  """Class to represent the Windows Registry file reader interface."""
+  """Windows Registry file reader interface."""
 
   @abc.abstractmethod
   def Open(self, path, ascii_codepage=u'cp1252'):
-    """Opens the Windows Registry file specified by the path.
+    """Opens a Windows Registry file specified by the path.
 
     Args:
-      path: string containing the path of the Windows Registry file. The path
-            is a Windows path relative to the root of the file system that
-            contains the specfic Windows Registry file. E.g.
-            C:\\Windows\\System32\\config\\SYSTEM
+      path (str): path of the Windows Registry file. The path is a Windows
+          path relative to the root of the file system that contains the
+          specfic Windows Registry file, for example:
+          C:\\Windows\\System32\\config\\SYSTEM
       ascii_codepage: optional ASCII string codepage.
 
     Returns:
-      The Windows Registry file (instance of WinRegistryFile) or None.
+      WinRegistryFile: Windows Registry file or None.
     """
 
 
 class WinRegistryKey(object):
-  """Class to represent the Windows Registry key interface."""
-
-  _PATH_SEPARATOR = u'\\'
+  """Windows Registry key interface."""
 
   def __init__(self, key_path=u''):
-    """Initializes a Windows Registry key object.
+    """Initializes a Windows Registry key.
 
     Args:
-      key_path: optional Windows Registry key path.
+      key_path (Optional[str]): Windows Registry key path.
     """
     super(WinRegistryKey, self).__init__()
     self._key_path = self._JoinKeyPath([key_path])
 
   @abc.abstractproperty
   def last_written_time(self):
-    """The last written time (instance of dfdatetime.DateTimeValues)."""
+    """dfdatetime.DateTimeValues: last written time."""
 
   @abc.abstractproperty
   def name(self):
-    """The name of the key."""
+    """str: name of the key."""
 
   @abc.abstractproperty
   def number_of_subkeys(self):
-    """The number of subkeys within the key."""
+    """int: number of subkeys within the key."""
 
   @abc.abstractproperty
   def number_of_values(self):
-    """The number of values within the key."""
+    """int: number of values within the key."""
 
   @abc.abstractproperty
   def offset(self):
-    """The offset of the key within the Windows Registry file."""
+    """int: offset of the key within the Windows Registry file."""
 
   @property
   def path(self):
-    """The Windows Registry key path."""
+    """str: Windows Registry key path."""
     return self._key_path
 
   def _JoinKeyPath(self, path_segments):
     """Joins the path segments into key path.
 
     Args:
-      path_segment: list of Windows Registry key path segments.
+      path_segment (list[str]): Windows Registry key path segments.
     """
     # This is an optimized way to combine the path segments into a single path
     # and combine multiple successive path separators to one.
 
     # Split all the path segments based on the path (segment) separator.
     path_segments = [
-        segment.split(self._PATH_SEPARATOR) for segment in path_segments]
+        segment.split(definitions.KEY_PATH_SEPARATOR)
+        for segment in path_segments]
 
     # Flatten the sublists into one list.
     path_segments = [
@@ -173,9 +168,9 @@ class WinRegistryKey(object):
     # Remove empty path segments.
     path_segments = filter(None, path_segments)
 
-    key_path = self._PATH_SEPARATOR.join(path_segments)
+    key_path = definitions.KEY_PATH_SEPARATOR.join(path_segments)
     if not key_path.startswith(u'HKEY_'):
-      key_path = u'{0:s}{1:s}'.format(self._PATH_SEPARATOR, key_path)
+      key_path = u'{0:s}{1:s}'.format(definitions.KEY_PATH_SEPARATOR, key_path)
     return key_path
 
   @abc.abstractmethod
@@ -197,23 +192,21 @@ class WinRegistryKey(object):
     """Retrieves a subkey by name.
 
     Args:
-      name: a string containing the name of the subkey.
+      name (str): name of the subkey.
 
     Returns:
-      The Windows Registry subkey (instances of WinRegistryKey) or
-      None if not found.
+      WinRegistryKey: Windows Registry subkey or None if not found.
     """
 
   @abc.abstractmethod
-  def GetSubkeyByPath(self, path):
-    """Retrieves a subkey by path.
+  def GetSubkeyByPath(self, key_path):
+    """Retrieves a subkey by a path.
 
     Args:
-      path: a string containing the path of the subkey.
+      key_path (str): relative key path of the subkey.
 
     Returns:
-      The Windows Registry subkey (instances of WinRegistryKey) or
-      None if not found.
+      WinRegistryKey: Windows Registry subkey or None if not found.
     """
 
   @abc.abstractmethod
@@ -221,8 +214,7 @@ class WinRegistryKey(object):
     """Retrieves all subkeys within the key.
 
     Yields:
-      Windows Registry key objects (instances of WinRegistryKey) that represent
-      the subkeys stored within the key.
+      WinRegistryKey: Windows Registry subkey.
     """
 
   @abc.abstractmethod
@@ -230,12 +222,10 @@ class WinRegistryKey(object):
     """Retrieves a value by name.
 
     Args:
-      name: a string containing the name of the value or an empty string
-            for the default value.
+      name (str): name of the value or an empty string for the default value.
 
     Returns:
-      A Windows Registry value object (instance of WinRegistryValue) if
-      a corresponding value was found or None if not.
+      WinRegistryValue: Windows Registry value or None if not found.
     """
 
   @abc.abstractmethod
@@ -243,15 +233,14 @@ class WinRegistryKey(object):
     """Retrieves all values within the key.
 
     Yields:
-      Windows Registry value objects (instances of WinRegistryValue) that
-      represent the values stored within the key.
+      WinRegistryValue: Windows Registry value.
     """
 
   def RecurseKeys(self):
     """Recurses the subkeys starting with the key.
 
     Yields:
-      A Windows Registry key (instance of WinRegistryKey).
+      WinRegistryKey: Windows Registry key.
     """
     yield self
     for subkey in self.GetSubkeys():
@@ -260,7 +249,7 @@ class WinRegistryKey(object):
 
 
 class WinRegistryValue(object):
-  """Class to represent the Windows Registry value interface."""
+  """Windows Registry value interface."""
 
   _DATA_TYPE_STRINGS = {
       0: u'REG_NONE',
@@ -286,24 +275,24 @@ class WinRegistryValue(object):
 
   @abc.abstractproperty
   def data(self):
-    """The value data as a byte string."""
+    """bytes: value data."""
 
   @abc.abstractproperty
   def data_type(self):
-    """Numeric value that contains the data type."""
+    """int: data type."""
 
   @property
   def data_type_string(self):
-    """String representation of the data type."""
+    """str: string representation of the data type."""
     return self._DATA_TYPE_STRINGS.get(self.data_type, u'UNKNOWN')
 
   @abc.abstractproperty
   def name(self):
-    """The name of the value."""
+    """str: name of the value."""
 
   @abc.abstractproperty
   def offset(self):
-    """The offset of the value within the Windows Registry file."""
+    """int: offset of the value within the Windows Registry file."""
 
   def DataIsBinaryData(self):
     """Determines, based on the data type, if the data is binary data.
@@ -311,7 +300,7 @@ class WinRegistryValue(object):
     The data types considered binary data are: REG_BINARY.
 
     Returns:
-      True if the data is a multi string, false otherwise.
+      bool: True if the data is a binary data, False otherwise.
     """
     return self.data_type == definitions.REG_BINARY
 
@@ -322,7 +311,7 @@ class WinRegistryValue(object):
     REG_DWORD_BIG_ENDIAN and REG_QWORD.
 
     Returns:
-      True if the data is an integer, false otherwise.
+      bool: True if the data is an integer, False otherwise.
     """
     return self.data_type in (
         definitions.REG_DWORD, definitions.REG_DWORD_BIG_ENDIAN,
@@ -334,7 +323,7 @@ class WinRegistryValue(object):
     The data types considered multi strings are: REG_MULTI_SZ.
 
     Returns:
-      True if the data is a multi string, false otherwise.
+      bool: True if the data is multi string, False otherwise.
     """
     return self.data_type == definitions.REG_MULTI_SZ
 
@@ -344,7 +333,7 @@ class WinRegistryValue(object):
     The data types considered strings are: REG_SZ and REG_EXPAND_SZ.
 
     Returns:
-      True if the data is a string, false otherwise.
+      bool: True if the data is a string, False otherwise.
     """
     return self.data_type in (definitions.REG_SZ, definitions.REG_EXPAND_SZ)
 
@@ -353,5 +342,5 @@ class WinRegistryValue(object):
     """Retrieves the data as an object.
 
     Returns:
-      The data as a Python type.
+      object: data as a Python type.
     """

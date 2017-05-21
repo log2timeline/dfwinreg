@@ -45,7 +45,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     key_path_upper = key_path.upper()
     if key_path_upper.startswith(self._key_path_prefix_upper):
       relative_key_path = key_path[self._key_path_prefix_length:]
-    elif key_path.startswith(self._KEY_PATH_SEPARATOR):
+    elif key_path.startswith(definitions.KEY_PATH_SEPARATOR):
       relative_key_path = key_path
       key_path = u''.join([self._key_path_prefix, key_path])
     else:
@@ -67,10 +67,11 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
       WinRegistryKey: Windows Registry root key or None if not available.
     """
     regf_key = self._regf_file.get_root_key()
-    if not regf_key:
-      return
-
-    return REGFWinRegistryKey(regf_key, key_path=self._key_path_prefix)
+    if regf_key:
+      _, _, alias = self._key_path_prefix.rpartition(
+          definitions.KEY_PATH_SEPARATOR)
+      return REGFWinRegistryKey(
+          regf_key, alias=alias, key_path=self._key_path_prefix)
 
   def Open(self, file_object):
     """Opens the Windows Registry file using a file-like object.
@@ -89,14 +90,16 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
 class REGFWinRegistryKey(interface.WinRegistryKey):
   """Implementation of a Windows Registry key using pyregf."""
 
-  def __init__(self, pyregf_key, key_path=u''):
+  def __init__(self, pyregf_key, alias=None, key_path=u''):
     """Initializes a Windows Registry key object.
 
     Args:
       pyregf_key (pyregf.key): pyreg key object.
+      alias (Optional[str]): alternative name of the Windows Registry key.
       key_path (Optional[str]): Windows Registry key path.
     """
     super(REGFWinRegistryKey, self).__init__(key_path=key_path)
+    self._alias = alias
     self._pyregf_key = pyregf_key
 
   @property
@@ -111,7 +114,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
   @property
   def name(self):
     """str: name of the key."""
-    return self._pyregf_key.name
+    return self._alias or self._pyregf_key.name
 
   @property
   def number_of_subkeys(self):
@@ -195,8 +198,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
   def GetValueByName(self, name):
     """Retrieves a value by name.
 
-    Value names are not unique and pyregf provides first match for
-    the value.
+    Value names are not unique and pyregf provides first match for the value.
 
     Args:
       name (str): name of the value or an empty string for the default value.

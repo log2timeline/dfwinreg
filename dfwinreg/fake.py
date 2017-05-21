@@ -37,9 +37,9 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
       KeyError: if the subkey already exists.
       ValueError: if the Windows Registry key cannot be added.
     """
-    if not key_path.startswith(self._KEY_PATH_SEPARATOR):
+    if not key_path.startswith(definitions.KEY_PATH_SEPARATOR):
       raise ValueError(u'Key path does not start with: {0:s}'.format(
-          self._KEY_PATH_SEPARATOR))
+          definitions.KEY_PATH_SEPARATOR))
 
     if not self._root_key:
       self._root_key = FakeWinRegistryKey(self._key_path_prefix)
@@ -73,7 +73,7 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
     key_path_upper = key_path.upper()
     if key_path_upper.startswith(self._key_path_prefix_upper):
       relative_key_path = key_path[self._key_path_prefix_length:]
-    elif key_path.startswith(self._KEY_PATH_SEPARATOR):
+    elif key_path.startswith(definitions.KEY_PATH_SEPARATOR):
       relative_key_path = key_path
       key_path = u''.join([self._key_path_prefix, key_path])
     else:
@@ -115,8 +115,8 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
   """Fake implementation of a Windows Registry key."""
 
   def __init__(
-      self, name, key_path=u'', last_written_time=None, offset=0, subkeys=None,
-      values=None):
+      self, name, key_path=u'', last_written_time=None, offset=None,
+      subkeys=None, values=None):
     """Initializes a Windows Registry key.
 
     Subkeys and values with duplicate names are silenty ignored.
@@ -190,18 +190,18 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
           continue
         self._values[name] = registry_value
 
-  def _SplitKeyPath(self, path):
+  def _SplitKeyPath(self, key_path):
     """Splits the key path into path segments.
 
     Args:
-      path (str): path.
+      key_path (str): key path.
 
     Returns:
-      A list of path segements without the root path segment, which is an
-      empty string.
+      list[str]: path segements without the root path segment, which is an
+          empty string.
     """
     # Split the path with the path separator and remove empty path segments.
-    return filter(None, path.split(self._PATH_SEPARATOR))
+    return filter(None, key_path.split(definitions.KEY_PATH_SEPARATOR))
 
   def AddSubkey(self, registry_key):
     """Adds a subkey.

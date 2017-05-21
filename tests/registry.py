@@ -42,11 +42,6 @@ class RegistryTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
-  def setUp(self):
-    """Sets up the needed objects used throughout the test."""
-    self._registry = registry.WinRegistry(
-        registry_file_reader=TestWinRegistryFileReader())
-
   def _GetTestFilePath(self, path_segments):
     """Retrieves the path of a test file relative to the test data directory.
 
@@ -73,8 +68,11 @@ class RegistryTest(test_lib.BaseTestCase):
     self.assertIsNone(key_path_prefix)
     self.assertIsNone(registry_file)
 
+    win_registry = registry.WinRegistry(
+        registry_file_reader=TestWinRegistryFileReader())
+
     test_path = self._GetTestFilePath([u'SYSTEM'])
-    registry_file = self._registry._OpenFile(test_path)
+    registry_file = win_registry._OpenFile(test_path)
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
     win_registry.MapFile(key_path_prefix, registry_file)
 
@@ -91,10 +89,11 @@ class RegistryTest(test_lib.BaseTestCase):
     key_path = win_registry._GetCurrentControlSet()
     self.assertIsNone(key_path)
 
-    win_registry = registry.WinRegistry()
+    win_registry = registry.WinRegistry(
+        registry_file_reader=TestWinRegistryFileReader())
 
     test_path = self._GetTestFilePath([u'SYSTEM'])
-    registry_file = self._registry._OpenFile(test_path)
+    registry_file = win_registry._OpenFile(test_path)
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
     win_registry.MapFile(key_path_prefix, registry_file)
 
@@ -108,10 +107,11 @@ class RegistryTest(test_lib.BaseTestCase):
     key_path = u'HKEY_LOCAL_MACHINE\\SYSTEM'
 
     # Test mapped file with key path prefix.
-    win_registry = registry.WinRegistry()
+    win_registry = registry.WinRegistry(
+        registry_file_reader=TestWinRegistryFileReader())
 
     test_path = self._GetTestFilePath([u'SYSTEM'])
-    registry_file = self._registry._OpenFile(test_path)
+    registry_file = win_registry._OpenFile(test_path)
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
     win_registry.MapFile(key_path_prefix, registry_file)
 
@@ -120,10 +120,11 @@ class RegistryTest(test_lib.BaseTestCase):
     self.assertIsNotNone(registry_file)
 
     # Test mapped file without key path prefix.
-    win_registry = registry.WinRegistry()
+    win_registry = registry.WinRegistry(
+        registry_file_reader=TestWinRegistryFileReader())
 
     test_path = self._GetTestFilePath([u'SYSTEM'])
-    registry_file = self._registry._OpenFile(test_path)
+    registry_file = win_registry._OpenFile(test_path)
     win_registry.MapFile(u'', registry_file)
 
     key_path_prefix, registry_file = win_registry._GetFileByPath(key_path)
@@ -159,8 +160,11 @@ class RegistryTest(test_lib.BaseTestCase):
   @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
   def testGetKeyByPathOnNTUserDat(self):
     """Tests the GetKeyByPath function on a NTUSER.DAT file."""
+    win_registry = registry.WinRegistry(
+        registry_file_reader=TestWinRegistryFileReader())
+
     test_path = self._GetTestFilePath([u'NTUSER.DAT'])
-    registry_file = self._registry._OpenFile(test_path)
+    registry_file = win_registry._OpenFile(test_path)
 
     win_registry = registry.WinRegistry()
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
@@ -188,8 +192,11 @@ class RegistryTest(test_lib.BaseTestCase):
   @test_lib.skipUnlessHasTestFile([u'SYSTEM'])
   def testGetKeyByPathOnSystem(self):
     """Tests the GetKeyByPath function on a SYSTEM file."""
+    win_registry = registry.WinRegistry(
+        registry_file_reader=TestWinRegistryFileReader())
+
     test_path = self._GetTestFilePath([u'SYSTEM'])
-    registry_file = self._registry._OpenFile(test_path)
+    registry_file = win_registry._OpenFile(test_path)
 
     win_registry = registry.WinRegistry()
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
@@ -214,18 +221,21 @@ class RegistryTest(test_lib.BaseTestCase):
   @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT.LOG'])
   def testGetRegistryFileMappingOnNTUserDat(self):
     """Tests the GetRegistryFileMapping function on a NTUSER.DAT file."""
-    test_path = self._GetTestFilePath([u'NTUSER.DAT'])
-    registry_file = self._registry._OpenFile(test_path)
+    win_registry = registry.WinRegistry(
+        registry_file_reader=TestWinRegistryFileReader())
 
-    key_path_prefix = self._registry.GetRegistryFileMapping(registry_file)
+    test_path = self._GetTestFilePath([u'NTUSER.DAT'])
+    registry_file = win_registry._OpenFile(test_path)
+
+    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
     self.assertEqual(key_path_prefix, u'HKEY_CURRENT_USER')
 
     registry_file.Close()
 
     test_path = self._GetTestFilePath([u'NTUSER.DAT.LOG'])
-    registry_file = self._registry._OpenFile(test_path)
+    registry_file = win_registry._OpenFile(test_path)
 
-    key_path_prefix = self._registry.GetRegistryFileMapping(registry_file)
+    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
     self.assertEqual(key_path_prefix, u'')
 
     registry_file.Close()
@@ -233,10 +243,13 @@ class RegistryTest(test_lib.BaseTestCase):
   @test_lib.skipUnlessHasTestFile([u'SYSTEM'])
   def testGetRegistryFileMappingOnSystem(self):
     """Tests the GetRegistryFileMapping function on a SYSTEM file."""
-    test_path = self._GetTestFilePath([u'SYSTEM'])
-    registry_file = self._registry._OpenFile(test_path)
+    win_registry = registry.WinRegistry(
+        registry_file_reader=TestWinRegistryFileReader())
 
-    key_path_prefix = self._registry.GetRegistryFileMapping(registry_file)
+    test_path = self._GetTestFilePath([u'SYSTEM'])
+    registry_file = win_registry._OpenFile(test_path)
+
+    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
     self.assertEqual(key_path_prefix, u'HKEY_LOCAL_MACHINE\\System')
 
     registry_file.Close()
@@ -246,12 +259,17 @@ class RegistryTest(test_lib.BaseTestCase):
   @test_lib.skipUnlessHasTestFile([u'SYSTEM'])
   def testMapFile(self):
     """Tests the MapFile function."""
+    win_registry = registry.WinRegistry(
+        registry_file_reader=TestWinRegistryFileReader())
+
     test_path = self._GetTestFilePath([u'SYSTEM'])
-    registry_file = self._registry._OpenFile(test_path)
+    registry_file = win_registry._OpenFile(test_path)
 
     win_registry = registry.WinRegistry()
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
     win_registry.MapFile(key_path_prefix, registry_file)
+
+  # TODO: add tests for SplitKeyPath
 
 
 if __name__ == '__main__':
