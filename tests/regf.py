@@ -16,13 +16,11 @@ class REGFWinRegTestCase(test_lib.BaseTestCase):
     """Opens a REGF Windows Registry file.
 
     Args:
-      filename: the name of the file relative to the test file path.
-      key_path_prefix: optional string containing the Windows Registry key
-                       path prefix.
+      filename (str): name of the file relative to the test file path.
+      key_path_prefix (Optional[str]): Windows Registry key path prefix.
 
     Returns:
-      The Windows Registry file object (instance of REGFWinRegistryFileTest) or
-      None.
+      REGFWinRegistryFileTest: Windows Registry file or None.
     """
     path = self._GetTestFilePath([filename])
     file_object = open(path, 'rb')
@@ -126,6 +124,7 @@ class REGFWinRegistryKeyTest(REGFWinRegTestCase):
 
     registry_file.Close()
 
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
   def testGetSubkeyByIndex(self):
     """Tests the GetSubkeyByIndex function."""
     registry_file = self._OpenREGFRegistryFile(
@@ -134,18 +133,19 @@ class REGFWinRegistryKeyTest(REGFWinRegTestCase):
     registry_key = registry_file.GetRootKey()
 
     key_name = u'AppEvents'
-    registry_subkey = registry_key.GetSubkeyByIndex(0)
-    self.assertIsNotNone(registry_subkey)
-    self.assertEqual(registry_subkey.name, key_name)
+    sub_registry_key = registry_key.GetSubkeyByIndex(0)
+    self.assertIsNotNone(sub_registry_key)
+    self.assertEqual(sub_registry_key.name, key_name)
 
     expected_key_path = u'HKEY_CURRENT_USER\\AppEvents'
-    self.assertEqual(registry_subkey.path, expected_key_path)
+    self.assertEqual(sub_registry_key.path, expected_key_path)
 
     with self.assertRaises(IndexError):
       registry_key.GetSubkeyByIndex(-1)
 
     registry_file.Close()
 
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
   def testGetSubkeyByName(self):
     """Tests the GetSubkeyByName function."""
     registry_file = self._OpenREGFRegistryFile(
@@ -154,19 +154,20 @@ class REGFWinRegistryKeyTest(REGFWinRegTestCase):
     registry_key = registry_file.GetRootKey()
 
     key_name = u'Software'
-    registry_subkey = registry_key.GetSubkeyByName(key_name)
-    self.assertIsNotNone(registry_subkey)
-    self.assertEqual(registry_subkey.name, key_name)
+    sub_registry_key = registry_key.GetSubkeyByName(key_name)
+    self.assertIsNotNone(sub_registry_key)
+    self.assertEqual(sub_registry_key.name, key_name)
 
     expected_key_path = u'HKEY_CURRENT_USER\\Software'
-    self.assertEqual(registry_subkey.path, expected_key_path)
+    self.assertEqual(sub_registry_key.path, expected_key_path)
 
     key_name = u'Bogus'
-    registry_subkey = registry_key.GetSubkeyByName(key_name)
-    self.assertIsNone(registry_subkey)
+    sub_registry_key = registry_key.GetSubkeyByName(key_name)
+    self.assertIsNone(sub_registry_key)
 
     registry_file.Close()
 
+  @test_lib.skipUnlessHasTestFile([u'NTUSER.DAT'])
   def testGetSubkeyByPath(self):
     """Tests the GetSubkeyByPath function."""
     registry_file = self._OpenREGFRegistryFile(
@@ -175,16 +176,16 @@ class REGFWinRegistryKeyTest(REGFWinRegTestCase):
     registry_key = registry_file.GetRootKey()
 
     key_path = u'Software\\Microsoft'
-    registry_subkey = registry_key.GetSubkeyByPath(key_path)
-    self.assertIsNotNone(registry_subkey)
-    self.assertEqual(registry_subkey.name, u'Microsoft')
+    sub_registry_key = registry_key.GetSubkeyByPath(key_path)
+    self.assertIsNotNone(sub_registry_key)
+    self.assertEqual(sub_registry_key.name, u'Microsoft')
 
     expected_key_path = u'HKEY_CURRENT_USER\\Software\\Microsoft'
-    self.assertEqual(registry_subkey.path, expected_key_path)
+    self.assertEqual(sub_registry_key.path, expected_key_path)
 
     key_path = u'Software\\Bogus'
-    registry_subkey = registry_key.GetSubkeyByPath(key_path)
-    self.assertIsNone(registry_subkey)
+    sub_registry_key = registry_key.GetSubkeyByPath(key_path)
+    self.assertIsNone(sub_registry_key)
 
     registry_file.Close()
 
@@ -196,8 +197,8 @@ class REGFWinRegistryKeyTest(REGFWinRegTestCase):
     key_path = u'\\Software'
     registry_key = registry_file.GetKeyByPath(key_path)
 
-    registry_subkeys = list(registry_key.GetSubkeys())
-    self.assertEqual(len(registry_subkeys), 4)
+    sub_registry_keys = list(registry_key.GetSubkeys())
+    self.assertEqual(len(sub_registry_keys), 4)
 
     registry_file.Close()
 

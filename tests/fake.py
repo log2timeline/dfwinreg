@@ -151,13 +151,13 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
         u'Software', key_path=u'HKEY_CURRENT_USER\\Software',
         last_written_time=0)
 
-    registry_subkey = fake.FakeWinRegistryKey(
+    sub_registry_key = fake.FakeWinRegistryKey(
         u'Microsoft', last_written_time=0)
-    registry_key.AddSubkey(registry_subkey)
+    registry_key.AddSubkey(sub_registry_key)
 
     test_registry_key = fake.FakeWinRegistryKey(
         u'Internet Explorer', last_written_time=0)
-    registry_subkey.AddSubkey(test_registry_key)
+    sub_registry_key.AddSubkey(test_registry_key)
 
     registry_value = fake.FakeWinRegistryValue(u'')
     registry_key.AddValue(registry_value)
@@ -209,14 +209,14 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
         u'Software', key_path=u'HKEY_CURRENT_USER\\Software',
         last_written_time=0)
 
-    registry_subkey = fake.FakeWinRegistryKey(
+    sub_registry_key = fake.FakeWinRegistryKey(
         u'Microsoft', key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft',
         last_written_time=0)
 
-    registry_key.AddSubkey(registry_subkey)
+    registry_key.AddSubkey(sub_registry_key)
 
     with self.assertRaises(KeyError):
-      registry_key.AddSubkey(registry_subkey)
+      registry_key.AddSubkey(sub_registry_key)
 
   def testAddValue(self):
     """Tests the AddValue function."""
@@ -235,11 +235,11 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
     """Tests the GetSubkeyByIndex function."""
     registry_key = self._CreateTestKey()
 
-    registry_subkey = registry_key.GetSubkeyByIndex(0)
-    self.assertIsNotNone(registry_subkey)
+    sub_registry_key = registry_key.GetSubkeyByIndex(0)
+    self.assertIsNotNone(sub_registry_key)
 
     expected_key_path = u'HKEY_CURRENT_USER\\Software\\Microsoft'
-    self.assertEqual(registry_subkey.path, expected_key_path)
+    self.assertEqual(sub_registry_key.path, expected_key_path)
 
     with self.assertRaises(IndexError):
       registry_key.GetSubkeyByIndex(-1)
@@ -248,38 +248,38 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
     """Tests the GetSubkeyByName function."""
     registry_key = self._CreateTestKey()
 
-    registry_subkey = registry_key.GetSubkeyByName(u'Microsoft')
-    self.assertIsNotNone(registry_subkey)
+    sub_registry_key = registry_key.GetSubkeyByName(u'Microsoft')
+    self.assertIsNotNone(sub_registry_key)
 
     expected_key_path = u'HKEY_CURRENT_USER\\Software\\Microsoft'
-    self.assertEqual(registry_subkey.path, expected_key_path)
+    self.assertEqual(sub_registry_key.path, expected_key_path)
 
-    registry_subkey = registry_key.GetSubkeyByName(u'Bogus')
-    self.assertIsNone(registry_subkey)
+    sub_registry_key = registry_key.GetSubkeyByName(u'Bogus')
+    self.assertIsNone(sub_registry_key)
 
   def testGetSubkeyByPath(self):
     """Tests the GetSubkeyByPath function."""
     registry_key = self._CreateTestKey()
 
     key_path = u'Microsoft\\Internet Explorer'
-    registry_subkey = registry_key.GetSubkeyByPath(key_path)
-    self.assertIsNotNone(registry_subkey)
-    self.assertEqual(registry_subkey.name, u'Internet Explorer')
+    sub_registry_key = registry_key.GetSubkeyByPath(key_path)
+    self.assertIsNotNone(sub_registry_key)
+    self.assertEqual(sub_registry_key.name, u'Internet Explorer')
 
     expected_key_path = (
         u'HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer')
-    self.assertEqual(registry_subkey.path, expected_key_path)
+    self.assertEqual(sub_registry_key.path, expected_key_path)
 
     key_path = u'Microsoft\\Bogus'
-    registry_subkey = registry_key.GetSubkeyByPath(key_path)
-    self.assertIsNone(registry_subkey)
+    sub_registry_key = registry_key.GetSubkeyByPath(key_path)
+    self.assertIsNone(sub_registry_key)
 
   def testGetSubkeys(self):
     """Tests the GetSubkeys function."""
     registry_key = self._CreateTestKey()
 
-    registry_subkeys = list(registry_key.GetSubkeys())
-    self.assertEqual(len(registry_subkeys), 1)
+    sub_registry_keys = list(registry_key.GetSubkeys())
+    self.assertEqual(len(sub_registry_keys), 1)
 
   def testGetValueByName(self):
     """Tests the GetValueByName function."""

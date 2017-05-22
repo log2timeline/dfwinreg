@@ -45,6 +45,9 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     if not self._registry_key and self._registry:
       self._GetKeyFromRegistry()
 
+    if not self._subkeys:
+      self._GetSubkeysFromKey()
+
     return len(self._subkeys)
 
   @property
