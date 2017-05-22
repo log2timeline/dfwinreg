@@ -149,20 +149,14 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
         last_written_time=0)
 
     registry_subkey = fake.FakeWinRegistryKey(
-        u'Microsoft', key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft',
-        last_written_time=0)
-
+        u'Microsoft', last_written_time=0)
     registry_key.AddSubkey(registry_subkey)
 
     test_registry_key = fake.FakeWinRegistryKey(
-        u'Internet Explorer',
-        key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer',
-        last_written_time=0)
-
+        u'Internet Explorer', last_written_time=0)
     registry_subkey.AddSubkey(test_registry_key)
 
     registry_value = fake.FakeWinRegistryValue(u'')
-
     registry_key.AddValue(registry_value)
 
     return registry_key
