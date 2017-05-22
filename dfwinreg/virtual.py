@@ -10,19 +10,18 @@ from dfwinreg import interface
 class VirtualWinRegistryKey(interface.WinRegistryKey):
   """Virtual Windows Registry key."""
 
-  def __init__(self, name, key_path=u'', registry=None, registry_key=None):
+  def __init__(self, name, key_path=u'', registry=None):
     """Initializes a Windows Registry key.
 
     Args:
       name (str): name of the Windows Registry key.
       key_path (Optional[str]): Windows Registry key path.
       registry (Optional[WinRegistry]): Windows Registry.
-      registry_key (Optional[WinRegistryKey]): Windows Registry key.
     """
     super(VirtualWinRegistryKey, self).__init__(key_path=key_path)
     self._name = name
     self._registry = registry
-    self._registry_key = registry_key
+    self._registry_key = None
     self._subkeys = collections.OrderedDict()
 
   @property
@@ -44,9 +43,6 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """int: number of subkeys within the key."""
     if not self._registry_key and self._registry:
       self._GetKeyFromRegistry()
-
-    if not self._subkeys:
-      self._GetSubkeysFromKey()
 
     return len(self._subkeys)
 
@@ -79,7 +75,8 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
         pass
 
       if self._registry_key:
-        self._GetSubkeysFromKey()
+        for sub_registry_key in self._registry_key.GetSubkeys():
+          self.AddSubkey(sub_registry_key)
 
         if self._key_path == u'HKEY_LOCAL_MACHINE\\System':
           sub_registry_key = VirtualWinRegistryKey(
@@ -87,14 +84,6 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
           self.AddSubkey(sub_registry_key)
 
       self._registry = None
-
-  def _GetSubkeysFromKey(self):
-    """Retrieves the subkeys from the Windows Registry key."""
-    if self._registry_key:
-      for sub_registry_key in self._registry_key.GetSubkeys():
-        self.AddSubkey(sub_registry_key)
-
-      # TODO: add support to map CurrentControlSet
 
   def _JoinKeyPath(self, path_segments):
     """Joins the path segments into key path.
@@ -153,9 +142,6 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     if not self._registry_key and self._registry:
       self._GetKeyFromRegistry()
 
-    if not self._subkeys:
-      self._GetSubkeysFromKey()
-
     subkeys = list(self._subkeys.values())
 
     if index < 0 or index >= len(subkeys):
@@ -175,9 +161,6 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     if not self._registry_key and self._registry:
       self._GetKeyFromRegistry()
 
-    if not self._subkeys:
-      self._GetSubkeysFromKey()
-
     return self._subkeys.get(name.upper(), None)
 
   def GetSubkeyByPath(self, path):
@@ -191,9 +174,6 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """
     if not self._registry_key and self._registry:
       self._GetKeyFromRegistry()
-
-    if not self._subkeys:
-      self._GetSubkeysFromKey()
 
     subkey = self
     for path_segment in self._SplitKeyPath(path):
@@ -211,9 +191,6 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """
     if not self._registry_key and self._registry:
       self._GetKeyFromRegistry()
-
-    if not self._subkeys:
-      self._GetSubkeysFromKey()
 
     return iter(self._subkeys.values())
 

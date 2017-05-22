@@ -383,16 +383,8 @@ class WinRegistry(object):
 
         registry_key = sub_registry_key
 
-      key_path_prefix_upper = mapped_key.upper()
-
-      registry_file = self._registry_files.get(key_path_prefix_upper, None)
-      if registry_file:
-        file_root_registry_key = registry_file.GetRootKey()
-        sub_registry_key = virtual.VirtualWinRegistryKey(
-            key_path_segments[-1], registry_key=file_root_registry_key)
-      else:
-        sub_registry_key = virtual.VirtualWinRegistryKey(
-            key_path_segments[-1], registry=self)
+      sub_registry_key = virtual.VirtualWinRegistryKey(
+          key_path_segments[-1], registry=self)
 
       registry_key.AddSubkey(sub_registry_key)
 
