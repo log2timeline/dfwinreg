@@ -13,7 +13,7 @@ else:
   from unittest.mock import MagicMock  # pylint: disable=import-error
   from importlib import reload  # pylint: disable=redefined-builtin
 
-from dtfabric import py2to3
+from dfwinreg import py2to3
 
 from tests import test_lib as shared_test_lib
 
