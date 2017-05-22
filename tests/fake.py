@@ -46,6 +46,9 @@ class FakeWinRegistryFileTest(FakeWinRegTestCase):
     test_key = fake.FakeWinRegistryKey(u'Key')
     registry_file.AddKeyByPath(u'\\Test\\Path', test_key)
 
+    test_key = fake.FakeWinRegistryKey(u'More')
+    registry_file.AddKeyByPath(u'\\Test\\Path\\Key', test_key)
+
     with self.assertRaises(KeyError):
       registry_file.AddKeyByPath(u'\\', software_key)
 
@@ -368,6 +371,18 @@ class FakeWinRegistryValueTest(test_lib.BaseTestCase):
     data = u'\xed\x44'
     registry_value = fake.FakeWinRegistryValue(
         u'MRU', data=data, data_type=definitions.REG_MULTI_SZ)
+
+    with self.assertRaises(errors.WinRegistryValueError):
+      registry_value.GetDataAsObject()
+
+    registry_value = fake.FakeWinRegistryValue(
+        u'MRU', data=(u'bogus', 0), data_type=definitions.REG_SZ)
+
+    with self.assertRaises(errors.WinRegistryValueError):
+      registry_value.GetDataAsObject()
+
+    registry_value = fake.FakeWinRegistryValue(
+        u'MRU', data=(u'bogus', 0), data_type=definitions.REG_MULTI_SZ)
 
     with self.assertRaises(errors.WinRegistryValueError):
       registry_value.GetDataAsObject()
