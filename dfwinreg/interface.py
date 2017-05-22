@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The interface for Windows Registry objects."""
+"""The Windows Registry object interfaces."""
 
 import abc
 
@@ -172,6 +172,19 @@ class WinRegistryKey(object):
     if not key_path.startswith(u'HKEY_'):
       key_path = u'{0:s}{1:s}'.format(definitions.KEY_PATH_SEPARATOR, key_path)
     return key_path
+
+  def _SplitKeyPath(self, key_path):
+    """Splits the key path into path segments.
+
+    Args:
+      key_path (str): key path.
+
+    Returns:
+      list[str]: path segements without the root path segment, which is an
+          empty string.
+    """
+    # Split the path with the path separator and remove empty path segments.
+    return filter(None, key_path.split(definitions.KEY_PATH_SEPARATOR))
 
   @abc.abstractmethod
   def GetSubkeyByIndex(self, index):

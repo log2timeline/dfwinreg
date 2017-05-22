@@ -135,11 +135,11 @@ class FakeWinRegistryFileTest(FakeWinRegTestCase):
     self.assertEqual(len(registry_keys), 2)
 
 
-class FakeWinRegistryKeyTest(unittest.TestCase):
+class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
   """Tests for a fake Windows Registry key."""
 
   def _CreateTestKey(self):
-    """Creates a Windows Registry key for testing.
+    """Creates a fake Windows Registry key for testing.
 
     Returns:
       FakeWinRegistryKey: fake Windows Registry key.
@@ -172,13 +172,13 @@ class FakeWinRegistryKeyTest(unittest.TestCase):
     registry_key = self._CreateTestKey()
     self.assertIsNotNone(registry_key)
 
-    self.assertEqual(registry_key.number_of_subkeys, 1)
-    self.assertEqual(registry_key.number_of_values, 1)
-    self.assertEqual(registry_key.offset, None)
-
     self.assertIsNotNone(registry_key.last_written_time)
     timestamp = registry_key.last_written_time.timestamp
     self.assertEqual(timestamp, 0)
+
+    self.assertEqual(registry_key.number_of_subkeys, 1)
+    self.assertEqual(registry_key.number_of_values, 1)
+    self.assertIsNone(registry_key.offset)
 
   def testBuildKeyHierarchy(self):
     """Tests the BuildKeyHierarchy function."""
@@ -205,8 +205,6 @@ class FakeWinRegistryKeyTest(unittest.TestCase):
         subkeys=[test_key, test_key],
         values=[test_value, test_value])
     self.assertIsNotNone(registry_key)
-
-  # TODO: add test for _SplitKeyPath.
 
   def testAddSubkey(self):
     """Tests the AddSubkey function."""
@@ -304,7 +302,7 @@ class FakeWinRegistryKeyTest(unittest.TestCase):
     self.assertEqual(len(values), 1)
 
 
-class FakeWinRegistryValueTest(unittest.TestCase):
+class FakeWinRegistryValueTest(test_lib.BaseTestCase):
   """Tests for a fake Windows Registry value."""
 
   def testProperties(self):
