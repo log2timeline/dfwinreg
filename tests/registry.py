@@ -13,7 +13,7 @@ from tests import test_lib
 
 
 class TestWinRegistryFileReader(interface.WinRegistryFileReader):
-  """A single file Windows Registry file reader."""
+  """Single file Windows Registry file reader."""
 
   def Open(self, path, ascii_codepage=u'cp1252'):
     """Opens the Windows Registry file specified by the path.

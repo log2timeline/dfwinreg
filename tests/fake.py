@@ -15,13 +15,13 @@ class FakeWinRegTestCase(test_lib.BaseTestCase):
   """The unit test case for fake Windows Registry related."""
 
   def _OpenFakeRegistryFile(self, key_path_prefix=u''):
-    """Opens a fake Windows Registry file for testing.
+    """Opens a fake Windows Registry file.
 
     Args:
       key_path_prefix (str): Windows Registry key path prefix.
 
     Returns:
-      FakeWinRegistryFileTest: fake Windows Registry file for testing.
+      FakeWinRegistryFileTest: fake Windows Registry file.
     """
     registry_file = fake.FakeWinRegistryFile(
         key_path_prefix=key_path_prefix)

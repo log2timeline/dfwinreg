@@ -94,6 +94,8 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
       for sub_registry_key in self._registry_key.GetSubkeys():
         self.AddSubkey(sub_registry_key)
 
+      # TODO: add support to map CurrentControlSet
+
   def _JoinKeyPath(self, path_segments):
     """Joins the path segments into key path.
 
