@@ -4,6 +4,7 @@
 
 import unittest
 
+from dfwinreg import fake
 from dfwinreg import registry
 from dfwinreg import registry_searcher
 
@@ -16,7 +17,51 @@ class FindSpecTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
-  # TODO: add tests for _CheckKeyPath
+  def testCheckKeyPath(self):
+    """Tests the _CheckKeyPath function."""
+    find_spec = registry_searcher.FindSpec(
+        key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
+    find_spec.Initialize()
+
+    registry_key = fake.FakeWinRegistryKey(
+        u'Microsoft', key_path=u'HKEY_CURRENT_USER\\Software')
+
+    result = find_spec._CheckKeyPath(registry_key, 3)
+    self.assertTrue(result)
+
+    result = find_spec._CheckKeyPath(registry_key, 0)
+    self.assertTrue(result)
+
+    # Test incorrect search depth.
+    result = find_spec._CheckKeyPath(registry_key, 1)
+    self.assertFalse(result)
+
+    # Test invalid search depth.
+    result = find_spec._CheckKeyPath(registry_key, -1)
+    self.assertFalse(result)
+
+    result = find_spec._CheckKeyPath(registry_key, 99)
+    self.assertFalse(result)
+
+    # Test find specification with regular expression.
+    find_spec = registry_searcher.FindSpec(
+        key_path_regex=[u'HKEY_CURRENT_USER', u'Software', u'Microsoft'])
+    find_spec.Initialize()
+
+    registry_key = fake.FakeWinRegistryKey(
+        u'Microsoft', key_path=u'HKEY_CURRENT_USER\\Software')
+
+    result = find_spec._CheckKeyPath(registry_key, 3)
+    self.assertTrue(result)
+
+    # TODO: Test find specification with invalid regular expression.
+
+    # Test uninitialized find specification.
+    find_spec = registry_searcher.FindSpec(
+        key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
+
+    result = find_spec._CheckKeyPath(registry_key, 3)
+    self.assertFalse(result)
 
   def testSplitPath(self):
     """Tests the _SplitPath function."""
@@ -49,19 +94,63 @@ class FindSpecTest(test_lib.BaseTestCase):
     find_spec.Initialize()
 
     find_spec = registry_searcher.FindSpec(
+        key_path=[u'HKEY_CURRENT_USER', u'Software', u'Microsoft'])
+    find_spec.Initialize()
+
+    find_spec = registry_searcher.FindSpec(
         key_path_glob=u'HKEY_CURRENT_USER\\*\\Microsoft')
+    find_spec.Initialize()
+
+    find_spec = registry_searcher.FindSpec(
+        key_path_glob=[u'HKEY_CURRENT_USER', u'*', u'Microsoft'])
     find_spec.Initialize()
 
     find_spec = registry_searcher.FindSpec(
         key_path_regex=u'HKEY_CURRENT_USER\\.*\\Microsoft')
     find_spec.Initialize()
 
+    find_spec = registry_searcher.FindSpec(
+        key_path_regex=[u'HKEY_CURRENT_USER', u'.*', u'Microsoft'])
+    find_spec.Initialize()
+
+    with self.assertRaises(TypeError):
+      registry_searcher.FindSpec(key_path=(u'bogus', 0))
+
+    with self.assertRaises(TypeError):
+      registry_searcher.FindSpec(key_path_glob=(u'bogus', 0))
+
+    with self.assertRaises(TypeError):
+      registry_searcher.FindSpec(key_path_regex=(u'bogus', 0))
+
     with self.assertRaises(ValueError):
       registry_searcher.FindSpec(
           key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft',
           key_path_glob=u'HKEY_CURRENT_USER\\*\\Microsoft')
 
-  # TODO: add tests for Matches
+  def testMatches(self):
+    """Tests the Matches function."""
+    find_spec = registry_searcher.FindSpec(
+        key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
+    find_spec.Initialize()
+
+    registry_key = fake.FakeWinRegistryKey(
+        u'Microsoft', key_path=u'HKEY_CURRENT_USER\\Software')
+
+    result = find_spec.Matches(registry_key, 3)
+    self.assertEqual(result, (True, True))
+
+    result = find_spec.Matches(registry_key, 1)
+    self.assertEqual(result, (False, False))
+
+    result = find_spec.Matches(registry_key, 0)
+    self.assertEqual(result, (False, True))
+
+    # Test uninitialized find specification.
+    find_spec = registry_searcher.FindSpec(
+        key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
+
+    result = find_spec.Matches(registry_key, 3)
+    self.assertEqual(result, (True, None))
 
 
 class WinRegistrySearcherTest(test_lib.BaseTestCase):
