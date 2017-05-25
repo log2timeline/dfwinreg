@@ -6,7 +6,7 @@
 .PHONY: override_dh_auto_clean
 override_dh_auto_clean:
 	dh_auto_clean
-	rm -rf build dtfabric.egg-info/SOURCES.txt dtfabric.egg-info/PKG-INFO
+	rm -rf build dfwrineg.egg-info/SOURCES.txt dfwrineg.egg-info/PKG-INFO
 
 .PHONY: override_dh_auto_build
 override_dh_auto_build:
