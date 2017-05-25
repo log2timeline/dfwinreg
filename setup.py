@@ -147,6 +147,6 @@ setup(
     },
     data_files=[
         ('share/doc/dfwinreg', [
-            'AUTHORS', 'ACKNOWLEDGEMENTS', 'LICENSE', 'README']),
+            'ACKNOWLEDGEMENTS', 'AUTHORS', 'LICENSE', 'README']),
     ],
 )
