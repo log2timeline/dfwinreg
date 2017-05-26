@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The Python 2 and 3 compatible type definitions."""
+"""Python 2 and 3 compatible type definitions."""
 
 import sys
 

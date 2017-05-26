@@ -8,7 +8,14 @@ from dfwinreg import interface
 
 
 class VirtualWinRegistryKey(interface.WinRegistryKey):
-  """Virtual Windows Registry key."""
+  """Virtual Windows Registry key.
+
+  Virtual Windows Registry key are keys that do not exist on-disk but do exist
+  at run-time, for example HKEY_LOCAL_MACHINE\\System\\CurrentControlSet.
+
+  The virtual key is also used to "mount" a Windows Registry file for example
+  SYSTEM onto the Windows Registry key HKEY_LOCAL_MACHINE\\System.
+  """
 
   def __init__(self, name, key_path=u'', registry=None):
     """Initializes a Windows Registry key.
@@ -68,22 +75,26 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
 
   def _GetKeyFromRegistry(self):
     """Retrieves the key from the Windows Registry."""
-    if self._registry:
-      try:
-        self._registry_key = self._registry.GetKeyByPath(self._key_path)
-      except RuntimeError:
-        pass
+    if not self._registry:
+      return
 
-      if self._registry_key:
-        for sub_registry_key in self._registry_key.GetSubkeys():
-          self.AddSubkey(sub_registry_key)
+    try:
+      self._registry_key = self._registry.GetKeyByPath(self._key_path)
+    except RuntimeError:
+      pass
 
-        if self._key_path == u'HKEY_LOCAL_MACHINE\\System':
-          sub_registry_key = VirtualWinRegistryKey(
-              u'CurrentControlSet', registry=self._registry)
-          self.AddSubkey(sub_registry_key)
+    if not self._registry_key:
+      return
 
-      self._registry = None
+    for sub_registry_key in self._registry_key.GetSubkeys():
+      self.AddSubkey(sub_registry_key)
+
+    if self._key_path == u'HKEY_LOCAL_MACHINE\\System':
+      sub_registry_key = VirtualWinRegistryKey(
+          u'CurrentControlSet', registry=self._registry)
+      self.AddSubkey(sub_registry_key)
+
+    self._registry = None
 
   def _JoinKeyPath(self, path_segments):
     """Joins the path segments into key path.

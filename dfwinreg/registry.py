@@ -407,7 +407,7 @@ class WinRegistry(object):
       key_path (str): key path.
 
     Returns:
-      list[str]: key path segements without the root path segment, which is an
+      list[str]: key path segments without the root path segment, which is an
           empty string.
     """
     # Split the path with the path separator and remove empty path segments.

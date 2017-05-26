@@ -143,7 +143,8 @@ class FindSpec(object):
 
     if search_depth > 0:
       if self._is_regex:
-        if not segment_name.match(registry_key.name):  # pylint: disable=no-member
+        # pylint: disable=no-member
+        if not segment_name.match(registry_key.name):
           return False
 
       elif segment_name != registry_key.name.lower():
@@ -159,7 +160,7 @@ class FindSpec(object):
       path_separator (str): path separator.
 
     Returns:
-      list[str]: path segements without the root path segment, which is
+      list[str]: path segments without the root path segment, which is
           an empty string.
     """
     # Split the path with the path separator and remove empty path segments.
@@ -227,7 +228,7 @@ class FindSpec(object):
 
 
 class WinRegistrySearcher(object):
-  """Searcher to key and values within a Windows Registry."""
+  """Searcher for key and values within a Windows Registry."""
 
   def __init__(self, win_registry):
     """Initializes a Windows Registry searcher.
@@ -311,7 +312,7 @@ class WinRegistrySearcher(object):
       key_path (str): key path.
 
     Returns:
-      list[str]: key path segements without the root path segment, which is an
+      list[str]: key path segments without the root path segment, which is an
           empty string.
     """
     return self._win_registry.SplitKeyPath(key_path)
