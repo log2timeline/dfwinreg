@@ -5,6 +5,7 @@ import collections
 
 from dfwinreg import definitions
 from dfwinreg import interface
+from dfwinreg import key_paths
 
 
 class VirtualWinRegistryKey(interface.WinRegistryKey):
@@ -187,7 +188,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
       self._GetKeyFromRegistry()
 
     subkey = self
-    for path_segment in self._SplitKeyPath(path):
+    for path_segment in key_paths.SplitKeyPath(path):
       subkey = subkey.GetSubkeyByName(path_segment)
       if not subkey:
         break

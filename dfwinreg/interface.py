@@ -4,6 +4,7 @@
 import abc
 
 from dfwinreg import definitions
+from dfwinreg import key_paths
 
 
 class WinRegistryFile(object):
@@ -21,19 +22,6 @@ class WinRegistryFile(object):
     self._key_path_prefix = key_path_prefix
     self._key_path_prefix_length = len(key_path_prefix)
     self._key_path_prefix_upper = key_path_prefix.upper()
-
-  def _SplitKeyPath(self, key_path):
-    """Splits the key path into path segments.
-
-    Args:
-      key_path (str): key path.
-
-    Returns:
-      list[str]: key path segments without the root path segment, which is an
-          empty string.
-    """
-    # Split the path with the path separator and remove empty path segments.
-    return filter(None, key_path.split(definitions.KEY_PATH_SEPARATOR))
 
   @abc.abstractmethod
   def Close(self):
@@ -120,7 +108,7 @@ class WinRegistryKey(object):
       key_path (Optional[str]): Windows Registry key path.
     """
     super(WinRegistryKey, self).__init__()
-    self._key_path = self._JoinKeyPath([key_path])
+    self._key_path = key_paths.JoinKeyPath([key_path])
 
   @abc.abstractproperty
   def last_written_time(self):
@@ -146,45 +134,6 @@ class WinRegistryKey(object):
   def path(self):
     """str: Windows Registry key path."""
     return self._key_path
-
-  def _JoinKeyPath(self, path_segments):
-    """Joins the path segments into key path.
-
-    Args:
-      path_segment (list[str]): Windows Registry key path segments.
-    """
-    # This is an optimized way to combine the path segments into a single path
-    # and combine multiple successive path separators to one.
-
-    # Split all the path segments based on the path (segment) separator.
-    path_segments = [
-        segment.split(definitions.KEY_PATH_SEPARATOR)
-        for segment in path_segments]
-
-    # Flatten the sublists into one list.
-    path_segments = [
-        element for sublist in path_segments for element in sublist]
-
-    # Remove empty path segments.
-    path_segments = filter(None, path_segments)
-
-    key_path = definitions.KEY_PATH_SEPARATOR.join(path_segments)
-    if not key_path.startswith(u'HKEY_'):
-      key_path = u'{0:s}{1:s}'.format(definitions.KEY_PATH_SEPARATOR, key_path)
-    return key_path
-
-  def _SplitKeyPath(self, key_path):
-    """Splits the key path into path segments.
-
-    Args:
-      key_path (str): key path.
-
-    Returns:
-      list[str]: path segments without the root path segment, which is an
-          empty string.
-    """
-    # Split the path with the path separator and remove empty path segments.
-    return filter(None, key_path.split(definitions.KEY_PATH_SEPARATOR))
 
   @abc.abstractmethod
   def GetSubkeyByIndex(self, index):

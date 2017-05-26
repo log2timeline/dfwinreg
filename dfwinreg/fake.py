@@ -10,6 +10,7 @@ from dfdatetime import filetime as dfdatetime_filetime
 from dfwinreg import definitions
 from dfwinreg import errors
 from dfwinreg import interface
+from dfwinreg import key_paths
 
 
 class FakeWinRegistryFile(interface.WinRegistryFile):
@@ -44,7 +45,7 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
     if not self._root_key:
       self._root_key = FakeWinRegistryKey(self._key_path_prefix)
 
-    path_segments = self._SplitKeyPath(key_path)
+    path_segments = key_paths.SplitKeyPath(key_path)
     parent_key = self._root_key
     for path_segment in path_segments:
       try:
@@ -79,7 +80,7 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
     else:
       return
 
-    path_segments = self._SplitKeyPath(relative_key_path)
+    path_segments = key_paths.SplitKeyPath(relative_key_path)
     registry_key = self._root_key
     if not registry_key:
       return
@@ -181,7 +182,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
         self._subkeys[name] = registry_key
 
         # pylint: disable=protected-access
-        registry_key._key_path = self._JoinKeyPath([
+        registry_key._key_path = key_paths.JoinKeyPath([
             self._key_path, registry_key.name])
 
     if values:
@@ -207,7 +208,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
 
     self._subkeys[name] = registry_key
 
-    key_path = self._JoinKeyPath([self._key_path, registry_key.name])
+    key_path = key_paths.JoinKeyPath([self._key_path, registry_key.name])
     registry_key._key_path = key_path  # pylint: disable=protected-access
 
   def AddValue(self, registry_value):
@@ -266,7 +267,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
       WinRegistryKey: Windows Registry subkey or None if not found.
     """
     subkey = self
-    for path_segment in self._SplitKeyPath(path):
+    for path_segment in key_paths.SplitKeyPath(path):
       subkey = subkey.GetSubkeyByName(path_segment)
       if not subkey:
         break

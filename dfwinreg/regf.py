@@ -9,6 +9,7 @@ from dfdatetime import semantic_time as dfdatetime_semantic_time
 from dfwinreg import definitions
 from dfwinreg import errors
 from dfwinreg import interface
+from dfwinreg import key_paths
 
 
 class REGFWinRegistryFile(interface.WinRegistryFile):
@@ -145,7 +146,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     if not pyregf_key:
       return
 
-    key_path = self._JoinKeyPath([self._key_path, pyregf_key.name])
+    key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
     return REGFWinRegistryKey(pyregf_key, key_path=key_path)
 
   def GetSubkeyByName(self, name):
@@ -161,7 +162,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     if not pyregf_key:
       return
 
-    key_path = self._JoinKeyPath([self._key_path, pyregf_key.name])
+    key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
     return REGFWinRegistryKey(pyregf_key, key_path=key_path)
 
   def GetSubkeyByPath(self, path):
@@ -177,7 +178,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     if not pyregf_key:
       return
 
-    key_path = self._JoinKeyPath([self._key_path, path])
+    key_path = key_paths.JoinKeyPath([self._key_path, path])
     return REGFWinRegistryKey(pyregf_key, key_path=key_path)
 
   def GetSubkeys(self):
@@ -187,7 +188,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
       WinRegistryKey: Windows Registry subkey.
     """
     for pyregf_key in self._pyregf_key.sub_keys:
-      key_path = self._JoinKeyPath([self._key_path, pyregf_key.name])
+      key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
       yield REGFWinRegistryKey(pyregf_key, key_path=key_path)
 
   def GetValueByName(self, name):

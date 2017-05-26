@@ -10,7 +10,6 @@ from tests import test_lib
 class WinRegistryFileTest(test_lib.BaseTestCase):
   """Tests for the Windows Registry file interface."""
 
-  # TODO: add tests for _SplitKeyPath
   # TODO: add tests for RecurseKeys
   # TODO: add tests for SetKeyPathPrefix
 
@@ -19,8 +18,6 @@ class WinRegistryKeyTest(test_lib.BaseTestCase):
   """Tests for the Windows Registry key interface."""
 
   # TODO: add tests for path property
-  # TODO: add tests for _JoinKeyPath
-  # TODO: add tests for _SplitKeyPath
   # TODO: add tests for RecurseKeys
 
 

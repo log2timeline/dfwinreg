@@ -2,6 +2,7 @@
 """Classes for Windows Registry access."""
 
 from dfwinreg import definitions
+from dfwinreg import key_paths
 from dfwinreg import virtual
 
 
@@ -370,7 +371,7 @@ class WinRegistry(object):
     root_registry_key = virtual.VirtualWinRegistryKey(u'')
 
     for mapped_key in self._MAPPED_KEYS:
-      key_path_segments = self.SplitKeyPath(mapped_key)
+      key_path_segments = key_paths.SplitKeyPath(mapped_key)
       if not key_path_segments:
         continue
 
@@ -410,5 +411,4 @@ class WinRegistry(object):
       list[str]: key path segments without the root path segment, which is an
           empty string.
     """
-    # Split the path with the path separator and remove empty path segments.
-    return filter(None, key_path.split(definitions.KEY_PATH_SEPARATOR))
+    return key_paths.SplitKeyPath(key_path)
