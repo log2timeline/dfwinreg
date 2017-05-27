@@ -6,6 +6,7 @@ import re
 import sre_constants
 
 from dfwinreg import definitions
+from dfwinreg import key_paths
 from dfwinreg import py2to3
 
 
@@ -50,14 +51,12 @@ class FindSpec(object):
 
     super(FindSpec, self).__init__()
     self._is_regex = False
-    self._key_path = None
-    self._key_path_regex = None
     self._key_path_segments = None
     self._number_of_key_path_segments = 0
 
     if key_path is not None:
       if isinstance(key_path, py2to3.STRING_TYPES):
-        self._key_path = key_path
+        self._key_path_segments = key_paths.SplitKeyPath(key_path)
       elif isinstance(key_path, list):
         self._key_path_segments = key_path
       else:
@@ -73,14 +72,20 @@ class FindSpec(object):
         fnmatch_regex = fnmatch.translate(key_path_glob)
         fnmatch_regex, _, _ = fnmatch_regex.rpartition(r'\Z(?ms)')
         fnmatch_regex = fnmatch_regex.replace(u'\\/', '/')
-        self._key_path_regex = fnmatch_regex
+
+        # The backslash '\' is escaped within a regular expression.
+        self._key_path_segments = key_paths.SplitKeyPath(
+            fnmatch_regex, path_seperator=u'\\\\')
+
       elif isinstance(key_path_glob, list):
         self._key_path_segments = []
         for key_path_segment in key_path_glob:
           fnmatch_regex = fnmatch.translate(key_path_segment)
           fnmatch_regex, _, _ = fnmatch_regex.rpartition(r'\Z(?ms)')
           fnmatch_regex = fnmatch_regex.replace(u'\\/', '/')
+
           self._key_path_segments.append(fnmatch_regex)
+
       else:
         raise TypeError(u'Unsupported key_path_glob type: {0:s}.'.format(
             type(key_path_glob)))
@@ -89,7 +94,9 @@ class FindSpec(object):
 
     elif key_path_regex is not None:
       if isinstance(key_path_regex, py2to3.STRING_TYPES):
-        self._key_path_regex = key_path_regex
+        # The backslash '\' is escaped within a regular expression.
+        self._key_path_segments = key_paths.SplitKeyPath(
+            key_path_regex, path_seperator=u'\\\\')
       elif isinstance(key_path_regex, list):
         self._key_path_segments = key_path_regex
       else:
@@ -97,6 +104,9 @@ class FindSpec(object):
             type(key_path_regex)))
 
       self._is_regex = True
+
+    if self._key_path_segments is not None:
+      self._number_of_key_path_segments = len(self._key_path_segments)
 
   def _CheckKeyPath(self, registry_key, search_depth):
     """Checks the key path find specification.
@@ -152,20 +162,6 @@ class FindSpec(object):
 
     return True
 
-  def _SplitPath(self, path, path_separator):
-    """Splits the path into path segments.
-
-    Args:
-      path (str): path.
-      path_separator (str): path separator.
-
-    Returns:
-      list[str]: path segments without the root path segment, which is
-          an empty string.
-    """
-    # Split the path with the path separator and remove empty path segments.
-    return list(filter(None, path.split(path_separator)))
-
   def AtMaximumDepth(self, search_depth):
     """Determines if the find specification is at maximum depth.
 
@@ -180,24 +176,6 @@ class FindSpec(object):
         return True
 
     return False
-
-  def Initialize(self):
-    """Initializes find specification for matching."""
-    if self._key_path is not None:
-      self._key_path_segments = self._SplitPath(
-          self._key_path, definitions.KEY_PATH_SEPARATOR)
-
-    elif self._key_path_regex is not None:
-      path_separator = definitions.KEY_PATH_SEPARATOR
-      if path_separator == u'\\':
-        # The backslash '\' is escaped within a regular expression.
-        path_separator = u'\\\\'
-
-      self._key_path_segments = self._SplitPath(
-          self._key_path_regex, path_separator)
-
-    if self._key_path_segments is not None:
-      self._number_of_key_path_segments = len(self._key_path_segments)
 
   def Matches(self, registry_key, search_depth):
     """Determines if the Windows Registry key matches the find specification.
@@ -286,9 +264,6 @@ class WinRegistrySearcher(object):
     """
     if not find_specs:
       find_specs.append(FindSpec())
-
-    for find_spec in find_specs:
-      find_spec.Initialize()
 
     registry_key = self._win_registry.GetRootKey()
     for matching_path in self._FindInKey(registry_key, find_specs, 0):

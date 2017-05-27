@@ -17,11 +17,53 @@ class FindSpecTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    find_spec = registry_searcher.FindSpec()
+    self.assertIsNotNone(find_spec)
+
+    find_spec = registry_searcher.FindSpec(
+        key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
+    self.assertIsNotNone(find_spec)
+
+    find_spec = registry_searcher.FindSpec(
+        key_path=[u'HKEY_CURRENT_USER', u'Software', u'Microsoft'])
+    self.assertIsNotNone(find_spec)
+
+    find_spec = registry_searcher.FindSpec(
+        key_path_glob=u'HKEY_CURRENT_USER\\*\\Microsoft')
+    self.assertIsNotNone(find_spec)
+
+    find_spec = registry_searcher.FindSpec(
+        key_path_glob=[u'HKEY_CURRENT_USER', u'*', u'Microsoft'])
+    self.assertIsNotNone(find_spec)
+
+    find_spec = registry_searcher.FindSpec(
+        key_path_regex=u'HKEY_CURRENT_USER\\.*\\Microsoft')
+    self.assertIsNotNone(find_spec)
+
+    find_spec = registry_searcher.FindSpec(
+        key_path_regex=[u'HKEY_CURRENT_USER', u'.*', u'Microsoft'])
+    self.assertIsNotNone(find_spec)
+
+    with self.assertRaises(TypeError):
+      registry_searcher.FindSpec(key_path=(u'bogus', 0))
+
+    with self.assertRaises(TypeError):
+      registry_searcher.FindSpec(key_path_glob=(u'bogus', 0))
+
+    with self.assertRaises(TypeError):
+      registry_searcher.FindSpec(key_path_regex=(u'bogus', 0))
+
+    with self.assertRaises(ValueError):
+      registry_searcher.FindSpec(
+          key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft',
+          key_path_glob=u'HKEY_CURRENT_USER\\*\\Microsoft')
+
   def testCheckKeyPath(self):
     """Tests the _CheckKeyPath function."""
     find_spec = registry_searcher.FindSpec(
         key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
-    find_spec.Initialize()
 
     registry_key = fake.FakeWinRegistryKey(
         u'Microsoft', key_path=u'HKEY_CURRENT_USER\\Software')
@@ -46,7 +88,6 @@ class FindSpecTest(test_lib.BaseTestCase):
     # Test find specification with regular expression.
     find_spec = registry_searcher.FindSpec(
         key_path_regex=[u'HKEY_CURRENT_USER', u'Software', u'Microsoft'])
-    find_spec.Initialize()
 
     registry_key = fake.FakeWinRegistryKey(
         u'Microsoft', key_path=u'HKEY_CURRENT_USER\\Software')
@@ -56,27 +97,10 @@ class FindSpecTest(test_lib.BaseTestCase):
 
     # TODO: Test find specification with invalid regular expression.
 
-    # Test uninitialized find specification.
-    find_spec = registry_searcher.FindSpec(
-        key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
-
-    result = find_spec._CheckKeyPath(registry_key, 3)
-    self.assertFalse(result)
-
-  def testSplitPath(self):
-    """Tests the _SplitPath function."""
-    find_spec = registry_searcher.FindSpec()
-
-    expected_path_segments = [u'HKEY_CURRENT_USER', u'Software', u'Microsoft']
-    path_segments = find_spec._SplitPath(
-        u'HKEY_CURRENT_USER\\Software\\Microsoft', u'\\')
-    self.assertEqual(path_segments, expected_path_segments)
-
   def testAtMaximumDepth(self):
     """Tests the AtMaximumDepth function."""
     find_spec = registry_searcher.FindSpec(
         key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
-    find_spec.Initialize()
 
     result = find_spec.AtMaximumDepth(1)
     self.assertFalse(result)
@@ -84,54 +108,10 @@ class FindSpecTest(test_lib.BaseTestCase):
     result = find_spec.AtMaximumDepth(5)
     self.assertTrue(result)
 
-  def testInitialize(self):
-    """Tests the Initialize function."""
-    find_spec = registry_searcher.FindSpec()
-    find_spec.Initialize()
-
-    find_spec = registry_searcher.FindSpec(
-        key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
-    find_spec.Initialize()
-
-    find_spec = registry_searcher.FindSpec(
-        key_path=[u'HKEY_CURRENT_USER', u'Software', u'Microsoft'])
-    find_spec.Initialize()
-
-    find_spec = registry_searcher.FindSpec(
-        key_path_glob=u'HKEY_CURRENT_USER\\*\\Microsoft')
-    find_spec.Initialize()
-
-    find_spec = registry_searcher.FindSpec(
-        key_path_glob=[u'HKEY_CURRENT_USER', u'*', u'Microsoft'])
-    find_spec.Initialize()
-
-    find_spec = registry_searcher.FindSpec(
-        key_path_regex=u'HKEY_CURRENT_USER\\.*\\Microsoft')
-    find_spec.Initialize()
-
-    find_spec = registry_searcher.FindSpec(
-        key_path_regex=[u'HKEY_CURRENT_USER', u'.*', u'Microsoft'])
-    find_spec.Initialize()
-
-    with self.assertRaises(TypeError):
-      registry_searcher.FindSpec(key_path=(u'bogus', 0))
-
-    with self.assertRaises(TypeError):
-      registry_searcher.FindSpec(key_path_glob=(u'bogus', 0))
-
-    with self.assertRaises(TypeError):
-      registry_searcher.FindSpec(key_path_regex=(u'bogus', 0))
-
-    with self.assertRaises(ValueError):
-      registry_searcher.FindSpec(
-          key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft',
-          key_path_glob=u'HKEY_CURRENT_USER\\*\\Microsoft')
-
   def testMatches(self):
     """Tests the Matches function."""
     find_spec = registry_searcher.FindSpec(
         key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
-    find_spec.Initialize()
 
     registry_key = fake.FakeWinRegistryKey(
         u'Microsoft', key_path=u'HKEY_CURRENT_USER\\Software')
@@ -144,13 +124,6 @@ class FindSpecTest(test_lib.BaseTestCase):
 
     result = find_spec.Matches(registry_key, 0)
     self.assertEqual(result, (False, True))
-
-    # Test uninitialized find specification.
-    find_spec = registry_searcher.FindSpec(
-        key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
-
-    result = find_spec.Matches(registry_key, 3)
-    self.assertEqual(result, (True, None))
 
 
 class WinRegistrySearcherTest(test_lib.BaseTestCase):
