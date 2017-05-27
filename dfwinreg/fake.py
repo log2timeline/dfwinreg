@@ -7,7 +7,7 @@ import collections
 
 from dfdatetime import filetime as dfdatetime_filetime
 
-from dtfabric import fabric as dtfabric_fabric
+from dtfabric.runtime import fabric as dtfabric_fabric
 
 from dfwinreg import definitions
 from dfwinreg import errors
