@@ -112,7 +112,7 @@ class FindSpec(object):
 
     Args:
       registry_key (WinRegistryKey): Windows Registry key.
-      search_depth (int): search depth.
+      search_depth (int): number of key path segements to compare.
 
     Returns:
       bool: True if the Windows Registry key matches the find specification,
@@ -165,7 +165,7 @@ class FindSpec(object):
     """Determines if the find specification is at maximum depth.
 
     Args:
-      search_depth (int): search depth.
+      search_depth (int): number of key path segements to compare.
 
     Returns:
       bool: True if at maximum depth, False if not.
@@ -181,7 +181,7 @@ class FindSpec(object):
 
     Args:
       registry_key (WinRegistryKey): Windows Registry key.
-      search_depth (int): search depth.
+      search_depth (int): number of key path segements to compare.
 
     Returns:
       tuple: contains:
@@ -228,7 +228,7 @@ class WinRegistrySearcher(object):
     Args:
       registry_key (WinRegistryKey): Windows Registry key.
       find_specs (list[FindSpec]): find specifications.
-      search_depth (int): search depth.
+      search_depth (int): number of key path segements to compare.
 
     Yields:
       str: key path of a matching Windows Registry key.
