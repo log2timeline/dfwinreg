@@ -5,7 +5,6 @@ import fnmatch
 import re
 import sre_constants
 
-from dfwinreg import definitions
 from dfwinreg import key_paths
 from dfwinreg import py2to3
 
