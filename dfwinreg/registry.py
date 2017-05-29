@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 """Classes for Windows Registry access."""
 
+from dfwinreg import definitions
+from dfwinreg import key_paths
+from dfwinreg import virtual
+
 
 class WinRegistryFileMapping(object):
-  """Class that defines a Windows Registry file mapping.
+  """Windows Registry file mapping.
 
   Attributes:
     key_path_prefix (str): Windows Registry key path prefix.
@@ -29,9 +33,7 @@ class WinRegistryFileMapping(object):
 
 
 class WinRegistry(object):
-  """Class to provide a uniform way to access the Windows Registry."""
-
-  _PATH_SEPARATOR = u'\\'
+  """Windows Registry."""
 
   _REGISTRY_FILE_MAPPINGS_9X = [
       WinRegistryFileMapping(
@@ -76,6 +78,9 @@ class WinRegistry(object):
           [u'\\Select'])
   ]
 
+  _MAPPED_KEYS = frozenset([
+      mapping.key_path_prefix for mapping in _REGISTRY_FILE_MAPPINGS_NT])
+
   _ROOT_KEY_ALIASES = {
       u'HKCC': u'HKEY_CURRENT_CONFIG',
       u'HKCR': u'HKEY_CLASSES_ROOT',
@@ -114,8 +119,7 @@ class WinRegistry(object):
 
   def __del__(self):
     """Cleans up the Windows Registry object."""
-    for key_path_prefix_upper, registry_file in iter(
-        self._registry_files.items()):
+    for key_path_prefix_upper, registry_file in self._registry_files.items():
       self._registry_files[key_path_prefix_upper] = None
       if registry_file:
         registry_file.Close()
@@ -136,7 +140,7 @@ class WinRegistry(object):
     """
     longest_key_path_prefix_upper = u''
     longest_key_path_prefix_length = len(longest_key_path_prefix_upper)
-    for key_path_prefix_upper in iter(self._registry_files.keys()):
+    for key_path_prefix_upper in self._registry_files.keys():
       if key_path_upper.startswith(key_path_prefix_upper):
         key_path_prefix_length = len(key_path_prefix_upper)
         if key_path_prefix_length > longest_key_path_prefix_length:
@@ -201,7 +205,11 @@ class WinRegistry(object):
     key_path_prefix, registry_file = self._GetCachedFileByPath(key_path_upper)
     if not registry_file:
       for mapping in self._GetFileMappingsByPath(key_path_upper):
-        registry_file = self._OpenFile(mapping.windows_path)
+        try:
+          registry_file = self._OpenFile(mapping.windows_path)
+        except IOError:
+          registry_file = None
+
         if not registry_file:
           continue
 
@@ -260,7 +268,8 @@ class WinRegistry(object):
     Raises:
       RuntimeError: if the root key is not supported.
     """
-    root_key_path, _, key_path = key_path.partition(self._PATH_SEPARATOR)
+    root_key_path, _, key_path = key_path.partition(
+        definitions.KEY_PATH_SEPARATOR)
 
     # Resolve a root key alias.
     root_key_path = root_key_path.upper()
@@ -269,7 +278,7 @@ class WinRegistry(object):
     if root_key_path not in self._ROOT_KEYS:
       raise RuntimeError(u'Unsupported root key: {0:s}'.format(root_key_path))
 
-    key_path = self._PATH_SEPARATOR.join([root_key_path, key_path])
+    key_path = definitions.KEY_PATH_SEPARATOR.join([root_key_path, key_path])
     key_path_upper = key_path.upper()
 
     key_path_prefix_upper, registry_file = self._GetFileByPath(key_path_upper)
@@ -289,13 +298,15 @@ class WinRegistry(object):
 
         virtual_key_path_length = len(virtual_key_path)
         if (len(key_path) > virtual_key_path_length and
-            key_path[virtual_key_path_length] == self._PATH_SEPARATOR):
+            key_path[virtual_key_path_length] == (
+                definitions.KEY_PATH_SEPARATOR)):
           virtual_key_path_length += 1
 
-        key_path = self._PATH_SEPARATOR.join([
+        key_path = definitions.KEY_PATH_SEPARATOR.join([
             resolved_key_path, key_path[virtual_key_path_length:]])
 
-    key_path = key_path[len(key_path_prefix_upper):]
+    key_path = (
+        key_path[len(key_path_prefix_upper):] or definitions.KEY_PATH_SEPARATOR)
     return registry_file.GetKeyByPath(key_path)
 
   def GetRegistryFileMapping(self, registry_file):
@@ -309,7 +320,7 @@ class WinRegistry(object):
 
     Raises:
       RuntimeError: if there are multiple matching mappings and
-                    the correct mapping cannot be resolved.
+          the correct mapping cannot be resolved.
     """
     if not registry_file:
       return u''
@@ -347,6 +358,39 @@ class WinRegistry(object):
 
     raise RuntimeError(u'Unable to resolve Windows Registry file mapping.')
 
+  def GetRootKey(self):
+    """Retrieves the Windows Registry root key.
+
+    Returns:
+      WinRegistryKey: Windows Registry root key.
+
+    Raises:
+      RuntimeError: if there are multiple matching mappings and
+          the correct mapping cannot be resolved.
+    """
+    root_registry_key = virtual.VirtualWinRegistryKey(u'')
+
+    for mapped_key in self._MAPPED_KEYS:
+      key_path_segments = key_paths.SplitKeyPath(mapped_key)
+      if not key_path_segments:
+        continue
+
+      registry_key = root_registry_key
+      for name in key_path_segments[:-1]:
+        sub_registry_key = registry_key.GetSubkeyByName(name)
+        if not sub_registry_key:
+          sub_registry_key = virtual.VirtualWinRegistryKey(name)
+          registry_key.AddSubkey(sub_registry_key)
+
+        registry_key = sub_registry_key
+
+      sub_registry_key = virtual.VirtualWinRegistryKey(
+          key_path_segments[-1], registry=self)
+
+      registry_key.AddSubkey(sub_registry_key)
+
+    return root_registry_key
+
   def MapFile(self, key_path_prefix, registry_file):
     """Maps the Windows Registry file to a specific key path prefix.
 
@@ -356,3 +400,15 @@ class WinRegistry(object):
     """
     self._registry_files[key_path_prefix.upper()] = registry_file
     registry_file.SetKeyPathPrefix(key_path_prefix)
+
+  def SplitKeyPath(self, key_path):
+    """Splits the key path into path segments.
+
+    Args:
+      key_path (str): key path.
+
+    Returns:
+      list[str]: key path segments without the root path segment, which is an
+          empty string.
+    """
+    return key_paths.SplitKeyPath(key_path)

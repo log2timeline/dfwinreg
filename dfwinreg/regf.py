@@ -9,6 +9,7 @@ from dfdatetime import semantic_time as dfdatetime_semantic_time
 from dfwinreg import definitions
 from dfwinreg import errors
 from dfwinreg import interface
+from dfwinreg import key_paths
 
 
 class REGFWinRegistryFile(interface.WinRegistryFile):
@@ -45,7 +46,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     key_path_upper = key_path.upper()
     if key_path_upper.startswith(self._key_path_prefix_upper):
       relative_key_path = key_path[self._key_path_prefix_length:]
-    elif key_path.startswith(self._KEY_PATH_SEPARATOR):
+    elif key_path.startswith(definitions.KEY_PATH_SEPARATOR):
       relative_key_path = key_path
       key_path = u''.join([self._key_path_prefix, key_path])
     else:
@@ -67,10 +68,8 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
       WinRegistryKey: Windows Registry root key or None if not available.
     """
     regf_key = self._regf_file.get_root_key()
-    if not regf_key:
-      return
-
-    return REGFWinRegistryKey(regf_key, key_path=self._key_path_prefix)
+    if regf_key:
+      return REGFWinRegistryKey(regf_key, key_path=self._key_path_prefix)
 
   def Open(self, file_object):
     """Opens the Windows Registry file using a file-like object.
@@ -101,7 +100,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
 
   @property
   def last_written_time(self):
-    """dfdatetime.DateTimeValues: last written time."""
+    """dfdatetime.DateTimeValues: last written time or None."""
     timestamp = self._pyregf_key.get_last_written_time_as_integer()
     if timestamp == 0:
       return dfdatetime_semantic_time.SemanticTime(u'Not set')
@@ -125,7 +124,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
 
   @property
   def offset(self):
-    """int: offset of the key within the Windows Registry file."""
+    """int: offset of the key within the Windows Registry file or None."""
     return self._pyregf_key.offset
 
   def GetSubkeyByIndex(self, index):
@@ -147,7 +146,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     if not pyregf_key:
       return
 
-    key_path = self._JoinKeyPath([self._key_path, pyregf_key.name])
+    key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
     return REGFWinRegistryKey(pyregf_key, key_path=key_path)
 
   def GetSubkeyByName(self, name):
@@ -163,7 +162,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     if not pyregf_key:
       return
 
-    key_path = self._JoinKeyPath([self._key_path, pyregf_key.name])
+    key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
     return REGFWinRegistryKey(pyregf_key, key_path=key_path)
 
   def GetSubkeyByPath(self, path):
@@ -179,7 +178,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     if not pyregf_key:
       return
 
-    key_path = self._JoinKeyPath([self._key_path, path])
+    key_path = key_paths.JoinKeyPath([self._key_path, path])
     return REGFWinRegistryKey(pyregf_key, key_path=key_path)
 
   def GetSubkeys(self):
@@ -189,14 +188,13 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
       WinRegistryKey: Windows Registry subkey.
     """
     for pyregf_key in self._pyregf_key.sub_keys:
-      key_path = self._JoinKeyPath([self._key_path, pyregf_key.name])
+      key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
       yield REGFWinRegistryKey(pyregf_key, key_path=key_path)
 
   def GetValueByName(self, name):
     """Retrieves a value by name.
 
-    Value names are not unique and pyregf provides first match for
-    the value.
+    Value names are not unique and pyregf provides first match for the value.
 
     Args:
       name (str): name of the value or an empty string for the default value.

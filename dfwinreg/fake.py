@@ -10,6 +10,7 @@ from dfdatetime import filetime as dfdatetime_filetime
 from dfwinreg import definitions
 from dfwinreg import errors
 from dfwinreg import interface
+from dfwinreg import key_paths
 
 
 class FakeWinRegistryFile(interface.WinRegistryFile):
@@ -31,20 +32,20 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
 
     Args:
       key_path (str): Windows Registry key path to add the key.
-      registry_key (FakeWinRegistryKey): Windows Registry key.
+      registry_key (WinRegistryKey): Windows Registry key.
 
     Raises:
       KeyError: if the subkey already exists.
       ValueError: if the Windows Registry key cannot be added.
     """
-    if not key_path.startswith(self._KEY_PATH_SEPARATOR):
+    if not key_path.startswith(definitions.KEY_PATH_SEPARATOR):
       raise ValueError(u'Key path does not start with: {0:s}'.format(
-          self._KEY_PATH_SEPARATOR))
+          definitions.KEY_PATH_SEPARATOR))
 
     if not self._root_key:
       self._root_key = FakeWinRegistryKey(self._key_path_prefix)
 
-    path_segments = self._SplitKeyPath(key_path)
+    path_segments = key_paths.SplitKeyPath(key_path)
     parent_key = self._root_key
     for path_segment in path_segments:
       try:
@@ -73,13 +74,13 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
     key_path_upper = key_path.upper()
     if key_path_upper.startswith(self._key_path_prefix_upper):
       relative_key_path = key_path[self._key_path_prefix_length:]
-    elif key_path.startswith(self._KEY_PATH_SEPARATOR):
+    elif key_path.startswith(definitions.KEY_PATH_SEPARATOR):
       relative_key_path = key_path
       key_path = u''.join([self._key_path_prefix, key_path])
     else:
       return
 
-    path_segments = self._SplitKeyPath(relative_key_path)
+    path_segments = key_paths.SplitKeyPath(relative_key_path)
     registry_key = self._root_key
     if not registry_key:
       return
@@ -115,8 +116,8 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
   """Fake implementation of a Windows Registry key."""
 
   def __init__(
-      self, name, key_path=u'', last_written_time=None, offset=0, subkeys=None,
-      values=None):
+      self, name, key_path=u'', last_written_time=None, offset=None,
+      subkeys=None, values=None):
     """Initializes a Windows Registry key.
 
     Subkeys and values with duplicate names are silenty ignored.
@@ -142,8 +143,9 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
 
   @property
   def last_written_time(self):
-    """dfdatetime.DateTimeValues: last written time."""
-    return dfdatetime_filetime.Filetime(timestamp=self._last_written_time)
+    """dfdatetime.DateTimeValues: last written time or None."""
+    if self._last_written_time is not None:
+      return dfdatetime_filetime.Filetime(timestamp=self._last_written_time)
 
   @property
   def name(self):
@@ -162,7 +164,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
 
   @property
   def offset(self):
-    """int: offset of the key within the Windows Registry file."""
+    """int: offset of the key within the Windows Registry file or None."""
     return self._offset
 
   def _BuildKeyHierarchy(self, subkeys, values):
@@ -180,7 +182,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
         self._subkeys[name] = registry_key
 
         # pylint: disable=protected-access
-        registry_key._key_path = self._JoinKeyPath([
+        registry_key._key_path = key_paths.JoinKeyPath([
             self._key_path, registry_key.name])
 
     if values:
@@ -190,24 +192,11 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
           continue
         self._values[name] = registry_value
 
-  def _SplitKeyPath(self, path):
-    """Splits the key path into path segments.
-
-    Args:
-      path (str): path.
-
-    Returns:
-      A list of path segements without the root path segment, which is an
-      empty string.
-    """
-    # Split the path with the path separator and remove empty path segments.
-    return filter(None, path.split(self._PATH_SEPARATOR))
-
   def AddSubkey(self, registry_key):
     """Adds a subkey.
 
     Args:
-      registry_key (FakeWinRegistryKey): Windows Registry subkey.
+      registry_key (WinRegistryKey): Windows Registry subkey.
 
     Raises:
       KeyError: if the subkey already exists.
@@ -218,15 +207,15 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
           u'Subkey: {0:s} already exists.'.format(registry_key.name))
 
     self._subkeys[name] = registry_key
-    # pylint: disable=protected-access
-    registry_key._key_path = self._JoinKeyPath([
-        self._key_path, registry_key.name])
+
+    key_path = key_paths.JoinKeyPath([self._key_path, registry_key.name])
+    registry_key._key_path = key_path  # pylint: disable=protected-access
 
   def AddValue(self, registry_value):
     """Adds a value.
 
     Args:
-      registry_value (FakeWinRegistryValue): Windows Registry value.
+      registry_value (WinRegistryValue): Windows Registry value.
 
     Raises:
       KeyError: if the value already exists.
@@ -278,7 +267,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
       WinRegistryKey: Windows Registry subkey or None if not found.
     """
     subkey = self
-    for path_segment in self._SplitKeyPath(path):
+    for path_segment in key_paths.SplitKeyPath(path):
       subkey = subkey.GetSubkeyByName(path_segment)
       if not subkey:
         break
@@ -291,8 +280,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     Yields:
       WinRegistryKey: Windows Registry subkey.
     """
-    for registry_key in iter(self._subkeys.values()):
-      yield registry_key
+    return iter(self._subkeys.values())
 
   def GetValueByName(self, name):
     """Retrieves a value by name.
@@ -311,8 +299,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     Yields:
       WinRegistryValue: Windows Registry value.
     """
-    for registry_value in iter(self._values.values()):
-      yield registry_value
+    return iter(self._values.values())
 
 
 class FakeWinRegistryValue(interface.WinRegistryValue):
