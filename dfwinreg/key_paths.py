@@ -43,4 +43,4 @@ def SplitKeyPath(key_path, path_seperator=definitions.KEY_PATH_SEPARATOR):
         empty string.
   """
   # Split the path with the path separator and remove empty path segments.
-  return filter(None, key_path.split(path_seperator))
+  return list(filter(None, key_path.split(path_seperator)))
