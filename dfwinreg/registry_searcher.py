@@ -40,8 +40,8 @@ class FindSpec(object):
       ValueError: if the key_path, key_path_glob or key_path_regex arguments
           are used at the same time.
     """
-    key_path_arguments = filter(
-        lambda argument: argument, (key_path, key_path_glob, key_path_regex))
+    key_path_arguments = [argument for argument in (
+        key_path, key_path_glob, key_path_regex) if argument]
 
     if len(key_path_arguments) > 1:
       raise ValueError((
