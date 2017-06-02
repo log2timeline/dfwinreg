@@ -10,7 +10,7 @@ L2TBINARIES_TEST_DEPENDENCIES="funcsigs mock pbr";
 
 PYTHON2_DEPENDENCIES="libregf-python python-construct python-dfdatetime python-six";
 
-PYTHON2_TEST_DEPENDENCIES="python-mock";
+PYTHON2_TEST_DEPENDENCIES="python-mock python-tox";
 
 # Exit on error.
 set -e;
