@@ -3,10 +3,10 @@
 
 from __future__ import unicode_literals
 
-import fnmatch
 import re
 import sre_constants
 
+from dfwinreg import glob2regex
 from dfwinreg import key_paths
 from dfwinreg import py2to3
 
@@ -65,27 +65,19 @@ class FindSpec(object):
             type(key_path)))
 
     elif key_path_glob is not None:
-      # fnmatch.translate() is used to convert a glob into a regular expression.
-      # The resulting regular expression has "\Z(?ms)" defined at its end,
-      # which needs to be removed and escapes the forward slash "/", which
-      # needs to be undone.
       if isinstance(key_path_glob, py2to3.STRING_TYPES):
-        fnmatch_regex = fnmatch.translate(key_path_glob)
-        fnmatch_regex, _, _ = fnmatch_regex.rpartition(r'\Z(?ms)')
-        fnmatch_regex = fnmatch_regex.replace('\\/', '/')
+        key_path_regex = glob2regex.Glob2Regex(key_path_glob)
 
         # The backslash '\' is escaped within a regular expression.
         self._key_path_segments = key_paths.SplitKeyPath(
-            fnmatch_regex, path_seperator='\\\\')
+            key_path_regex, path_seperator='\\\\')
 
       elif isinstance(key_path_glob, list):
         self._key_path_segments = []
         for key_path_segment in key_path_glob:
-          fnmatch_regex = fnmatch.translate(key_path_segment)
-          fnmatch_regex, _, _ = fnmatch_regex.rpartition(r'\Z(?ms)')
-          fnmatch_regex = fnmatch_regex.replace('\\/', '/')
+          key_path_regex = glob2regex.Glob2Regex(key_path_segment)
 
-          self._key_path_segments.append(fnmatch_regex)
+          self._key_path_segments.append(key_path_regex)
 
       else:
         raise TypeError('Unsupported key_path_glob type: {0:s}.'.format(
