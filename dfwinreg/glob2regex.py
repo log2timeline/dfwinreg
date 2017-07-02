@@ -7,8 +7,8 @@ Also see: https://en.wikipedia.org/wiki/Glob_(programming)
 import re
 
 
-_GLOB_GROUP_RE = re.compile(r'([^[]+|[[][^]]+[]]|[[])')
-_ESCAPE_RE = re.compile(r'([.^$+{}|()\]])')
+_GLOB_GROUP_RE = re.compile(r'([^\[\]]+|[\[][^\]]+[\]]|[\[]|[\]])')
+_ESCAPE_RE = re.compile(r'([.^$+{}|()\[\]])')
 
 
 def Glob2Regex(glob_pattern):
@@ -48,9 +48,9 @@ def Glob2Regex(glob_pattern):
       # Replace '?' with '.'
       glob_pattern_group = glob_pattern_group.replace('?', '.')
 
-    elif glob_pattern_group == '[':
-      # Escape a stand-alone '['
-      glob_pattern_group = glob_pattern_group.replace('[', '\\[')
+    elif glob_pattern_group in ('[', ']'):
+      # Escape a stand-alone '[' or ']'
+      glob_pattern_group = _ESCAPE_RE.sub(r'\\\1', glob_pattern_group)
 
     elif glob_pattern_group[1] == '!':
       # Replace '[!' with '[^'

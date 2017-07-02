@@ -88,6 +88,14 @@ class Glob2RegexTest(test_lib.BaseTestCase):
     expected_regex = self._Glob2Regex('[.^$*+?{}\\|()]')
     self.assertEqual(regex, expected_regex)
 
+    regex = glob2regex.Glob2Regex(u'[\\]]')
+    expected_regex = self._Glob2Regex(u'[\\]]')
+    self.assertEqual(regex, expected_regex)
+
+    regex = glob2regex.Glob2Regex(u'[]]')
+    expected_regex = self._Glob2Regex(u'[]]')
+    self.assertEqual(regex, expected_regex)
+
 
 if __name__ == '__main__':
   unittest.main()
