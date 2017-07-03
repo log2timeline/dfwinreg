@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """The Windows Registry object interfaces."""
 
+from __future__ import unicode_literals
+
 import abc
 
 from dfwinreg import definitions
@@ -10,7 +12,7 @@ from dfwinreg import key_paths
 class WinRegistryFile(object):
   """Windows Registry file interface."""
 
-  def __init__(self, ascii_codepage=u'cp1252', key_path_prefix=u''):
+  def __init__(self, ascii_codepage='cp1252', key_path_prefix=''):
     """Initializes a Windows Registry file.
 
     Args:
@@ -83,7 +85,7 @@ class WinRegistryFileReader(object):
   """Windows Registry file reader interface."""
 
   @abc.abstractmethod
-  def Open(self, path, ascii_codepage=u'cp1252'):
+  def Open(self, path, ascii_codepage='cp1252'):
     """Opens a Windows Registry file specified by the path.
 
     Args:
@@ -101,7 +103,7 @@ class WinRegistryFileReader(object):
 class WinRegistryKey(object):
   """Windows Registry key interface."""
 
-  def __init__(self, key_path=u''):
+  def __init__(self, key_path=''):
     """Initializes a Windows Registry key.
 
     Args:
@@ -214,18 +216,18 @@ class WinRegistryValue(object):
   """Windows Registry value interface."""
 
   _DATA_TYPE_STRINGS = {
-      0: u'REG_NONE',
-      1: u'REG_SZ',
-      2: u'REG_EXPAND_SZ',
-      3: u'REG_BINARY',
-      4: u'REG_DWORD_LE',
-      5: u'REG_DWORD_BE',
-      6: u'REG_LINK',
-      7: u'REG_MULTI_SZ',
-      8: u'REG_RESOURCE_LIST',
-      9: u'REG_FULL_RESOURCE_DESCRIPTOR',
-      10: u'REG_RESOURCE_REQUIREMENT_LIST',
-      11: u'REG_QWORD'
+      0: 'REG_NONE',
+      1: 'REG_SZ',
+      2: 'REG_EXPAND_SZ',
+      3: 'REG_BINARY',
+      4: 'REG_DWORD_LE',
+      5: 'REG_DWORD_BE',
+      6: 'REG_LINK',
+      7: 'REG_MULTI_SZ',
+      8: 'REG_RESOURCE_LIST',
+      9: 'REG_FULL_RESOURCE_DESCRIPTOR',
+      10: 'REG_RESOURCE_REQUIREMENT_LIST',
+      11: 'REG_QWORD'
   }
 
   _INTEGER_VALUE_TYPES = frozenset([
@@ -246,7 +248,7 @@ class WinRegistryValue(object):
   @property
   def data_type_string(self):
     """str: string representation of the data type."""
-    return self._DATA_TYPE_STRINGS.get(self.data_type, u'UNKNOWN')
+    return self._DATA_TYPE_STRINGS.get(self.data_type, 'UNKNOWN')
 
   @abc.abstractproperty
   def name(self):

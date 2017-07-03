@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """Tests for the Windows Registry searcher."""
 
+from __future__ import unicode_literals
+
 import unittest
 
 from dfwinreg import fake
@@ -23,50 +25,50 @@ class FindSpecTest(test_lib.BaseTestCase):
     self.assertIsNotNone(find_spec)
 
     find_spec = registry_searcher.FindSpec(
-        key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
+        key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
     self.assertIsNotNone(find_spec)
 
     find_spec = registry_searcher.FindSpec(
-        key_path=[u'HKEY_CURRENT_USER', u'Software', u'Microsoft'])
+        key_path=['HKEY_CURRENT_USER', 'Software', 'Microsoft'])
     self.assertIsNotNone(find_spec)
 
     find_spec = registry_searcher.FindSpec(
-        key_path_glob=u'HKEY_CURRENT_USER\\*\\Microsoft')
+        key_path_glob='HKEY_CURRENT_USER\\*\\Microsoft')
     self.assertIsNotNone(find_spec)
 
     find_spec = registry_searcher.FindSpec(
-        key_path_glob=[u'HKEY_CURRENT_USER', u'*', u'Microsoft'])
+        key_path_glob=['HKEY_CURRENT_USER', '*', 'Microsoft'])
     self.assertIsNotNone(find_spec)
 
     find_spec = registry_searcher.FindSpec(
-        key_path_regex=u'HKEY_CURRENT_USER\\.*\\Microsoft')
+        key_path_regex='HKEY_CURRENT_USER\\.*\\Microsoft')
     self.assertIsNotNone(find_spec)
 
     find_spec = registry_searcher.FindSpec(
-        key_path_regex=[u'HKEY_CURRENT_USER', u'.*', u'Microsoft'])
+        key_path_regex=['HKEY_CURRENT_USER', '.*', 'Microsoft'])
     self.assertIsNotNone(find_spec)
 
     with self.assertRaises(TypeError):
-      registry_searcher.FindSpec(key_path=(u'bogus', 0))
+      registry_searcher.FindSpec(key_path=('bogus', 0))
 
     with self.assertRaises(TypeError):
-      registry_searcher.FindSpec(key_path_glob=(u'bogus', 0))
+      registry_searcher.FindSpec(key_path_glob=('bogus', 0))
 
     with self.assertRaises(TypeError):
-      registry_searcher.FindSpec(key_path_regex=(u'bogus', 0))
+      registry_searcher.FindSpec(key_path_regex=('bogus', 0))
 
     with self.assertRaises(ValueError):
       registry_searcher.FindSpec(
-          key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft',
-          key_path_glob=u'HKEY_CURRENT_USER\\*\\Microsoft')
+          key_path='HKEY_CURRENT_USER\\Software\\Microsoft',
+          key_path_glob='HKEY_CURRENT_USER\\*\\Microsoft')
 
   def testCheckKeyPath(self):
     """Tests the _CheckKeyPath function."""
     find_spec = registry_searcher.FindSpec(
-        key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
+        key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
 
     registry_key = fake.FakeWinRegistryKey(
-        u'Microsoft', key_path=u'HKEY_CURRENT_USER\\Software')
+        'Microsoft', key_path='HKEY_CURRENT_USER\\Software')
 
     result = find_spec._CheckKeyPath(registry_key, 3)
     self.assertTrue(result)
@@ -87,10 +89,10 @@ class FindSpecTest(test_lib.BaseTestCase):
 
     # Test find specification with regular expression.
     find_spec = registry_searcher.FindSpec(
-        key_path_regex=[u'HKEY_CURRENT_USER', u'Software', u'Microsoft'])
+        key_path_regex=['HKEY_CURRENT_USER', 'Software', 'Microsoft'])
 
     registry_key = fake.FakeWinRegistryKey(
-        u'Microsoft', key_path=u'HKEY_CURRENT_USER\\Software')
+        'Microsoft', key_path='HKEY_CURRENT_USER\\Software')
 
     result = find_spec._CheckKeyPath(registry_key, 3)
     self.assertTrue(result)
@@ -100,7 +102,7 @@ class FindSpecTest(test_lib.BaseTestCase):
   def testAtMaximumDepth(self):
     """Tests the AtMaximumDepth function."""
     find_spec = registry_searcher.FindSpec(
-        key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
+        key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
 
     result = find_spec.AtMaximumDepth(1)
     self.assertFalse(result)
@@ -111,10 +113,10 @@ class FindSpecTest(test_lib.BaseTestCase):
   def testMatches(self):
     """Tests the Matches function."""
     find_spec = registry_searcher.FindSpec(
-        key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft')
+        key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
 
     registry_key = fake.FakeWinRegistryKey(
-        u'Microsoft', key_path=u'HKEY_CURRENT_USER\\Software')
+        'Microsoft', key_path='HKEY_CURRENT_USER\\Software')
 
     result = find_spec.Matches(registry_key, 3)
     self.assertEqual(result, (True, True))
@@ -133,13 +135,13 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
 
   # TODO: add tests for _FindInKey
 
-  @test_lib.skipUnlessHasTestFile([u'SYSTEM'])
+  @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testFind(self):
     """Tests the Find function."""
     win_registry = registry.WinRegistry(
         registry_file_reader=test_registry.TestWinRegistryFileReader())
 
-    test_path = self._GetTestFilePath([u'SYSTEM'])
+    test_path = self._GetTestFilePath(['SYSTEM'])
     registry_file = win_registry._OpenFile(test_path)
 
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
@@ -148,32 +150,32 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
     searcher = registry_searcher.WinRegistrySearcher(win_registry)
 
     find_spec = registry_searcher.FindSpec(
-        key_path=u'HKEY_LOCAL_MACHINE\\System\\ControlSet001')
+        key_path='HKEY_LOCAL_MACHINE\\System\\ControlSet001')
 
-    expected_key_paths = [u'HKEY_LOCAL_MACHINE\\System\\ControlSet001']
+    expected_key_paths = ['HKEY_LOCAL_MACHINE\\System\\ControlSet001']
     key_paths = list(searcher.Find(find_specs=[find_spec]))
     self.assertEqual(key_paths, expected_key_paths)
 
     find_spec = registry_searcher.FindSpec(
-        key_path_glob=u'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\*')
+        key_path_glob='HKEY_LOCAL_MACHINE\\System\\ControlSet001\\*')
 
     expected_key_paths = [
-        u'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Control',
-        u'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Enum',
-        u'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Hardware Profiles',
-        u'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Services']
+        'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Control',
+        'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Enum',
+        'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Hardware Profiles',
+        'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Services']
     key_paths = list(searcher.Find(find_specs=[find_spec]))
     self.assertEqual(key_paths, expected_key_paths)
 
     find_spec = registry_searcher.FindSpec(
         key_path_regex=[
-            u'HKEY_LOCAL_MACHINE', u'System', u'ControlSet001', u'.*'])
+            'HKEY_LOCAL_MACHINE', 'System', 'ControlSet001', '.*'])
 
     expected_key_paths = [
-        u'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Control',
-        u'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Enum',
-        u'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Hardware Profiles',
-        u'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Services']
+        'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Control',
+        'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Enum',
+        'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Hardware Profiles',
+        'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Services']
     key_paths = list(searcher.Find(find_specs=[find_spec]))
     self.assertEqual(key_paths, expected_key_paths)
 

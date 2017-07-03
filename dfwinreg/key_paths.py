@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Key path functions."""
 
+from __future__ import unicode_literals
+
 from dfwinreg import definitions
 
 
@@ -26,8 +28,8 @@ def JoinKeyPath(path_segments):
   path_segments = filter(None, path_segments)
 
   key_path = definitions.KEY_PATH_SEPARATOR.join(path_segments)
-  if not key_path.startswith(u'HKEY_'):
-    key_path = u'{0:s}{1:s}'.format(definitions.KEY_PATH_SEPARATOR, key_path)
+  if not key_path.startswith('HKEY_'):
+    key_path = '{0:s}{1:s}'.format(definitions.KEY_PATH_SEPARATOR, key_path)
   return key_path
 
 

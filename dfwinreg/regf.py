@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """REGF Windows Registry objects implementation using pyregf."""
 
+from __future__ import unicode_literals
+
 import pyregf
 
 from dfdatetime import filetime as dfdatetime_filetime
@@ -15,7 +17,7 @@ from dfwinreg import key_paths
 class REGFWinRegistryFile(interface.WinRegistryFile):
   """Implementation of a Windows Registry file using pyregf."""
 
-  def __init__(self, ascii_codepage=u'cp1252', key_path_prefix=u''):
+  def __init__(self, ascii_codepage='cp1252', key_path_prefix=''):
     """Initializes the Windows Registry file.
 
     Args:
@@ -48,7 +50,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
       relative_key_path = key_path[self._key_path_prefix_length:]
     elif key_path.startswith(definitions.KEY_PATH_SEPARATOR):
       relative_key_path = key_path
-      key_path = u''.join([self._key_path_prefix, key_path])
+      key_path = ''.join([self._key_path_prefix, key_path])
     else:
       return
 
@@ -88,7 +90,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
 class REGFWinRegistryKey(interface.WinRegistryKey):
   """Implementation of a Windows Registry key using pyregf."""
 
-  def __init__(self, pyregf_key, key_path=u''):
+  def __init__(self, pyregf_key, key_path=''):
     """Initializes a Windows Registry key object.
 
     Args:
@@ -103,7 +105,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     """dfdatetime.DateTimeValues: last written time or None."""
     timestamp = self._pyregf_key.get_last_written_time_as_integer()
     if timestamp == 0:
-      return dfdatetime_semantic_time.SemanticTime(u'Not set')
+      return dfdatetime_semantic_time.SemanticTime('Not set')
 
     return dfdatetime_filetime.Filetime(timestamp=timestamp)
 
@@ -140,7 +142,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
       IndexError: if the index is out of bounds.
     """
     if index < 0 or index >= self._pyregf_key.number_of_sub_keys:
-      raise IndexError(u'Index out of bounds.')
+      raise IndexError('Index out of bounds.')
 
     pyregf_key = self._pyregf_key.get_sub_key(index)
     if not pyregf_key:
@@ -242,7 +244,7 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
       return self._pyregf_value.data
     except IOError as exception:
       raise errors.WinRegistryValueError(
-          u'Unable to read data from value: {0:s} with error: {1!s}'.format(
+          'Unable to read data from value: {0:s} with error: {1!s}'.format(
               self._pyregf_value.name, exception))
 
   @property
@@ -274,7 +276,7 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
         return self._pyregf_value.get_data_as_string()
       except IOError as exception:
         raise errors.WinRegistryValueError(
-            u'Unable to read data from value: {0:s} with error: {1!s}'.format(
+            'Unable to read data from value: {0:s} with error: {1!s}'.format(
                 self._pyregf_value.name, exception))
 
     elif self._pyregf_value.type in self._INTEGER_VALUE_TYPES:
@@ -282,7 +284,7 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
         return self._pyregf_value.get_data_as_integer()
       except (IOError, OverflowError) as exception:
         raise errors.WinRegistryValueError(
-            u'Unable to read data from value: {0:s} with error: {1!s}'.format(
+            'Unable to read data from value: {0:s} with error: {1!s}'.format(
                 self._pyregf_value.name, exception))
 
     # TODO: Add support for REG_MULTI_SZ to pyregf.
@@ -291,12 +293,12 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
         return []
 
       try:
-        utf16_string = self._pyregf_value.data.decode(u'utf-16-le')
-        return list(filter(None, utf16_string.split(u'\x00')))
+        utf16_string = self._pyregf_value.data.decode('utf-16-le')
+        return list(filter(None, utf16_string.split('\x00')))
 
       except (IOError, UnicodeError) as exception:
         raise errors.WinRegistryValueError(
-            u'Unable to read data from value: {0:s} with error: {1!s}'.format(
+            'Unable to read data from value: {0:s} with error: {1!s}'.format(
                 self._pyregf_value.name, exception))
 
     return self._pyregf_value.data

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """Tests for the Windows Registry object interfaces."""
 
+from __future__ import unicode_literals
+
 import unittest
 
 from tests import test_lib
