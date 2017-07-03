@@ -384,10 +384,12 @@ class WinRegistry(object):
 
         registry_key = sub_registry_key
 
-      sub_registry_key = virtual.VirtualWinRegistryKey(
-          key_path_segments[-1], registry=self)
+      sub_registry_key = registry_key.GetSubkeyByName(key_path_segments[-1])
+      if not sub_registry_key:
+        sub_registry_key = virtual.VirtualWinRegistryKey(
+            key_path_segments[-1], registry=self)
 
-      registry_key.AddSubkey(sub_registry_key)
+        registry_key.AddSubkey(sub_registry_key)
 
     return root_registry_key
 
