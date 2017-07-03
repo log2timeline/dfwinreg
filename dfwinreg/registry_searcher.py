@@ -63,19 +63,24 @@ class FindSpec(object):
             type(key_path)))
 
     elif key_path_glob is not None:
-      # fnmatch.translate() is used to convert a glob into a regular expression.
-      # The resulting regular expression has "\Z(?ms)" defined at its end,
-      # which needs to be removed and escapes the forward slash "/", which
-      # needs to be undone.
+      # fnmatch.translate() is used to convert a glob into a regular
+      # expression. For Python 3.5 and earlier, the resulting regular
+      # expression has "\Z(?ms)" defined at its end, which needs to be
+      # removed and escapes the forward slash "/", which needs to be
+      # undone. Python 3.6 puts the options at the beginning of the
+      # regular expression instead.
       if isinstance(key_path_glob, py2to3.STRING_TYPES):
         fnmatch_regex = fnmatch.translate(key_path_glob)
-        fnmatch_regex, _, _ = fnmatch_regex.rpartition(r'\Z(?ms)')
+        for suffix in [r'\Z(?ms)', r')\Z']:
+          if fnmatch_regex.endswith(suffix):
+            fnmatch_regex = fnmatch_regex[:-len(suffix)]
+        if fnmatch_regex.startswith('(?s:'):
+          fnmatch_regex = fnmatch_regex[len('(?s:'):]
         fnmatch_regex = fnmatch_regex.replace(u'\\/', '/')
 
         # The backslash '\' is escaped within a regular expression.
         self._key_path_segments = key_paths.SplitKeyPath(
             fnmatch_regex, path_seperator=u'\\\\')
-
       elif isinstance(key_path_glob, list):
         self._key_path_segments = []
         for key_path_segment in key_path_glob:
