@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Virtual Windows Registry key implementation."""
 
+from __future__ import unicode_literals
+
 import collections
 
 from dfwinreg import definitions
@@ -18,7 +20,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
   SYSTEM onto the Windows Registry key HKEY_LOCAL_MACHINE\\System.
   """
 
-  def __init__(self, name, key_path=u'', registry=None):
+  def __init__(self, name, key_path='', registry=None):
     """Initializes a Windows Registry key.
 
     Args:
@@ -90,9 +92,9 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     for sub_registry_key in self._registry_key.GetSubkeys():
       self.AddSubkey(sub_registry_key)
 
-    if self._key_path == u'HKEY_LOCAL_MACHINE\\System':
+    if self._key_path == 'HKEY_LOCAL_MACHINE\\System':
       sub_registry_key = VirtualWinRegistryKey(
-          u'CurrentControlSet', registry=self._registry)
+          'CurrentControlSet', registry=self._registry)
       self.AddSubkey(sub_registry_key)
 
     self._registry = None
@@ -132,7 +134,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     name = registry_key.name.upper()
     if name in self._subkeys:
       raise KeyError(
-          u'Subkey: {0:s} already exists.'.format(registry_key.name))
+          'Subkey: {0:s} already exists.'.format(registry_key.name))
 
     self._subkeys[name] = registry_key
 
@@ -157,7 +159,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     subkeys = list(self._subkeys.values())
 
     if index < 0 or index >= len(subkeys):
-      raise IndexError(u'Index out of bounds.')
+      raise IndexError('Index out of bounds.')
 
     return subkeys[index]
 

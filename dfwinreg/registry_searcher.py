@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """A searcher to find keys and values within a Windows Registry."""
 
+from __future__ import unicode_literals
+
 import fnmatch
 import re
 import sre_constants
@@ -45,8 +47,8 @@ class FindSpec(object):
 
     if len(key_path_arguments) > 1:
       raise ValueError((
-          u'The key_path, key_path_glob and key_path_regex arguments cannot '
-          u'be used at same time.'))
+          'The key_path, key_path_glob and key_path_regex arguments cannot '
+          'be used at same time.'))
 
     super(FindSpec, self).__init__()
     self._is_regex = False
@@ -59,7 +61,7 @@ class FindSpec(object):
       elif isinstance(key_path, list):
         self._key_path_segments = key_path
       else:
-        raise TypeError(u'Unsupported key path type: {0:s}.'.format(
+        raise TypeError('Unsupported key path type: {0:s}.'.format(
             type(key_path)))
 
     elif key_path_glob is not None:
@@ -70,23 +72,23 @@ class FindSpec(object):
       if isinstance(key_path_glob, py2to3.STRING_TYPES):
         fnmatch_regex = fnmatch.translate(key_path_glob)
         fnmatch_regex, _, _ = fnmatch_regex.rpartition(r'\Z(?ms)')
-        fnmatch_regex = fnmatch_regex.replace(u'\\/', '/')
+        fnmatch_regex = fnmatch_regex.replace('\\/', '/')
 
         # The backslash '\' is escaped within a regular expression.
         self._key_path_segments = key_paths.SplitKeyPath(
-            fnmatch_regex, path_seperator=u'\\\\')
+            fnmatch_regex, path_seperator='\\\\')
 
       elif isinstance(key_path_glob, list):
         self._key_path_segments = []
         for key_path_segment in key_path_glob:
           fnmatch_regex = fnmatch.translate(key_path_segment)
           fnmatch_regex, _, _ = fnmatch_regex.rpartition(r'\Z(?ms)')
-          fnmatch_regex = fnmatch_regex.replace(u'\\/', '/')
+          fnmatch_regex = fnmatch_regex.replace('\\/', '/')
 
           self._key_path_segments.append(fnmatch_regex)
 
       else:
-        raise TypeError(u'Unsupported key_path_glob type: {0:s}.'.format(
+        raise TypeError('Unsupported key_path_glob type: {0:s}.'.format(
             type(key_path_glob)))
 
       self._is_regex = True
@@ -95,11 +97,11 @@ class FindSpec(object):
       if isinstance(key_path_regex, py2to3.STRING_TYPES):
         # The backslash '\' is escaped within a regular expression.
         self._key_path_segments = key_paths.SplitKeyPath(
-            key_path_regex, path_seperator=u'\\\\')
+            key_path_regex, path_seperator='\\\\')
       elif isinstance(key_path_regex, list):
         self._key_path_segments = key_path_regex
       else:
-        raise TypeError(u'Unsupported key_path_regex type: {0:s}.'.format(
+        raise TypeError('Unsupported key_path_regex type: {0:s}.'.format(
             type(key_path_regex)))
 
       self._is_regex = True
@@ -127,7 +129,7 @@ class FindSpec(object):
     # Note that the root has no entry in the key path segments and
     # no name to match.
     if search_depth == 0:
-      segment_name = u''
+      segment_name = ''
     else:
       segment_name = self._key_path_segments[search_depth - 1]
 
@@ -217,7 +219,7 @@ class WinRegistrySearcher(object):
       ValueError: when Windows Registry is not set.
     """
     if not win_registry:
-      raise ValueError(u'Missing Windows Registry value.')
+      raise ValueError('Missing Windows Registry value.')
 
     super(WinRegistrySearcher, self).__init__()
     self._win_registry = win_registry

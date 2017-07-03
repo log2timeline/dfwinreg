@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """The Windows Registry definitions."""
 
-KEY_PATH_SEPARATOR = u'\\'
+from __future__ import unicode_literals
+
+KEY_PATH_SEPARATOR = '\\'
 
 # The Registry value types.
 REG_NONE = 0

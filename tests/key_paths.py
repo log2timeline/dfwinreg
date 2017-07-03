@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """Tests for the key path functions."""
 
+from __future__ import unicode_literals
+
 import unittest
 
 from dfwinreg import key_paths
@@ -16,9 +18,9 @@ class KeyPathTest(test_lib.BaseTestCase):
 
   def testSplitKeyPath(self):
     """Tests the SplitKeyPath function."""
-    expected_path_segments = [u'HKEY_CURRENT_USER', u'Software', u'Microsoft']
+    expected_path_segments = ['HKEY_CURRENT_USER', 'Software', 'Microsoft']
     path_segments = key_paths.SplitKeyPath(
-        u'HKEY_CURRENT_USER\\Software\\Microsoft', u'\\')
+        'HKEY_CURRENT_USER\\Software\\Microsoft', '\\')
     self.assertEqual(path_segments, expected_path_segments)
 
     # TODO: improve test coverage.

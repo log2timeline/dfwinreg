@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Fake Windows Registry objects implementation."""
 
+from __future__ import unicode_literals
+
 import collections
 
 import construct
@@ -16,7 +18,7 @@ from dfwinreg import key_paths
 class FakeWinRegistryFile(interface.WinRegistryFile):
   """Fake implementation of a Windows Registry file."""
 
-  def __init__(self, ascii_codepage=u'cp1252', key_path_prefix=u''):
+  def __init__(self, ascii_codepage='cp1252', key_path_prefix=''):
     """Initializes a Windows Registry file.
 
     Args:
@@ -39,7 +41,7 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
       ValueError: if the Windows Registry key cannot be added.
     """
     if not key_path.startswith(definitions.KEY_PATH_SEPARATOR):
-      raise ValueError(u'Key path does not start with: {0:s}'.format(
+      raise ValueError('Key path does not start with: {0:s}'.format(
           definitions.KEY_PATH_SEPARATOR))
 
     if not self._root_key:
@@ -76,7 +78,7 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
       relative_key_path = key_path[self._key_path_prefix_length:]
     elif key_path.startswith(definitions.KEY_PATH_SEPARATOR):
       relative_key_path = key_path
-      key_path = u''.join([self._key_path_prefix, key_path])
+      key_path = ''.join([self._key_path_prefix, key_path])
     else:
       return
 
@@ -116,7 +118,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
   """Fake implementation of a Windows Registry key."""
 
   def __init__(
-      self, name, key_path=u'', last_written_time=None, offset=None,
+      self, name, key_path='', last_written_time=None, offset=None,
       subkeys=None, values=None):
     """Initializes a Windows Registry key.
 
@@ -204,7 +206,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     name = registry_key.name.upper()
     if name in self._subkeys:
       raise KeyError(
-          u'Subkey: {0:s} already exists.'.format(registry_key.name))
+          'Subkey: {0:s} already exists.'.format(registry_key.name))
 
     self._subkeys[name] = registry_key
 
@@ -223,7 +225,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     name = registry_value.name.upper()
     if name in self._values:
       raise KeyError(
-          u'Value: {0:s} already exists.'.format(registry_value.name))
+          'Value: {0:s} already exists.'.format(registry_value.name))
 
     self._values[name] = registry_value
 
@@ -242,7 +244,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     subkeys = list(self._subkeys.values())
 
     if index < 0 or index >= len(subkeys):
-      raise IndexError(u'Index out of bounds.')
+      raise IndexError('Index out of bounds.')
 
     return subkeys[index]
 
@@ -305,9 +307,9 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
 class FakeWinRegistryValue(interface.WinRegistryValue):
   """Fake implementation of a Windows Registry value."""
 
-  _INT32_BIG_ENDIAN = construct.SBInt32(u'value')
-  _INT32_LITTLE_ENDIAN = construct.SLInt32(u'value')
-  _INT64_LITTLE_ENDIAN = construct.SLInt64(u'value')
+  _INT32_BIG_ENDIAN = construct.SBInt32('value')
+  _INT32_LITTLE_ENDIAN = construct.SLInt32('value')
+  _INT64_LITTLE_ENDIAN = construct.SLInt64('value')
 
   def __init__(self, name, data=b'', data_type=definitions.REG_NONE, offset=0):
     """Initializes a Windows Registry value.
@@ -360,17 +362,17 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
 
     if self._data_type in self._STRING_VALUE_TYPES:
       try:
-        return self._data.decode(u'utf-16-le')
+        return self._data.decode('utf-16-le')
 
       # AttributeError is raised when self._data has no decode method.
       except AttributeError as exception:
         raise errors.WinRegistryValueError((
-            u'Unsupported data type: {0!s} of value: {1!s} with error: '
-            u'{2!s}').format(type(self._data), self._name, exception))
+            'Unsupported data type: {0!s} of value: {1!s} with error: '
+            '{2!s}').format(type(self._data), self._name, exception))
 
       except UnicodeError as exception:
         raise errors.WinRegistryValueError(
-            u'Unable to decode data of value: {0!s} with error: {1!s}'.format(
+            'Unable to decode data of value: {0!s} with error: {1!s}'.format(
                 self._name, exception))
 
     elif (self._data_type == definitions.REG_DWORD and
@@ -387,19 +389,19 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
 
     elif self._data_type == definitions.REG_MULTI_SZ:
       try:
-        utf16_string = self._data.decode(u'utf-16-le')
+        utf16_string = self._data.decode('utf-16-le')
         # TODO: evaluate the use of filter here is appropriate behavior.
-        return list(filter(None, utf16_string.split(u'\x00')))
+        return list(filter(None, utf16_string.split('\x00')))
 
       # AttributeError is raised when self._data has no decode method.
       except AttributeError as exception:
         raise errors.WinRegistryValueError((
-            u'Unsupported data type: {0!s} of value: {1!s} with error: '
-            u'{2!s}').format(type(self._data), self._name, exception))
+            'Unsupported data type: {0!s} of value: {1!s} with error: '
+            '{2!s}').format(type(self._data), self._name, exception))
 
       except UnicodeError as exception:
         raise errors.WinRegistryValueError(
-            u'Unable to read data from value: {0!s} with error: {1!s}'.format(
+            'Unable to read data from value: {0!s} with error: {1!s}'.format(
                 self._name, exception))
 
     return self._data

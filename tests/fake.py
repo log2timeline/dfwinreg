@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """Tests for the fake Windows Registry back-end."""
 
+from __future__ import unicode_literals
+
 import unittest
 
 from dfwinreg import definitions
@@ -14,7 +16,7 @@ from tests import test_lib
 class FakeWinRegTestCase(test_lib.BaseTestCase):
   """The unit test case for fake Windows Registry related."""
 
-  def _OpenFakeRegistryFile(self, key_path_prefix=u''):
+  def _OpenFakeRegistryFile(self, key_path_prefix=''):
     """Opens a fake Windows Registry file.
 
     Args:
@@ -26,8 +28,8 @@ class FakeWinRegTestCase(test_lib.BaseTestCase):
     registry_file = fake.FakeWinRegistryFile(
         key_path_prefix=key_path_prefix)
 
-    software_key = fake.FakeWinRegistryKey(u'Software')
-    registry_file.AddKeyByPath(u'\\', software_key)
+    software_key = fake.FakeWinRegistryKey('Software')
+    registry_file.AddKeyByPath('\\', software_key)
 
     registry_file.Open(None)
     return registry_file
@@ -40,20 +42,20 @@ class FakeWinRegistryFileTest(FakeWinRegTestCase):
     """Tests the AddKeyByPath function."""
     registry_file = fake.FakeWinRegistryFile()
 
-    software_key = fake.FakeWinRegistryKey(u'Software')
-    registry_file.AddKeyByPath(u'\\', software_key)
+    software_key = fake.FakeWinRegistryKey('Software')
+    registry_file.AddKeyByPath('\\', software_key)
 
-    test_key = fake.FakeWinRegistryKey(u'Key')
-    registry_file.AddKeyByPath(u'\\Test\\Path', test_key)
+    test_key = fake.FakeWinRegistryKey('Key')
+    registry_file.AddKeyByPath('\\Test\\Path', test_key)
 
-    test_key = fake.FakeWinRegistryKey(u'More')
-    registry_file.AddKeyByPath(u'\\Test\\Path\\Key', test_key)
+    test_key = fake.FakeWinRegistryKey('More')
+    registry_file.AddKeyByPath('\\Test\\Path\\Key', test_key)
 
     with self.assertRaises(KeyError):
-      registry_file.AddKeyByPath(u'\\', software_key)
+      registry_file.AddKeyByPath('\\', software_key)
 
     with self.assertRaises(ValueError):
-      registry_file.AddKeyByPath(u'Test', software_key)
+      registry_file.AddKeyByPath('Test', software_key)
 
   def testOpenClose(self):
     """Tests the Open and Close functions."""
@@ -64,55 +66,55 @@ class FakeWinRegistryFileTest(FakeWinRegTestCase):
     """Tests the GetKeyByPath function."""
     registry_file = fake.FakeWinRegistryFile()
 
-    registry_key = registry_file.GetKeyByPath(u'\\')
+    registry_key = registry_file.GetKeyByPath('\\')
     self.assertIsNone(registry_key)
 
     registry_file = self._OpenFakeRegistryFile(
-        key_path_prefix=u'HKEY_LOCAL_MACHINE')
+        key_path_prefix='HKEY_LOCAL_MACHINE')
 
-    test_key = fake.FakeWinRegistryKey(u'Key')
-    registry_file.AddKeyByPath(u'\\Test\\Path', test_key)
+    test_key = fake.FakeWinRegistryKey('Key')
+    registry_file.AddKeyByPath('\\Test\\Path', test_key)
 
     # Test root key without prefix.
-    key_path = u'\\'
+    key_path = '\\'
     registry_key = registry_file.GetKeyByPath(key_path)
     self.assertIsNotNone(registry_key)
     self.assertEqual(registry_key.path, key_path)
 
     # Test root key with prefix.
-    key_path = u'HKEY_LOCAL_MACHINE\\'
+    key_path = 'HKEY_LOCAL_MACHINE\\'
     registry_key = registry_file.GetKeyByPath(key_path)
     self.assertIsNotNone(registry_key)
-    self.assertEqual(registry_key.path, u'\\')
+    self.assertEqual(registry_key.path, '\\')
 
     # Test key without prefix.
-    key_path = u'\\Software'
+    key_path = '\\Software'
     registry_key = registry_file.GetKeyByPath(key_path)
     self.assertIsNotNone(registry_key)
     self.assertEqual(registry_key.path, key_path)
 
     # Test key with prefix.
-    key_path = u'HKEY_LOCAL_MACHINE\\Software'
+    key_path = 'HKEY_LOCAL_MACHINE\\Software'
     registry_key = registry_file.GetKeyByPath(key_path)
     self.assertIsNotNone(registry_key)
-    self.assertEqual(registry_key.path, u'\\Software')
+    self.assertEqual(registry_key.path, '\\Software')
 
     # Test key with some depth.
-    key_path = u'\\Test\\Path\\Key'
+    key_path = '\\Test\\Path\\Key'
     registry_key = registry_file.GetKeyByPath(key_path)
     self.assertIsNotNone(registry_key)
     self.assertEqual(registry_key.path, key_path)
 
     # Test non-existing keys.
-    key_path = u'\\Bogus'
+    key_path = '\\Bogus'
     registry_key = registry_file.GetKeyByPath(key_path)
     self.assertIsNone(registry_key)
 
-    key_path = u'\\Test\\Path\\Bogus'
+    key_path = '\\Test\\Path\\Bogus'
     registry_key = registry_file.GetKeyByPath(key_path)
     self.assertIsNone(registry_key)
 
-    key_path = u'Bogus'
+    key_path = 'Bogus'
     registry_key = registry_file.GetKeyByPath(key_path)
     self.assertIsNone(registry_key)
 
@@ -124,7 +126,7 @@ class FakeWinRegistryFileTest(FakeWinRegTestCase):
 
     registry_key = registry_file.GetRootKey()
     self.assertIsNotNone(registry_key)
-    self.assertEqual(registry_key.path, u'\\')
+    self.assertEqual(registry_key.path, '\\')
 
     registry_file.Close()
 
@@ -148,18 +150,18 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
       FakeWinRegistryKey: fake Windows Registry key.
     """
     registry_key = fake.FakeWinRegistryKey(
-        u'Software', key_path=u'HKEY_CURRENT_USER\\Software',
+        'Software', key_path='HKEY_CURRENT_USER\\Software',
         last_written_time=0)
 
     sub_registry_key = fake.FakeWinRegistryKey(
-        u'Microsoft', last_written_time=0)
+        'Microsoft', last_written_time=0)
     registry_key.AddSubkey(sub_registry_key)
 
     test_registry_key = fake.FakeWinRegistryKey(
-        u'Internet Explorer', last_written_time=0)
+        'Internet Explorer', last_written_time=0)
     sub_registry_key.AddSubkey(test_registry_key)
 
-    registry_value = fake.FakeWinRegistryValue(u'')
+    registry_value = fake.FakeWinRegistryValue('')
     registry_key.AddValue(registry_value)
 
     return registry_key
@@ -180,24 +182,24 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
   def testBuildKeyHierarchy(self):
     """Tests the BuildKeyHierarchy function."""
     test_key = fake.FakeWinRegistryKey(
-        u'Microsoft', key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft',
+        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft',
         last_written_time=0)
 
-    test_value = fake.FakeWinRegistryValue(u'')
+    test_value = fake.FakeWinRegistryValue('')
 
     self.assertIsNotNone(test_key)
     self.assertIsNotNone(test_value)
 
     # Test with subkeys and values.
     registry_key = fake.FakeWinRegistryKey(
-        u'Software', key_path=u'HKEY_CURRENT_USER\\Software',
+        'Software', key_path='HKEY_CURRENT_USER\\Software',
         last_written_time=0,
         subkeys=[test_key], values=[test_value])
     self.assertIsNotNone(registry_key)
 
     # Test with duplicate subkeys and values.
     registry_key = fake.FakeWinRegistryKey(
-        u'Software', key_path=u'HKEY_CURRENT_USER\\Software',
+        'Software', key_path='HKEY_CURRENT_USER\\Software',
         last_written_time=0,
         subkeys=[test_key, test_key],
         values=[test_value, test_value])
@@ -206,11 +208,11 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
   def testAddSubkey(self):
     """Tests the AddSubkey function."""
     registry_key = fake.FakeWinRegistryKey(
-        u'Software', key_path=u'HKEY_CURRENT_USER\\Software',
+        'Software', key_path='HKEY_CURRENT_USER\\Software',
         last_written_time=0)
 
     sub_registry_key = fake.FakeWinRegistryKey(
-        u'Microsoft', key_path=u'HKEY_CURRENT_USER\\Software\\Microsoft',
+        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft',
         last_written_time=0)
 
     registry_key.AddSubkey(sub_registry_key)
@@ -221,10 +223,10 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
   def testAddValue(self):
     """Tests the AddValue function."""
     registry_key = fake.FakeWinRegistryKey(
-        u'Software', key_path=u'HKEY_CURRENT_USER\\Software',
+        'Software', key_path='HKEY_CURRENT_USER\\Software',
         last_written_time=0)
 
-    registry_value = fake.FakeWinRegistryValue(u'')
+    registry_value = fake.FakeWinRegistryValue('')
 
     registry_key.AddValue(registry_value)
 
@@ -238,7 +240,7 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
     sub_registry_key = registry_key.GetSubkeyByIndex(0)
     self.assertIsNotNone(sub_registry_key)
 
-    expected_key_path = u'HKEY_CURRENT_USER\\Software\\Microsoft'
+    expected_key_path = 'HKEY_CURRENT_USER\\Software\\Microsoft'
     self.assertEqual(sub_registry_key.path, expected_key_path)
 
     with self.assertRaises(IndexError):
@@ -248,29 +250,29 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
     """Tests the GetSubkeyByName function."""
     registry_key = self._CreateTestKey()
 
-    sub_registry_key = registry_key.GetSubkeyByName(u'Microsoft')
+    sub_registry_key = registry_key.GetSubkeyByName('Microsoft')
     self.assertIsNotNone(sub_registry_key)
 
-    expected_key_path = u'HKEY_CURRENT_USER\\Software\\Microsoft'
+    expected_key_path = 'HKEY_CURRENT_USER\\Software\\Microsoft'
     self.assertEqual(sub_registry_key.path, expected_key_path)
 
-    sub_registry_key = registry_key.GetSubkeyByName(u'Bogus')
+    sub_registry_key = registry_key.GetSubkeyByName('Bogus')
     self.assertIsNone(sub_registry_key)
 
   def testGetSubkeyByPath(self):
     """Tests the GetSubkeyByPath function."""
     registry_key = self._CreateTestKey()
 
-    key_path = u'Microsoft\\Internet Explorer'
+    key_path = 'Microsoft\\Internet Explorer'
     sub_registry_key = registry_key.GetSubkeyByPath(key_path)
     self.assertIsNotNone(sub_registry_key)
-    self.assertEqual(sub_registry_key.name, u'Internet Explorer')
+    self.assertEqual(sub_registry_key.name, 'Internet Explorer')
 
     expected_key_path = (
-        u'HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer')
+        'HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer')
     self.assertEqual(sub_registry_key.path, expected_key_path)
 
-    key_path = u'Microsoft\\Bogus'
+    key_path = 'Microsoft\\Bogus'
     sub_registry_key = registry_key.GetSubkeyByPath(key_path)
     self.assertIsNone(sub_registry_key)
 
@@ -285,10 +287,10 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
     """Tests the GetValueByName function."""
     registry_key = self._CreateTestKey()
 
-    registry_value = registry_key.GetValueByName(u'')
+    registry_value = registry_key.GetValueByName('')
     self.assertIsNotNone(registry_value)
 
-    registry_value = registry_key.GetValueByName(u'Bogus')
+    registry_value = registry_key.GetValueByName('Bogus')
     self.assertIsNone(registry_value)
 
   def testGetValues(self):
@@ -305,84 +307,84 @@ class FakeWinRegistryValueTest(test_lib.BaseTestCase):
   def testProperties(self):
     """Tests the properties."""
     registry_value = fake.FakeWinRegistryValue(
-        u'MRUListEx', data_type=definitions.REG_BINARY)
+        'MRUListEx', data_type=definitions.REG_BINARY)
     self.assertIsNotNone(registry_value)
 
     self.assertEqual(registry_value.data, b'')
     self.assertEqual(registry_value.data_type, definitions.REG_BINARY)
-    self.assertEqual(registry_value.name, u'MRUListEx')
+    self.assertEqual(registry_value.name, 'MRUListEx')
     self.assertEqual(registry_value.offset, 0)
 
   def testGetDataAsObject(self):
     """Tests the GetDataAsObject function."""
     registry_value = fake.FakeWinRegistryValue(
-        u'MRUListEx', data_type=definitions.REG_BINARY)
+        'MRUListEx', data_type=definitions.REG_BINARY)
 
     value_data = registry_value.GetDataAsObject()
     self.assertIsNone(value_data)
 
     registry_value = fake.FakeWinRegistryValue(
-        u'MRUListEx', data=b'DATA', data_type=definitions.REG_BINARY)
+        'MRUListEx', data=b'DATA', data_type=definitions.REG_BINARY)
 
     value_data = registry_value.GetDataAsObject()
     self.assertEqual(value_data, b'DATA')
 
-    data = u'ValueData'.encode(u'utf-16-le')
+    data = 'ValueData'.encode('utf-16-le')
     registry_value = fake.FakeWinRegistryValue(
-        u'MRU', data=data, data_type=definitions.REG_SZ)
+        'MRU', data=data, data_type=definitions.REG_SZ)
 
     value_data = registry_value.GetDataAsObject()
-    self.assertEqual(value_data, u'ValueData')
+    self.assertEqual(value_data, 'ValueData')
 
-    data = u'\xed\x44'
+    data = '\xed\x44'
     registry_value = fake.FakeWinRegistryValue(
-        u'MRU', data=data, data_type=definitions.REG_SZ)
+        'MRU', data=data, data_type=definitions.REG_SZ)
 
     with self.assertRaises(errors.WinRegistryValueError):
       registry_value.GetDataAsObject()
 
     registry_value = fake.FakeWinRegistryValue(
-        u'Count', data=b'\x11\x22\x33\x44', data_type=definitions.REG_DWORD)
+        'Count', data=b'\x11\x22\x33\x44', data_type=definitions.REG_DWORD)
 
     value_data = registry_value.GetDataAsObject()
     self.assertEqual(value_data, 0x44332211)
 
     registry_value = fake.FakeWinRegistryValue(
-        u'Count', data=b'\x11\x22\x33\x44',
+        'Count', data=b'\x11\x22\x33\x44',
         data_type=definitions.REG_DWORD_BIG_ENDIAN)
 
     value_data = registry_value.GetDataAsObject()
     self.assertEqual(value_data, 0x11223344)
 
     registry_value = fake.FakeWinRegistryValue(
-        u'Count', data=b'\x88\x77\x66\x55\x44\x33\x22\x11',
+        'Count', data=b'\x88\x77\x66\x55\x44\x33\x22\x11',
         data_type=definitions.REG_QWORD)
 
     value_data = registry_value.GetDataAsObject()
     self.assertEqual(value_data, 0x1122334455667788)
 
-    data = u'Multi\x00String\x00ValueData\x00'.encode(u'utf-16-le')
+    data = 'Multi\x00String\x00ValueData\x00'.encode('utf-16-le')
     registry_value = fake.FakeWinRegistryValue(
-        u'MRU', data=data, data_type=definitions.REG_MULTI_SZ)
+        'MRU', data=data, data_type=definitions.REG_MULTI_SZ)
 
     value_data = registry_value.GetDataAsObject()
-    self.assertEqual(value_data, [u'Multi', u'String', u'ValueData'])
+    self.assertEqual(value_data, ['Multi', 'String', 'ValueData'])
 
-    data = u'\xed\x44'
+    data = '\xed\x44'
     registry_value = fake.FakeWinRegistryValue(
-        u'MRU', data=data, data_type=definitions.REG_MULTI_SZ)
+        'MRU', data=data, data_type=definitions.REG_MULTI_SZ)
 
     with self.assertRaises(errors.WinRegistryValueError):
       registry_value.GetDataAsObject()
 
     registry_value = fake.FakeWinRegistryValue(
-        u'MRU', data=(u'bogus', 0), data_type=definitions.REG_SZ)
+        'MRU', data=('bogus', 0), data_type=definitions.REG_SZ)
 
     with self.assertRaises(errors.WinRegistryValueError):
       registry_value.GetDataAsObject()
 
     registry_value = fake.FakeWinRegistryValue(
-        u'MRU', data=(u'bogus', 0), data_type=definitions.REG_MULTI_SZ)
+        'MRU', data=('bogus', 0), data_type=definitions.REG_MULTI_SZ)
 
     with self.assertRaises(errors.WinRegistryValueError):
       registry_value.GetDataAsObject()
@@ -390,48 +392,48 @@ class FakeWinRegistryValueTest(test_lib.BaseTestCase):
   def testDataIsBinaryData(self):
     """Tests the DataIsBinaryData function."""
     registry_value = fake.FakeWinRegistryValue(
-        u'Count', data_type=definitions.REG_DWORD)
+        'Count', data_type=definitions.REG_DWORD)
 
     self.assertFalse(registry_value.DataIsBinaryData())
 
     registry_value = fake.FakeWinRegistryValue(
-        u'MRUListEx', data_type=definitions.REG_BINARY)
+        'MRUListEx', data_type=definitions.REG_BINARY)
 
     self.assertTrue(registry_value.DataIsBinaryData())
 
   def testDataIsInteger(self):
     """Tests the DataIsInteger function."""
     registry_value = fake.FakeWinRegistryValue(
-        u'MRUListEx', data_type=definitions.REG_BINARY)
+        'MRUListEx', data_type=definitions.REG_BINARY)
 
     self.assertFalse(registry_value.DataIsInteger())
 
     registry_value = fake.FakeWinRegistryValue(
-        u'Count', data_type=definitions.REG_DWORD)
+        'Count', data_type=definitions.REG_DWORD)
 
     self.assertTrue(registry_value.DataIsInteger())
 
   def testDataIsMultiString(self):
     """Tests the DataIsMultiString function."""
     registry_value = fake.FakeWinRegistryValue(
-        u'MRUListEx', data_type=definitions.REG_BINARY)
+        'MRUListEx', data_type=definitions.REG_BINARY)
 
     self.assertFalse(registry_value.DataIsMultiString())
 
     registry_value = fake.FakeWinRegistryValue(
-        u'MRU', data_type=definitions.REG_MULTI_SZ)
+        'MRU', data_type=definitions.REG_MULTI_SZ)
 
     self.assertTrue(registry_value.DataIsMultiString())
 
   def testDataIsString(self):
     """Tests the DataIsString function."""
     registry_value = fake.FakeWinRegistryValue(
-        u'MRUListEx', data_type=definitions.REG_BINARY)
+        'MRUListEx', data_type=definitions.REG_BINARY)
 
     self.assertFalse(registry_value.DataIsString())
 
     registry_value = fake.FakeWinRegistryValue(
-        u'MRU', data_type=definitions.REG_SZ)
+        'MRU', data_type=definitions.REG_SZ)
 
     self.assertTrue(registry_value.DataIsString())
 
