@@ -7,10 +7,6 @@ Also see: https://en.wikipedia.org/wiki/Glob_(programming)
 import re
 
 
-_GLOB_GROUP_RE = re.compile(r'([^\[\]]+|[\[][^\]]+[\]]|[\[]|[\]])')
-_ESCAPE_RE = re.compile(r'([.^$+{}|()\[\]])')
-
-
 def Glob2Regex(glob_pattern):
   """Converts a glob pattern to a regular expression.
 
@@ -34,28 +30,56 @@ def Glob2Regex(glob_pattern):
 
   regex_pattern = []
 
-  for glob_pattern_group in _GLOB_GROUP_RE.findall(glob_pattern):
-    # Escape '\'
-    glob_pattern_group = glob_pattern_group.replace('\\', '\\\\')
+  glob_pattern_index = 0
+  glob_pattern_length = len(glob_pattern)
+  while glob_pattern_index < glob_pattern_length:
+    character = glob_pattern[glob_pattern_index]
+    glob_pattern_index += 1
 
-    if glob_pattern_group[0] != '[':
-      # Escape special characters used by regular expressions.
-      glob_pattern_group = _ESCAPE_RE.sub(r'\\\1', glob_pattern_group)
+    if character == '*':
+      regex_pattern.append('.*')
 
-      # Replace '*' with '.*'
-      glob_pattern_group = glob_pattern_group.replace('*', '.*')
+    elif character == '?':
+      regex_pattern.append('.')
 
-      # Replace '?' with '.'
-      glob_pattern_group = glob_pattern_group.replace('?', '.')
+    elif character != '[':
+      regex_character = re.escape(character)
+      regex_pattern.append(regex_character)
 
-    elif glob_pattern_group in ('[', ']'):
-      # Escape a stand-alone '[' or ']'
-      glob_pattern_group = _ESCAPE_RE.sub(r'\\\1', glob_pattern_group)
+    else:
+      glob_group_index = glob_pattern_index
 
-    elif glob_pattern_group[1] == '!':
-      # Replace '[!' with '[^'
-      glob_pattern_group = glob_pattern_group.replace('[!', '[^', 1)
+      if (glob_group_index < glob_pattern_length and
+          glob_pattern[glob_group_index] == '!'):
+        glob_group_index += 1
 
-    regex_pattern.append(glob_pattern_group)
+      if (glob_group_index < glob_pattern_length and
+          glob_pattern[glob_group_index] == ']'):
+        glob_group_index += 1
+
+      while (glob_group_index < glob_pattern_length and
+             glob_pattern[glob_group_index] != ']'):
+        glob_group_index += 1
+
+      if glob_group_index >= glob_pattern_length:
+        regex_pattern.append('\\[')
+        continue
+
+      glob_group = glob_pattern[glob_pattern_index:glob_group_index]
+      glob_pattern_index = glob_group_index + 1
+
+      glob_group = glob_group.replace('\\','\\\\')
+
+      regex_pattern.append('[')
+
+      if glob_group[0] == '!':
+        regex_pattern.append('^')
+        glob_group = glob_group[1:]
+
+      elif glob_group[0] == '^':
+        regex_pattern.append('\\')
+
+      regex_pattern.append(glob_group)
+      regex_pattern.append(']')
 
   return ''.join(regex_pattern)
