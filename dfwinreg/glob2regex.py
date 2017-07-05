@@ -68,7 +68,7 @@ def Glob2Regex(glob_pattern):
       glob_group = glob_pattern[glob_pattern_index:glob_group_index]
       glob_pattern_index = glob_group_index + 1
 
-      glob_group = glob_group.replace('\\','\\\\')
+      glob_group = glob_group.replace('\\', '\\\\')
 
       regex_pattern.append('[')
 
