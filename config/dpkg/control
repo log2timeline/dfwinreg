@@ -11,7 +11,7 @@ Homepage: https://github.com/log2timeline/dfwinreg
 Package: python-dfwinreg
 Architecture: all
 Depends: libregf-python (>= 20150315), python-construct (>= 2.5.2), python-dfdatetime (>= 20160814), python-six (>= 1.1.0), ${python:Depends}, ${misc:Depends}
-Description: Digital Forensics Windows Registry (dfWinReg).
+Description: Python 2 module of dfWinReg
  dfWinReg, or Digital Forensics Windows Registry, provides read-only access to
  Windows Registry objects. The goal of dfWinReg is to provide a generic
  interface for accessing Windows Registry objects that resembles the Registry
@@ -20,7 +20,7 @@ Description: Digital Forensics Windows Registry (dfWinReg).
 Package: python3-dfwinreg
 Architecture: all
 Depends: libregf-python3 (>= 20150315), python3-construct (>= 2.5.2), python3-dfdatetime (>= 20160814), python3-six (>= 1.1.0), ${python3:Depends}, ${misc:Depends}
-Description: Digital Forensics Windows Registry (dfWinReg).
+Description: Python 3 module of dfWinReg
  dfWinReg, or Digital Forensics Windows Registry, provides read-only access to
  Windows Registry objects. The goal of dfWinReg is to provide a generic
  interface for accessing Windows Registry objects that resembles the Registry
