@@ -177,11 +177,11 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
 
     return self._subkeys.get(name.upper(), None)
 
-  def GetSubkeyByPath(self, path):
+  def GetSubkeyByPath(self, key_path):
     """Retrieves a subkey by path.
 
     Args:
-      path (str): path of the subkey.
+      key_path (str): path of the subkey.
 
     Returns:
       WinRegistryKey: Windows Registry subkey or None if not found.
@@ -190,7 +190,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
       self._GetKeyFromRegistry()
 
     subkey = self
-    for path_segment in key_paths.SplitKeyPath(path):
+    for path_segment in key_paths.SplitKeyPath(key_path):
       subkey = subkey.GetSubkeyByName(path_segment)
       if not subkey:
         break

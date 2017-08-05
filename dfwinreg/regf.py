@@ -167,20 +167,20 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
     return REGFWinRegistryKey(pyregf_key, key_path=key_path)
 
-  def GetSubkeyByPath(self, path):
+  def GetSubkeyByPath(self, key_path):
     """Retrieves a subkey by path.
 
     Args:
-      path (str): path of the subkey.
+      key_path (str): path of the subkey.
 
     Returns:
       WinRegistryKey: Windows Registry subkey or None if not found.
     """
-    pyregf_key = self._pyregf_key.get_sub_key_by_path(path)
+    pyregf_key = self._pyregf_key.get_sub_key_by_path(key_path)
     if not pyregf_key:
       return
 
-    key_path = key_paths.JoinKeyPath([self._key_path, path])
+    key_path = key_paths.JoinKeyPath([self._key_path, key_path])
     return REGFWinRegistryKey(pyregf_key, key_path=key_path)
 
   def GetSubkeys(self):

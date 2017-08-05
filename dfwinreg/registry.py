@@ -142,7 +142,7 @@ class WinRegistry(object):
     """
     longest_key_path_prefix_upper = ''
     longest_key_path_prefix_length = len(longest_key_path_prefix_upper)
-    for key_path_prefix_upper in self._registry_files.keys():
+    for key_path_prefix_upper in self._registry_files:
       if key_path_upper.startswith(key_path_prefix_upper):
         key_path_prefix_length = len(key_path_prefix_upper)
         if key_path_prefix_length > longest_key_path_prefix_length:
