@@ -19,6 +19,22 @@ from tests import test_lib
 class TestWinRegistry(registry.WinRegistry):
   """Windows Registry for testing."""
 
+  def _GetCachedFileByPath(self, key_path_upper):
+    """Retrieves a cached Windows Registry file for a specific path.
+
+    Args:
+      key_path_upper (str): Windows Registry key path, in upper case with
+          a resolved root key alias.
+
+    Returns:
+      tuple: consist:
+
+        str: key path prefix
+        WinRegistryFile: corresponding Windows Registry file or None if not
+            available.
+    """
+    return None, None
+
   def GetKeyByPath(self, key_path):
     """Retrieves the key for a specific path.
 
@@ -41,7 +57,7 @@ class TestWinRegistry(registry.WinRegistry):
       registry_key.AddValue(registry_value)
 
       registry_value = fake.FakeWinRegistryValue(
-          'Default', data=b'\xff\x00\x00\x00', data_type=definitions.REG_DWORD)
+          'Default', data=b'\xff\xff\xff\xff', data_type=definitions.REG_DWORD)
       registry_key.AddValue(registry_value)
 
       registry_value = fake.FakeWinRegistryValue(
@@ -49,7 +65,7 @@ class TestWinRegistry(registry.WinRegistry):
           data_type=definitions.REG_DWORD)
       registry_key.AddValue(registry_value)
 
-      return
+      return registry_key
 
     return super(TestWinRegistry, self).GetKeyByPath(key_path)
 
@@ -77,6 +93,28 @@ class TestWinRegistryFileReader(interface.WinRegistryFileReader):
       registry_file = None
 
     return registry_file
+
+
+class TestWinRegistryFileReaderMapped(TestWinRegistryFileReader):
+  """Single file Windows Registry file reader that maps Windows paths."""
+
+  _TEST_DATA_PATH = os.path.join(os.getcwd(), 'test_data')
+
+  def Open(self, path, ascii_codepage='cp1252'):
+    """Opens the Windows Registry file specified by the path.
+
+    Args:
+      path (str): path of the Windows Registry file.
+      ascii_codepage (Optional[str]): ASCII string codepage.
+
+    Returns:
+      WinRegistryFile: Windows Registry file or None.
+    """
+    if path == '%SystemRoot%\\System32\\config\\SYSTEM':
+      path = os.path.join(self._TEST_DATA_PATH, 'SYSTEM')
+
+    return super(TestWinRegistryFileReaderMapped, self).Open(
+        path, ascii_codepage=ascii_codepage)
 
 
 class RegistryTest(test_lib.BaseTestCase):
@@ -186,6 +224,14 @@ class RegistryTest(test_lib.BaseTestCase):
     key_path_prefix, registry_file = win_registry._GetFileByPath(key_path)
     self.assertIsNone(key_path_prefix)
     self.assertIsNone(registry_file)
+
+    # Tests _GetCachedFileByPath returning no key path prefix.
+    win_registry = registry.WinRegistry(
+        registry_file_reader=TestWinRegistryFileReaderMapped())
+
+    key_path_prefix, registry_file = win_registry._GetFileByPath(key_path)
+    self.assertEqual(key_path_prefix, key_path)
+    self.assertIsNotNone(registry_file)
 
   def testGetFileMappingsByPath(self):
     """Tests the _GetFileMappingsByPath function."""
