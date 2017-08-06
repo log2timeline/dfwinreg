@@ -54,6 +54,29 @@ class TestWinRegistry(registry.WinRegistry):
     return super(TestWinRegistry, self).GetKeyByPath(key_path)
 
 
+class TestWinRegistryKeyPathPrefixMismatch(registry.WinRegistry):
+  """Windows Registry for testing key path prefix mismatch."""
+
+  def _GetFileByPath(self, key_path_upper):
+    """Retrieves a Windows Registry file for a specific path.
+
+    Args:
+      key_path_upper (str): Windows Registry key path, in upper case with
+          a resolved root key alias.
+
+    Returns:
+      tuple: consists:
+
+        str: upper case key path prefix
+        WinRegistryFile: corresponding Windows Registry file or None if not
+            available.
+    """
+    key_path_prefix_upper, registry_file = super(
+        TestWinRegistryKeyPathPrefixMismatch, self)._GetFileByPath(
+            key_path_upper)
+    return 'BOGUS', registry_file
+
+
 class TestWinRegistryFileReader(interface.WinRegistryFileReader):
   """Single file Windows Registry file reader."""
 
@@ -96,6 +119,8 @@ class TestWinRegistryFileReaderMapped(TestWinRegistryFileReader):
     """
     if path == '%SystemRoot%\\System32\\config\\SYSTEM':
       path = os.path.join(self._TEST_DATA_PATH, 'SYSTEM')
+    elif path == '%UserProfile%\\NTUSER.DAT':
+      path = os.path.join(self._TEST_DATA_PATH, 'NTUSER.DAT')
 
     return super(TestWinRegistryFileReaderMapped, self).Open(
         path, ascii_codepage=ascii_codepage)
@@ -271,14 +296,7 @@ class RegistryTest(test_lib.BaseTestCase):
   def testGetKeyByPathOnSystem(self):
     """Tests the GetKeyByPath function on a SYSTEM file."""
     win_registry = registry.WinRegistry(
-        registry_file_reader=TestWinRegistryFileReader())
-
-    test_path = self._GetTestFilePath(['SYSTEM'])
-    registry_file = win_registry._OpenFile(test_path)
-
-    win_registry = registry.WinRegistry()
-    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
-    win_registry.MapFile(key_path_prefix, registry_file)
+        registry_file_reader=TestWinRegistryFileReaderMapped())
 
     # Test an existing key.
     registry_key = win_registry.GetKeyByPath(
@@ -294,6 +312,13 @@ class RegistryTest(test_lib.BaseTestCase):
     registry_key = win_registry.GetKeyByPath(
         'HKEY_LOCAL_MACHINE\\System\\Bogus')
     self.assertIsNone(registry_key)
+
+    # Tests Current value is not an integer.
+    win_registry = TestWinRegistryKeyPathPrefixMismatch(
+        registry_file_reader=TestWinRegistryFileReaderMapped())
+
+    with self.assertRaises(RuntimeError):
+      win_registry.GetKeyByPath('HKEY_LOCAL_MACHINE\\System\\ControlSet001')
 
   @test_lib.skipUnlessHasTestFile(['NTUSER.DAT'])
   @test_lib.skipUnlessHasTestFile(['NTUSER.DAT.LOG'])
@@ -317,6 +342,9 @@ class RegistryTest(test_lib.BaseTestCase):
     self.assertEqual(key_path_prefix, '')
 
     registry_file.Close()
+
+    key_path_prefix = win_registry.GetRegistryFileMapping(None)
+    self.assertEqual(key_path_prefix, '')
 
   @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testGetRegistryFileMappingOnSystem(self):
