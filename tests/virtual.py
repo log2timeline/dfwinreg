@@ -128,6 +128,12 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
 
     self.assertEqual(mapped_key.number_of_values, 0)
 
+    # Test virtual key fallback.
+    registry_key = self._CreateTestKey()
+    self.assertIsNotNone(registry_key)
+
+    self.assertEqual(registry_key.number_of_values, 0)
+
   @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testOffset(self):
     """Tests the offset property."""
