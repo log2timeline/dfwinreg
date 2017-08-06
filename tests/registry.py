@@ -71,7 +71,7 @@ class TestWinRegistryKeyPathPrefixMismatch(registry.WinRegistry):
         WinRegistryFile: corresponding Windows Registry file or None if not
             available.
     """
-    key_path_prefix_upper, registry_file = super(
+    _, registry_file = super(
         TestWinRegistryKeyPathPrefixMismatch, self)._GetFileByPath(
             key_path_upper)
     return 'BOGUS', registry_file
