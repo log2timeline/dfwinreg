@@ -32,7 +32,7 @@ class TestWinRegistry(object):
 
 
 class ErrorWinRegistry(object):
-  """Windows Registry for testing that raises errors."""
+  """Windows Registry for testing that fails."""
 
   def GetKeyByPath(self, unused_key_path):
     """Retrieves the key for a specific path.
@@ -98,33 +98,45 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
 
     return registry_key
 
+  @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testLastWrittenTime(self):
     """Tests the last_written_time property."""
-    registry_key = self._CreateTestKey()
-    self.assertIsNotNone(registry_key)
+    registry_key = self._CreateTestKeyWithMappedRegistry()
 
-    self.assertIsNone(registry_key.last_written_time)
+    mapped_key = registry_key.GetSubkeyByName('System')
+    self.assertIsNotNone(mapped_key)
 
+    self.assertIsNotNone(mapped_key.last_written_time)
+
+  @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testNumberOfSubkeys(self):
     """Tests the number_of_subkeys property."""
-    registry_key = self._CreateTestKey()
-    self.assertIsNotNone(registry_key)
+    registry_key = self._CreateTestKeyWithMappedRegistry()
 
-    self.assertEqual(registry_key.number_of_subkeys, 2)
+    mapped_key = registry_key.GetSubkeyByName('System')
+    self.assertIsNotNone(mapped_key)
 
+    self.assertEqual(mapped_key.number_of_subkeys, 8)
+
+  @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testNumberOfValues(self):
     """Tests the number_of_values property."""
-    registry_key = self._CreateTestKey()
-    self.assertIsNotNone(registry_key)
+    registry_key = self._CreateTestKeyWithMappedRegistry()
 
-    self.assertEqual(registry_key.number_of_values, 0)
+    mapped_key = registry_key.GetSubkeyByName('System')
+    self.assertIsNotNone(mapped_key)
 
+    self.assertEqual(mapped_key.number_of_values, 0)
+
+  @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testOffset(self):
     """Tests the offset property."""
-    registry_key = self._CreateTestKey()
-    self.assertIsNotNone(registry_key)
+    registry_key = self._CreateTestKeyWithMappedRegistry()
 
-    self.assertIsNone(registry_key.offset)
+    mapped_key = registry_key.GetSubkeyByName('System')
+    self.assertIsNotNone(mapped_key)
+
+    self.assertEqual(mapped_key.offset, 4132)
 
   @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testPropertiesWithMappedRegistry(self):
