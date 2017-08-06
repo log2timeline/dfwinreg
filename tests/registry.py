@@ -7,11 +7,51 @@ from __future__ import unicode_literals
 import os
 import unittest
 
+from dfwinreg import definitions
+from dfwinreg import fake
 from dfwinreg import interface
 from dfwinreg import regf
 from dfwinreg import registry
 
 from tests import test_lib
+
+
+class TestWinRegistry(registry.WinRegistry):
+  """Windows Registry for testing."""
+
+  def GetKeyByPath(self, key_path):
+    """Retrieves the key for a specific path.
+
+    Args:
+      key_path (str): Windows Registry key path.
+
+    Returns:
+      WinRegistryKey: Windows Registry key or None if not available.
+
+    Raises:
+      RuntimeError: if the root key is not supported.
+    """
+    if key_path == 'HKEY_LOCAL_MACHINE\\System\\Select':
+      registry_key = fake.FakeWinRegistryKey(
+          'Select', key_path='HKEY_LOCAL_MACHINE\\System',
+          last_written_time=0)
+
+      registry_value = fake.FakeWinRegistryValue(
+          'Current', data=b'DATA', data_type=definitions.REG_BINARY)
+      registry_key.AddValue(registry_value)
+
+      registry_value = fake.FakeWinRegistryValue(
+          'Default', data=b'\xff\x00\x00\x00', data_type=definitions.REG_DWORD)
+      registry_key.AddValue(registry_value)
+
+      registry_value = fake.FakeWinRegistryValue(
+          'LastKnownGood', data=b'\x01\x00\x00\x00',
+          data_type=definitions.REG_DWORD)
+      registry_key.AddValue(registry_value)
+
+      return
+
+    return super(TestWinRegistry, self).GetKeyByPath(key_path)
 
 
 class TestWinRegistryFileReader(interface.WinRegistryFileReader):
@@ -102,6 +142,12 @@ class RegistryTest(test_lib.BaseTestCase):
     expected_key_path = 'HKEY_LOCAL_MACHINE\\System\\ControlSet001'
     key_path = win_registry._GetCurrentControlSet()
     self.assertEqual(key_path, expected_key_path)
+
+    # Tests Current value is not an integer.
+    win_registry = TestWinRegistry()
+
+    key_path = win_registry._GetCurrentControlSet()
+    self.assertIsNone(key_path)
 
   @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testGetFileByPath(self):
