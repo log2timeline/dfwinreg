@@ -16,7 +16,7 @@ from tests import test_lib
 class TestWinRegistry(object):
   """Windows Registry for testing."""
 
-  def GetKeyByPath(self, key_path):
+  def GetKeyByPath(self, unused_key_path):
     """Retrieves the key for a specific path.
 
     Args:
@@ -34,7 +34,7 @@ class TestWinRegistry(object):
 class ErrorWinRegistry(object):
   """Windows Registry for testing that raises errors."""
 
-  def GetKeyByPath(self, key_path):
+  def GetKeyByPath(self, unused_key_path):
     """Retrieves the key for a specific path.
 
     Args:
@@ -159,20 +159,20 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
         'HKEY_LOCAL_MACHINE', key_path='')
     registry_key._GetKeyFromRegistry()
 
-    registry = TestWinRegistry()
+    test_win_registry = TestWinRegistry()
     registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', key_path='', registry=registry)
+        'HKEY_LOCAL_MACHINE', key_path='', registry=test_win_registry)
     registry_key._GetKeyFromRegistry()
 
-    registry = ErrorWinRegistry()
+    test_win_registry = ErrorWinRegistry()
     registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', key_path='', registry=registry)
+        'HKEY_LOCAL_MACHINE', key_path='', registry=test_win_registry)
     registry_key._GetKeyFromRegistry()
 
   def testJoinKeyPath(self):
     """Tests the _JoinKeyPath function."""
     registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', key_path='', registry=registry)
+        'HKEY_LOCAL_MACHINE', key_path='')
 
     expected_path = 'HKEY_LOCAL_MACHINE\\Software'
     path = registry_key._JoinKeyPath(['HKEY_LOCAL_MACHINE', 'Software'])
