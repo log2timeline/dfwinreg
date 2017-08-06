@@ -13,6 +13,42 @@ from tests import registry as test_registry
 from tests import test_lib
 
 
+class TestWinRegistry(object):
+  """Windows Registry for testing."""
+
+  def GetKeyByPath(self, key_path):
+    """Retrieves the key for a specific path.
+
+    Args:
+      key_path (str): Windows Registry key path.
+
+    Returns:
+      WinRegistryKey: Windows Registry key or None if not available.
+
+    Raises:
+      RuntimeError: if the root key is not supported.
+    """
+    return
+
+
+class ErrorWinRegistry(object):
+  """Windows Registry for testing that raises errors."""
+
+  def GetKeyByPath(self, key_path):
+    """Retrieves the key for a specific path.
+
+    Args:
+      key_path (str): Windows Registry key path.
+
+    Returns:
+      WinRegistryKey: Windows Registry key or None if not available.
+
+    Raises:
+      RuntimeError: if the root key is not supported.
+    """
+    raise RuntimeError('Not supported for testing')
+
+
 class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
   """Tests for a virtual Windows Registry key."""
 
@@ -62,14 +98,32 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
 
     return registry_key
 
-  def testProperties(self):
-    """Tests the properties."""
+  def testLastWrittenTime(self):
+    """Tests the last_written_time property."""
     registry_key = self._CreateTestKey()
     self.assertIsNotNone(registry_key)
 
     self.assertIsNone(registry_key.last_written_time)
+
+  def testNumberOfSubkeys(self):
+    """Tests the number_of_subkeys property."""
+    registry_key = self._CreateTestKey()
+    self.assertIsNotNone(registry_key)
+
     self.assertEqual(registry_key.number_of_subkeys, 2)
+
+  def testNumberOfValues(self):
+    """Tests the number_of_values property."""
+    registry_key = self._CreateTestKey()
+    self.assertIsNotNone(registry_key)
+
     self.assertEqual(registry_key.number_of_values, 0)
+
+  def testOffset(self):
+    """Tests the offset property."""
+    registry_key = self._CreateTestKey()
+    self.assertIsNotNone(registry_key)
+
     self.assertIsNone(registry_key.offset)
 
   @test_lib.skipUnlessHasTestFile(['SYSTEM'])
@@ -101,7 +155,28 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
     mapped_key._GetKeyFromRegistry()
     self.assertEqual(len(mapped_key._subkeys), 8)
 
-  # TODO: add tests for _JoinKeyPath
+    registry_key = virtual.VirtualWinRegistryKey(
+        'HKEY_LOCAL_MACHINE', key_path='')
+    registry_key._GetKeyFromRegistry()
+
+    registry = TestWinRegistry()
+    registry_key = virtual.VirtualWinRegistryKey(
+        'HKEY_LOCAL_MACHINE', key_path='', registry=registry)
+    registry_key._GetKeyFromRegistry()
+
+    registry = ErrorWinRegistry()
+    registry_key = virtual.VirtualWinRegistryKey(
+        'HKEY_LOCAL_MACHINE', key_path='', registry=registry)
+    registry_key._GetKeyFromRegistry()
+
+  def testJoinKeyPath(self):
+    """Tests the _JoinKeyPath function."""
+    registry_key = virtual.VirtualWinRegistryKey(
+        'HKEY_LOCAL_MACHINE', key_path='', registry=registry)
+
+    expected_path = 'HKEY_LOCAL_MACHINE\\Software'
+    path = registry_key._JoinKeyPath(['HKEY_LOCAL_MACHINE', 'Software'])
+    self.assertEqual(path, expected_path)
 
   def testAddSubkey(self):
     """Tests the AddSubkey function."""
