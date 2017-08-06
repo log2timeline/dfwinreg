@@ -19,22 +19,6 @@ from tests import test_lib
 class TestWinRegistry(registry.WinRegistry):
   """Windows Registry for testing."""
 
-  def _GetCachedFileByPath(self, key_path_upper):
-    """Retrieves a cached Windows Registry file for a specific path.
-
-    Args:
-      key_path_upper (str): Windows Registry key path, in upper case with
-          a resolved root key alias.
-
-    Returns:
-      tuple: consist:
-
-        str: key path prefix
-        WinRegistryFile: corresponding Windows Registry file or None if not
-            available.
-    """
-    return None, None
-
   def GetKeyByPath(self, key_path):
     """Retrieves the key for a specific path.
 
@@ -225,7 +209,7 @@ class RegistryTest(test_lib.BaseTestCase):
     self.assertIsNone(key_path_prefix)
     self.assertIsNone(registry_file)
 
-    # Tests _GetCachedFileByPath returning no key path prefix.
+    # Tests open file based on predefined mapping.
     win_registry = registry.WinRegistry(
         registry_file_reader=TestWinRegistryFileReaderMapped())
 
