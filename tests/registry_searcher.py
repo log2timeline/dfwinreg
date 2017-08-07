@@ -97,7 +97,20 @@ class FindSpecTest(test_lib.BaseTestCase):
     result = find_spec._CheckKeyPath(registry_key, 3)
     self.assertTrue(result)
 
-    # TODO: Test find specification with invalid regular expression.
+    # Test find specification without key_path_segments.
+    find_spec._key_path_segments = None
+    result = find_spec._CheckKeyPath(registry_key, 3)
+    self.assertFalse(result)
+
+    # Test find specification with invalid regular expression.
+    find_spec = registry_searcher.FindSpec(
+        key_path_regex=['HKEY_CURRENT_USER', 'Software', 'Mi(rosoft'])
+
+    registry_key = fake.FakeWinRegistryKey(
+        'Microsoft', key_path='HKEY_CURRENT_USER\\Software')
+
+    result = find_spec._CheckKeyPath(registry_key, 3)
+    self.assertFalse(result)
 
   def testAtMaximumDepth(self):
     """Tests the AtMaximumDepth function."""
@@ -127,11 +140,21 @@ class FindSpecTest(test_lib.BaseTestCase):
     result = find_spec.Matches(registry_key, 0)
     self.assertEqual(result, (False, True))
 
+    # Test find specification without key_path_segments.
+    find_spec._key_path_segments = None
+    result = find_spec.Matches(registry_key, 3)
+    self.assertEqual(result, (True, None))
+
 
 class WinRegistrySearcherTest(test_lib.BaseTestCase):
   """Tests for the Windows Registry searcher."""
 
   # pylint: disable=protected-access
+
+  def testInitialize(self):
+    """Tests the __init__ function."""
+    with self.assertRaises(ValueError):
+      registry_searcher.WinRegistrySearcher(None)
 
   # TODO: add tests for _FindInKey
 
@@ -179,8 +202,45 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
     key_paths = list(searcher.Find(find_specs=[find_spec]))
     self.assertEqual(key_paths, expected_key_paths)
 
-  # TODO: add tests for GetKeyByPath
-  # TODO: add tests for SplitKeyPath
+    # Test without find specifications.
+    key_paths = list(searcher.Find())
+    self.assertEqual(len(key_paths), 15400)
+
+  @test_lib.skipUnlessHasTestFile(['SYSTEM'])
+  def testGetKeyByPath(self):
+    """Tests the GetKeyByPath function."""
+    win_registry = registry.WinRegistry(
+        registry_file_reader=test_registry.TestWinRegistryFileReader())
+
+    test_path = self._GetTestFilePath(['SYSTEM'])
+    registry_file = win_registry._OpenFile(test_path)
+
+    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
+    win_registry.MapFile(key_path_prefix, registry_file)
+
+    searcher = registry_searcher.WinRegistrySearcher(win_registry)
+
+    registry_key = searcher.GetKeyByPath(
+        'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Control')
+    self.assertIsNotNone(registry_key)
+
+  @test_lib.skipUnlessHasTestFile(['SYSTEM'])
+  def testSplitKeyPath(self):
+    """Tests the SplitKeyPath function."""
+    win_registry = registry.WinRegistry(
+        registry_file_reader=test_registry.TestWinRegistryFileReader())
+
+    test_path = self._GetTestFilePath(['SYSTEM'])
+    registry_file = win_registry._OpenFile(test_path)
+
+    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
+    win_registry.MapFile(key_path_prefix, registry_file)
+
+    searcher = registry_searcher.WinRegistrySearcher(win_registry)
+
+    path_segments = searcher.SplitKeyPath(
+        'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Control')
+    self.assertEqual(len(path_segments), 4)
 
 
 if __name__ == '__main__':

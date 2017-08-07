@@ -261,7 +261,7 @@ class WinRegistrySearcher(object):
       str: key path of a matching Windows Registry key.
     """
     if not find_specs:
-      find_specs.append(FindSpec())
+      find_specs = [FindSpec()]
 
     registry_key = self._win_registry.GetRootKey()
     for matching_path in self._FindInKey(registry_key, find_specs, 0):
