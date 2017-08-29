@@ -45,10 +45,10 @@ class BaseTestCase(unittest.TestCase):
     """Retrieves the path of a test file relative to the test data directory.
 
     Args:
-      path_segments: the path segments inside the test data directory.
+      path_segments (list[str]): path segments inside the test data directory.
 
     Returns:
-      A path of the test file.
+      str: a path of the test file.
     """
     # Note that we need to pass the individual path segments to os.path.join
     # and not a list.
