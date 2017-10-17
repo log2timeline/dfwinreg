@@ -70,7 +70,7 @@ class FindSpec(object):
 
       if isinstance(key_path_glob, py2to3.STRING_TYPES):
         key_path_regex = glob2regex.Glob2Regex(key_path_glob)
-        key_path_regex = key_path_regex.replace(u'\\/', '/')
+        key_path_regex = key_path_regex.replace('\\/', '/')
 
         # The backslash '\' is escaped within a regular expression.
         self._key_path_segments = key_paths.SplitKeyPath(
@@ -80,7 +80,7 @@ class FindSpec(object):
         self._key_path_segments = []
         for key_path_segment in key_path_glob:
           key_path_regex = glob2regex.Glob2Regex(key_path_segment)
-          key_path_regex = key_path_regex.replace(u'\\/', '/')
+          key_path_regex = key_path_regex.replace('\\/', '/')
 
           self._key_path_segments.append(key_path_regex)
 
