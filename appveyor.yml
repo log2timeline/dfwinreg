@@ -1,15 +1,15 @@
 environment:
   matrix:
-  - TARGET: "python27"
+  - TARGET: python27
     PYTHON: "C:\\Python27"
-  - TARGET: "python36"
+  - TARGET: python36
     PYTHON: "C:\\Python36"
 
 install:
 - cmd: '"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x86 /release'
 - cmd: "%PYTHON%\\Scripts\\pip.exe install --upgrade pip"
 - cmd: "%PYTHON%\\Scripts\\pip.exe install pypiwin32 WMI"
-- cmd: git clone https://github.com/joachimmetz/l2tdevtools.git -b update3 ..\l2tdevtools
+- cmd: git clone https://github.com/log2timeline/l2tdevtools.git ..\l2tdevtools
 - cmd: mkdir dependencies && set PYTHONPATH=..\l2tdevtools && "%PYTHON%\\python.exe" ..\l2tdevtools\tools\update.py --download-directory dependencies --machine-type x86 --msi-targetdir "%PYTHON%" --track dev construct dfdatetime libregf six funcsigs mock pbr
 
 build: off
