@@ -2,13 +2,13 @@
 #
 # Script to set up Travis-CI test VM.
 
-COVERALL_DEPENDENCIES="python-coverage python-coveralls python-docopt";
+COVERALLS_DEPENDENCIES="python-coverage python-coveralls python-docopt";
 
-L2TBINARIES_DEPENDENCIES="construct dfdatetime libregf six";
+L2TBINARIES_DEPENDENCIES="PyYAML dfdatetime dtfabric libregf";
 
-L2TBINARIES_TEST_DEPENDENCIES="funcsigs mock pbr";
+L2TBINARIES_TEST_DEPENDENCIES="funcsigs mock pbr six";
 
-PYTHON2_DEPENDENCIES="libregf-python python-construct python-dfdatetime python-six";
+PYTHON2_DEPENDENCIES="libregf-python python-dfdatetime python-dtfabric python-yaml";
 
 PYTHON2_TEST_DEPENDENCIES="python-mock python-tox";
 
@@ -32,5 +32,5 @@ then
 	sudo apt-get update -q;
 	# Only install the Python 2 dependencies.
 	# Also see: https://docs.travis-ci.com/user/languages/python/#Travis-CI-Uses-Isolated-virtualenvs
-	sudo apt-get install -y ${COVERALL_DEPENDENCIES} ${PYTHON2_DEPENDENCIES} ${PYTHON2_TEST_DEPENDENCIES};
+	sudo apt-get install -y ${COVERALLS_DEPENDENCIES} ${PYTHON2_DEPENDENCIES} ${PYTHON2_TEST_DEPENDENCIES};
 fi

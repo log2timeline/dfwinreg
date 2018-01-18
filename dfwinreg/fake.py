@@ -5,9 +5,9 @@ from __future__ import unicode_literals
 
 import collections
 
-import construct
-
 from dfdatetime import filetime as dfdatetime_filetime
+
+from dtfabric.runtime import fabric as dtfabric_fabric
 
 from dfwinreg import definitions
 from dfwinreg import errors
@@ -307,9 +307,37 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
 class FakeWinRegistryValue(interface.WinRegistryValue):
   """Fake implementation of a Windows Registry value."""
 
-  _INT32_BIG_ENDIAN = construct.SBInt32('value')
-  _INT32_LITTLE_ENDIAN = construct.SLInt32('value')
-  _INT64_LITTLE_ENDIAN = construct.SLInt64('value')
+  _DATA_TYPE_FABRIC_DEFINITION = b'\n'.join([
+      b'name: int32be',
+      b'type: integer',
+      b'attributes:',
+      b'  byte_order: big-endian',
+      b'  format: signed',
+      b'  size: 4',
+      b'  units: bytes',
+      b'---',
+      b'name: int32le',
+      b'type: integer',
+      b'attributes:',
+      b'  byte_order: little-endian',
+      b'  format: signed',
+      b'  size: 4',
+      b'  units: bytes',
+      b'---',
+      b'name: int64le',
+      b'type: integer',
+      b'attributes:',
+      b'  byte_order: little-endian',
+      b'  format: signed',
+      b'  size: 8',
+      b'  units: bytes'])
+
+  _DATA_TYPE_FABRIC = dtfabric_fabric.DataTypeFabric(
+      yaml_definition=_DATA_TYPE_FABRIC_DEFINITION)
+
+  _INT32_BIG_ENDIAN = _DATA_TYPE_FABRIC.CreateDataTypeMap('int32be')
+  _INT32_LITTLE_ENDIAN = _DATA_TYPE_FABRIC.CreateDataTypeMap('int32le')
+  _INT64_LITTLE_ENDIAN = _DATA_TYPE_FABRIC.CreateDataTypeMap('int64le')
 
   def __init__(self, name, data=b'', data_type=definitions.REG_NONE, offset=0):
     """Initializes a Windows Registry value.
@@ -377,15 +405,15 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
 
     elif (self._data_type == definitions.REG_DWORD and
           self._data_size == 4):
-      return self._INT32_LITTLE_ENDIAN.parse(self._data)
+      return self._INT32_LITTLE_ENDIAN.MapByteStream(self._data)
 
     elif (self._data_type == definitions.REG_DWORD_BIG_ENDIAN and
           self._data_size == 4):
-      return self._INT32_BIG_ENDIAN.parse(self._data)
+      return self._INT32_BIG_ENDIAN.MapByteStream(self._data)
 
     elif (self._data_type == definitions.REG_QWORD and
           self._data_size == 8):
-      return self._INT64_LITTLE_ENDIAN.parse(self._data)
+      return self._INT64_LITTLE_ENDIAN.MapByteStream(self._data)
 
     elif self._data_type == definitions.REG_MULTI_SZ:
       try:
