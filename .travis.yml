@@ -43,4 +43,3 @@ script:
 - ./config/travis/runtests.sh
 after_success:
 - if test ${TARGET} = "linux-python27"; then coveralls --verbose; fi
-
