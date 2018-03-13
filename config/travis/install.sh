@@ -52,4 +52,8 @@ then
 	else
 		sudo apt-get install -y ${PYTHON3_DEPENDENCIES} ${PYTHON3_TEST_DEPENDENCIES};
 	fi
+	if test ${TARGET} = "pylint";
+	then
+		sudo apt-get install -y pylint;
+	fi
 fi
