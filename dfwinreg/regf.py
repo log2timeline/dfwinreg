@@ -40,7 +40,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     """Retrieves the key for a specific path.
 
     Args:
-      key_path (str): the Windows Registry key path.
+      key_path (str): Windows Registry key path.
 
     Returns:
       WinRegistryKey: Registry key or None if not available.
@@ -52,14 +52,14 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
       relative_key_path = key_path
       key_path = ''.join([self._key_path_prefix, key_path])
     else:
-      return
+      return None
 
     try:
       regf_key = self._regf_file.get_key_by_path(relative_key_path)
     except IOError:
       regf_key = None
     if not regf_key:
-      return
+      return None
 
     return REGFWinRegistryKey(regf_key, key_path=key_path)
 
@@ -146,7 +146,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
 
     pyregf_key = self._pyregf_key.get_sub_key(index)
     if not pyregf_key:
-      return
+      return None
 
     key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
     return REGFWinRegistryKey(pyregf_key, key_path=key_path)
@@ -162,7 +162,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     """
     pyregf_key = self._pyregf_key.get_sub_key_by_name(name)
     if not pyregf_key:
-      return
+      return None
 
     key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
     return REGFWinRegistryKey(pyregf_key, key_path=key_path)
@@ -178,7 +178,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     """
     pyregf_key = self._pyregf_key.get_sub_key_by_path(key_path)
     if not pyregf_key:
-      return
+      return None
 
     key_path = key_paths.JoinKeyPath([self._key_path, key_path])
     return REGFWinRegistryKey(pyregf_key, key_path=key_path)
@@ -207,7 +207,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     """
     pyregf_value = self._pyregf_key.get_value_by_name(name)
     if not pyregf_value:
-      return
+      return None
 
     return REGFWinRegistryValue(pyregf_value)
 
