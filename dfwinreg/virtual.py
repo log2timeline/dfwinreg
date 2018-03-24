@@ -77,7 +77,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
       return self._registry_key.offset
 
   def _GetKeyFromRegistry(self):
-    """Retrieves the key from the Windows Registry."""
+    """Determines the key from the Windows Registry."""
     if not self._registry:
       return
 

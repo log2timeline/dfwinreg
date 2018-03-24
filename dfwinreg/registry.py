@@ -166,7 +166,7 @@ class WinRegistry(object):
     select_key_path = 'HKEY_LOCAL_MACHINE\\System\\Select'
     select_key = self.GetKeyByPath(select_key_path)
     if not select_key:
-      return
+      return None
 
     # To determine the current control set check:
     # 1. The "Current" value.
@@ -184,7 +184,7 @@ class WinRegistry(object):
         break
 
     if not control_set or control_set <= 0 or control_set > 999:
-      return
+      return None
 
     return 'HKEY_LOCAL_MACHINE\\System\\ControlSet{0:03d}'.format(control_set)
 
@@ -285,7 +285,7 @@ class WinRegistry(object):
 
     key_path_prefix_upper, registry_file = self._GetFileByPath(key_path_upper)
     if not registry_file:
-      return
+      return None
 
     if not key_path_upper.startswith(key_path_prefix_upper):
       raise RuntimeError('Key path prefix mismatch.')

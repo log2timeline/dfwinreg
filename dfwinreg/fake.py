@@ -80,17 +80,17 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
       relative_key_path = key_path
       key_path = ''.join([self._key_path_prefix, key_path])
     else:
-      return
+      return None
 
     path_segments = key_paths.SplitKeyPath(relative_key_path)
     registry_key = self._root_key
     if not registry_key:
-      return
+      return None
 
     for path_segment in path_segments:
       registry_key = registry_key.GetSubkeyByName(path_segment)
       if not registry_key:
-        return
+        return None
 
     return registry_key
 
@@ -380,13 +380,13 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
     """Retrieves the data as an object.
 
     Returns:
-      object: data as a Python type.
+      object: data as a Python type or None if not available.
 
     Raises:
       WinRegistryValueError: if the value data cannot be read.
     """
     if not self._data:
-      return
+      return None
 
     if self._data_type in self._STRING_VALUE_TYPES:
       try:

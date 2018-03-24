@@ -242,7 +242,7 @@ class WinRegistrySearcher(object):
         sub_find_specs.append(find_spec)
 
     if not sub_find_specs:
-      return
+      return None
 
     search_depth += 1
     for sub_registry_key in registry_key.GetSubkeys():
