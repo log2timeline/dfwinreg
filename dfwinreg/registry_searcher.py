@@ -241,14 +241,12 @@ class WinRegistrySearcher(object):
       if key_path_match != False and not find_spec.AtMaximumDepth(search_depth):
         sub_find_specs.append(find_spec)
 
-    if not sub_find_specs:
-      return None
-
-    search_depth += 1
-    for sub_registry_key in registry_key.GetSubkeys():
-      for matching_path in self._FindInKey(
-          sub_registry_key, sub_find_specs, search_depth):
-        yield matching_path
+    if sub_find_specs:
+      search_depth += 1
+      for sub_registry_key in registry_key.GetSubkeys():
+        for matching_path in self._FindInKey(
+            sub_registry_key, sub_find_specs, search_depth):
+          yield matching_path
 
   def Find(self, find_specs=None):
     """Searches for matching keys within the Windows Registry.
