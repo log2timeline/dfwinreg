@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import collections
+import os
 
 from dfdatetime import filetime as dfdatetime_filetime
 
@@ -307,30 +308,11 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
 class FakeWinRegistryValue(interface.WinRegistryValue):
   """Fake implementation of a Windows Registry value."""
 
-  _DATA_TYPE_FABRIC_DEFINITION = b'\n'.join([
-      b'name: int32be',
-      b'type: integer',
-      b'attributes:',
-      b'  byte_order: big-endian',
-      b'  format: signed',
-      b'  size: 4',
-      b'  units: bytes',
-      b'---',
-      b'name: int32le',
-      b'type: integer',
-      b'attributes:',
-      b'  byte_order: little-endian',
-      b'  format: signed',
-      b'  size: 4',
-      b'  units: bytes',
-      b'---',
-      b'name: int64le',
-      b'type: integer',
-      b'attributes:',
-      b'  byte_order: little-endian',
-      b'  format: signed',
-      b'  size: 8',
-      b'  units: bytes'])
+  _DATA_TYPE_FABRIC_DEFINITION_FILE = os.path.join(
+      os.path.dirname(__file__), 'dtfabric.yaml')
+
+  with open(_DATA_TYPE_FABRIC_DEFINITION_FILE, 'rb') as file_object:
+    _DATA_TYPE_FABRIC_DEFINITION = file_object.read()
 
   _DATA_TYPE_FABRIC = dtfabric_fabric.DataTypeFabric(
       yaml_definition=_DATA_TYPE_FABRIC_DEFINITION)

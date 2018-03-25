@@ -95,6 +95,7 @@ else:
               '%defattr(644,root,root,755)',
               '%doc ACKNOWLEDGEMENTS AUTHORS LICENSE README',
               '%{_prefix}/lib/python*/site-packages/dfwinreg/*.py',
+              '%{_prefix}/lib/python*/site-packages/dfwinreg/*.yaml',
               '%{_prefix}/lib/python*/site-packages/dfwinreg*.egg-info/*',
               '',
               '%exclude %{_prefix}/share/doc/*',
@@ -158,6 +159,10 @@ setup(
         'examples', 'tests', 'tests.*', 'utils']),
     package_dir={
         'dfwinreg': 'dfwinreg'
+    },
+    include_package_data=True,
+    package_data={
+        'dfwinreg': ['*.yaml'],
     },
     data_files=[
         ('share/doc/dfwinreg', [
