@@ -40,8 +40,10 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     if not self._registry_key and self._registry:
       self._GetKeyFromRegistry()
 
-    if self._registry_key:
-      return self._registry_key.last_written_time
+    if not self._registry_key:
+      return None
+
+    return self._registry_key.last_written_time
 
   @property
   def name(self):
@@ -73,8 +75,10 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     if not self._registry_key and self._registry:
       self._GetKeyFromRegistry()
 
-    if self._registry_key:
-      return self._registry_key.offset
+    if not self._registry_key:
+      return None
+
+    return self._registry_key.offset
 
   def _GetKeyFromRegistry(self):
     """Determines the key from the Windows Registry."""
@@ -220,8 +224,10 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     if not self._registry_key and self._registry:
       self._GetKeyFromRegistry()
 
-    if self._registry_key:
-      return self._registry_key.GetValueByName(name)
+    if not self._registry_key:
+      return None
+
+    return self._registry_key.GetValueByName(name)
 
   def GetValues(self):
     """Retrieves all values within the key.

@@ -147,8 +147,10 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
   @property
   def last_written_time(self):
     """dfdatetime.DateTimeValues: last written time or None."""
-    if self._last_written_time is not None:
-      return dfdatetime_filetime.Filetime(timestamp=self._last_written_time)
+    if self._last_written_time is None:
+      return None
+
+    return dfdatetime_filetime.Filetime(timestamp=self._last_written_time)
 
   @property
   def name(self):

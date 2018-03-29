@@ -254,9 +254,11 @@ class WinRegistry(object):
     Returns:
       WinRegistryFile: Windows Registry file or None if not available.
     """
-    if self._registry_file_reader:
-      return self._registry_file_reader.Open(
-          path, ascii_codepage=self._ascii_codepage)
+    if not self._registry_file_reader:
+      return None
+
+    return self._registry_file_reader.Open(
+        path, ascii_codepage=self._ascii_codepage)
 
   def GetKeyByPath(self, key_path):
     """Retrieves the key for a specific path.
