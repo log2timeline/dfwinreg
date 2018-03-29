@@ -70,8 +70,10 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
       WinRegistryKey: Windows Registry root key or None if not available.
     """
     regf_key = self._regf_file.get_root_key()
-    if regf_key:
-      return REGFWinRegistryKey(regf_key, key_path=self._key_path_prefix)
+    if not regf_key:
+      return None
+
+    return REGFWinRegistryKey(regf_key, key_path=self._key_path_prefix)
 
   def Open(self, file_object):
     """Opens the Windows Registry file using a file-like object.
