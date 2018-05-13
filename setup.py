@@ -3,6 +3,7 @@
 """Installation and deployment script."""
 
 from __future__ import print_function
+
 import sys
 
 try:
@@ -94,15 +95,14 @@ else:
               '%files -n {0:s}-%{{name}}'.format(python_package),
               '%defattr(644,root,root,755)',
               '%doc ACKNOWLEDGEMENTS AUTHORS LICENSE README',
-              '%{_prefix}/lib/python*/site-packages/dfwinreg/*.py',
-              '%{_prefix}/lib/python*/site-packages/dfwinreg/*.yaml',
+              '%{_prefix}/lib/python*/site-packages/**/*.py',
+              '%{_prefix}/lib/python*/site-packages/**/*.yaml',
               '%{_prefix}/lib/python*/site-packages/dfwinreg*.egg-info/*',
               '',
               '%exclude %{_prefix}/share/doc/*',
-              '%exclude %{_prefix}/lib/python*/site-packages/dfwinreg/*.pyc',
-              '%exclude %{_prefix}/lib/python*/site-packages/dfwinreg/*.pyo',
-              ('%exclude %{_prefix}/lib/python*/site-packages/dfwinreg/'
-               '__pycache__/*')]
+              '%exclude %{_prefix}/lib/python*/site-packages/**/*.pyc',
+              '%exclude %{_prefix}/lib/python*/site-packages/**/*.pyo',
+              '%exclude %{_prefix}/lib/python*/site-packages/**/__pycache__/*']
 
           python_spec_file.extend(lines)
           break
@@ -134,8 +134,10 @@ dfwinreg_description = (
     'Digital Forensics Windows Registry (dfWinReg).')
 
 dfwinreg_long_description = (
-    'dfWinReg, or Digital Forensics Windows Registry, is a Python module '
-    'that provides read-only access to Windows Registry objects.')
+    'dfWinReg, or Digital Forensics Windows Registry, provides read-only '
+    'access to Windows Registry objects. The goal of dfWinReg is to provide a '
+    'generic interface for accessing Windows Registry objects that resembles '
+    'the Registry key hierarchy as seen on a live Windows system.')
 
 setup(
     name='dfwinreg',
