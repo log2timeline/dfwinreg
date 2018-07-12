@@ -33,7 +33,6 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
   def Close(self):
     """Closes the Windows Registry file."""
     self._regf_file.close()
-    self._file_object.close()
     self._file_object = None
 
   def GetKeyByPath(self, key_path):
