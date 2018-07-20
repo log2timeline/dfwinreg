@@ -131,19 +131,6 @@ class RegistryTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
-  def _GetTestFilePath(self, path_segments):
-    """Retrieves the path of a test file relative to the test data directory.
-
-    Args:
-      path_segments (list[str]): path segments inside the test data directory.
-
-    Returns:
-      str: path of the test file.
-    """
-    # Note that we need to pass the individual path segments to os.path.join
-    # and not a list.
-    return os.path.join(self._TEST_DATA_PATH, *path_segments)
-
   @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testGetCachedFileByPath(self):
     """Tests the _GetCachedFileByPath function."""
