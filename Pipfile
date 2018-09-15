@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+PyYAML = ">=3.10"
+dfdatetime = ">=20160814"
+dtfabric = ">=20170524"
+libregf-python = ">=20150315"
+
+[dev-packages]
+mock = "*"
+
+[requires]
+python_version = "2.7"
+
