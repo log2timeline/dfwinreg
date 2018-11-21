@@ -3,10 +3,10 @@
 
 from __future__ import unicode_literals
 
-import pyregf
-
 from dfdatetime import filetime as dfdatetime_filetime
 from dfdatetime import semantic_time as dfdatetime_semantic_time
+
+import pyregf
 
 from dfwinreg import definitions
 from dfwinreg import errors
@@ -225,6 +225,9 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
 class REGFWinRegistryValue(interface.WinRegistryValue):
   """Implementation of a Windows Registry value using pyregf."""
 
+  # Note that missing-return-doc is broken for pylint 1.7.x
+  # pylint: disable=missing-return-doc
+
   def __init__(self, pyregf_value):
     """Initializes a Windows Registry value.
 
@@ -234,6 +237,8 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
     super(REGFWinRegistryValue, self).__init__()
     self._pyregf_value = pyregf_value
 
+  # Pylint 1.7.x seems to be get confused about properties.
+  # pylint: disable=missing-return-type-doc
   @property
   def data(self):
     """bytes: value data as a byte string.

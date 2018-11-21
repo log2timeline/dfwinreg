@@ -12,6 +12,10 @@ from dfwinreg import key_paths
 class WinRegistryFile(object):
   """Windows Registry file interface."""
 
+  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
+  # methods
+  # pylint: disable=redundant-returns-doc
+
   def __init__(self, ascii_codepage='cp1252', key_path_prefix=''):
     """Initializes a Windows Registry file.
 
@@ -84,6 +88,10 @@ class WinRegistryFile(object):
 class WinRegistryFileReader(object):
   """Windows Registry file reader interface."""
 
+  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
+  # methods
+  # pylint: disable=redundant-returns-doc
+
   @abc.abstractmethod
   def Open(self, path, ascii_codepage='cp1252'):
     """Opens a Windows Registry file specified by the path.
@@ -93,7 +101,7 @@ class WinRegistryFileReader(object):
           path relative to the root of the file system that contains the
           specfic Windows Registry file, for example:
           C:\\Windows\\System32\\config\\SYSTEM
-      ascii_codepage: optional ASCII string codepage.
+      ascii_codepage (Optional[str]): ASCII string codepage.
 
     Returns:
       WinRegistryFile: Windows Registry file or None.
@@ -102,6 +110,10 @@ class WinRegistryFileReader(object):
 
 class WinRegistryKey(object):
   """Windows Registry key interface."""
+
+  # Note that redundant-returns-doc and redundant-yields-doc are broken for
+  # pylint 1.7.x for abstract methods
+  # pylint: disable=redundant-returns-doc,redundant-yields-doc
 
   def __init__(self, key_path=''):
     """Initializes a Windows Registry key.
@@ -214,6 +226,10 @@ class WinRegistryKey(object):
 
 class WinRegistryValue(object):
   """Windows Registry value interface."""
+
+  # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
+  # methods
+  # pylint: disable=redundant-returns-doc
 
   _DATA_TYPE_STRINGS = {
       0: 'REG_NONE',

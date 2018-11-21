@@ -10,7 +10,10 @@ def JoinKeyPath(path_segments):
   """Joins the path segments into key path.
 
   Args:
-    path_segment (list[str]): Windows Registry key path segments.
+    path_segments (list[str]): Windows Registry key path segments.
+
+  Returns:
+    str: key path.
   """
   # This is an optimized way to combine the path segments into a single path
   # and combine multiple successive path separators to one.
