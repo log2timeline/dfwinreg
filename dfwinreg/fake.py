@@ -103,7 +103,7 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
     """
     return self._root_key
 
-  def Open(self, unused_file_object):
+  def Open(self, file_object):
     """Opens the Windows Registry file using a file-like object.
 
     Args:
@@ -282,8 +282,8 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
   def GetSubkeys(self):
     """Retrieves all subkeys within the key.
 
-    Yields:
-      WinRegistryKey: Windows Registry subkey.
+    Returns:
+      generator[WinRegistryKey]: Windows Registry subkey generator.
     """
     return iter(self._subkeys.values())
 
@@ -301,8 +301,8 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
   def GetValues(self):
     """Retrieves all values within the key.
 
-    Yields:
-      WinRegistryValue: Windows Registry value.
+    Returns:
+      generator[WinRegistryValue]: Windows Registry value generator.
     """
     return iter(self._values.values())
 

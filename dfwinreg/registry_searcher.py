@@ -238,6 +238,7 @@ class WinRegistrySearcher(object):
       if match:
         yield registry_key.path
 
+      # pylint: disable=singleton-comparison
       if key_path_match != False and not find_spec.AtMaximumDepth(search_depth):
         sub_find_specs.append(find_spec)
 

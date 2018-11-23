@@ -16,7 +16,9 @@ from tests import test_lib
 class TestWinRegistry(object):
   """Windows Registry for testing."""
 
-  def GetKeyByPath(self, unused_key_path):
+  # pylint: disable=redundant-returns-doc,unused-argument
+
+  def GetKeyByPath(self, key_path):
     """Retrieves the key for a specific path.
 
     Args:
@@ -28,13 +30,15 @@ class TestWinRegistry(object):
     Raises:
       RuntimeError: if the root key is not supported.
     """
-    return
+    return None
 
 
 class ErrorWinRegistry(object):
   """Windows Registry for testing that fails."""
 
-  def GetKeyByPath(self, unused_key_path):
+  # pylint: disable=redundant-returns-doc,unused-argument
+
+  def GetKeyByPath(self, key_path):
     """Retrieves the key for a specific path.
 
     Args:
