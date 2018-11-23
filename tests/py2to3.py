@@ -10,7 +10,7 @@ import unittest
 # pylint: disable=no-name-in-module,wrong-import-position
 
 if sys.version_info[0] < 3:
-  from mock import MagicMock
+  from mock import MagicMock  # pylint: disable=import-error
 else:
   from unittest.mock import MagicMock  # pylint: disable=import-error
   from importlib import reload  # pylint: disable=redefined-builtin

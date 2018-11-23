@@ -107,7 +107,10 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """Joins the path segments into key path.
 
     Args:
-      path_segment (list[str]): Windows Registry key path segments.
+      path_segments (list[str]): Windows Registry key path segments.
+
+    Returns:
+      str: key path.
     """
     # This is an optimized way to combine the path segments into a single path
     # and combine multiple successive path separators to one.
@@ -204,8 +207,8 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
   def GetSubkeys(self):
     """Retrieves all subkeys within the key.
 
-    Yields:
-      WinRegistryKey: Windows Registry subkey.
+    Returns:
+      generator[WinRegistryKey]: Windows Registry subkey generator.
     """
     if not self._registry_key and self._registry:
       self._GetKeyFromRegistry()
@@ -232,8 +235,8 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
   def GetValues(self):
     """Retrieves all values within the key.
 
-    Yields:
-      WinRegistryValue: Windows Registry value.
+    Returns:
+      generator[WinRegistryValue]: Windows Registry value generator.
     """
     if not self._registry_key and self._registry:
       self._GetKeyFromRegistry()
