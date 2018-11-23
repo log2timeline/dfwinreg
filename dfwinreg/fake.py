@@ -282,7 +282,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
   def GetSubkeys(self):
     """Retrieves all subkeys within the key.
 
-    returns:
+    Returns:
       generator[WinRegistryKey]: Windows Registry subkey generator.
     """
     return iter(self._subkeys.values())
