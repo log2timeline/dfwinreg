@@ -11,11 +11,11 @@ L2TBINARIES_TEST_DEPENDENCIES="funcsigs mock pbr six";
 
 PYTHON2_DEPENDENCIES="libregf-python python-dfdatetime python-dtfabric python-yaml";
 
-PYTHON2_TEST_DEPENDENCIES="python-coverage python-mock python-tox";
+PYTHON2_TEST_DEPENDENCIES="python-coverage python-funcsigs python-mock python-pbr python-six python-tox";
 
 PYTHON3_DEPENDENCIES="libregf-python3 python3-dfdatetime python3-dtfabric python3-yaml";
 
-PYTHON3_TEST_DEPENDENCIES="python3-mock python3-setuptools python3-tox";
+PYTHON3_TEST_DEPENDENCIES="python3-mock python3-pbr python3-setuptools python3-six python3-tox";
 
 # Exit on error.
 set -e;
