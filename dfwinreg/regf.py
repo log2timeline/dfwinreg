@@ -95,7 +95,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     """Initializes a Windows Registry key object.
 
     Args:
-      pyregf_key (pyregf.key): pyreg key object.
+      pyregf_key (pyregf.key): pyregf key object.
       key_path (Optional[str]): Windows Registry key path.
     """
     super(REGFWinRegistryKey, self).__init__(key_path=key_path)
@@ -232,7 +232,7 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
     """Initializes a Windows Registry value.
 
     Args:
-      pyregf_value (pyregf.value): pyreg value object.
+      pyregf_value (pyregf.value): pyregf value object.
     """
     super(REGFWinRegistryValue, self).__init__()
     self._pyregf_value = pyregf_value

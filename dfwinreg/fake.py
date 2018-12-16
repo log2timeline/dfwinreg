@@ -123,7 +123,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
       subkeys=None, values=None):
     """Initializes a Windows Registry key.
 
-    Subkeys and values with duplicate names are silenty ignored.
+    Subkeys and values with duplicate names are silently ignored.
 
     Args:
       name (str): name of the Windows Registry key.

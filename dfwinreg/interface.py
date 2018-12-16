@@ -99,7 +99,7 @@ class WinRegistryFileReader(object):
     Args:
       path (str): path of the Windows Registry file. The path is a Windows
           path relative to the root of the file system that contains the
-          specfic Windows Registry file, for example:
+          specific Windows Registry file, for example:
           C:\\Windows\\System32\\config\\SYSTEM
       ascii_codepage (Optional[str]): ASCII string codepage.
 
