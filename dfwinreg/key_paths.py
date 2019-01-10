@@ -36,16 +36,16 @@ def JoinKeyPath(path_segments):
   return key_path
 
 
-def SplitKeyPath(key_path, path_seperator=definitions.KEY_PATH_SEPARATOR):
+def SplitKeyPath(key_path, path_separator=definitions.KEY_PATH_SEPARATOR):
   """Splits the key path into path segments.
 
   Args:
     key_path (str): key path.
-    path_seperator (Optional[str]): path seperator.
+    path_separator (Optional[str]): path separator.
 
   Returns:
     list[str]: key path segments without the root path segment, which is an
         empty string.
   """
   # Split the path with the path separator and remove empty path segments.
-  return list(filter(None, key_path.split(path_seperator)))
+  return list(filter(None, key_path.split(path_separator)))

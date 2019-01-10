@@ -74,7 +74,7 @@ class FindSpec(object):
 
         # The backslash '\' is escaped within a regular expression.
         self._key_path_segments = key_paths.SplitKeyPath(
-            key_path_regex, path_seperator='\\\\')
+            key_path_regex, path_separator='\\\\')
 
       elif isinstance(key_path_glob, list):
         self._key_path_segments = []
@@ -94,7 +94,7 @@ class FindSpec(object):
       if isinstance(key_path_regex, py2to3.STRING_TYPES):
         # The backslash '\' is escaped within a regular expression.
         self._key_path_segments = key_paths.SplitKeyPath(
-            key_path_regex, path_seperator='\\\\')
+            key_path_regex, path_separator='\\\\')
       elif isinstance(key_path_regex, list):
         self._key_path_segments = key_path_regex
       else:

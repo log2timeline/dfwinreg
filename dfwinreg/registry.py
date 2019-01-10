@@ -314,7 +314,7 @@ class WinRegistry(object):
     return registry_file.GetKeyByPath(key_path)
 
   def GetRegistryFileMapping(self, registry_file):
-    """Determines the Registry file mapping based on the content fo the file.
+    """Determines the Registry file mapping based on the content of the file.
 
     Args:
       registry_file (WinRegistyFile): Windows Registry file.
