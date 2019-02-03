@@ -7,6 +7,7 @@ import collections
 import os
 
 from dfdatetime import filetime as dfdatetime_filetime
+from dfdatetime import semantic_time as dfdatetime_semantic_time
 
 from dtfabric.runtime import fabric as dtfabric_fabric
 
@@ -146,9 +147,9 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
 
   @property
   def last_written_time(self):
-    """dfdatetime.DateTimeValues: last written time or None."""
+    """dfdatetime.DateTimeValues: last written time."""
     if self._last_written_time is None:
-      return None
+      return dfdatetime_semantic_time.SemanticTime('Not set')
 
     return dfdatetime_filetime.Filetime(timestamp=self._last_written_time)
 

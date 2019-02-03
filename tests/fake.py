@@ -143,6 +143,8 @@ class FakeWinRegistryFileTest(FakeWinRegTestCase):
 class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
   """Tests for a fake Windows Registry key."""
 
+  # pylint: disable=protected-access
+
   def _CreateTestKey(self):
     """Creates a fake Windows Registry key for testing.
 
@@ -172,12 +174,17 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
     self.assertIsNotNone(registry_key)
 
     self.assertIsNotNone(registry_key.last_written_time)
-    timestamp = registry_key.last_written_time.timestamp
-    self.assertEqual(timestamp, 0)
+    self.assertEqual(registry_key.last_written_time.timestamp, 0)
 
     self.assertEqual(registry_key.number_of_subkeys, 1)
     self.assertEqual(registry_key.number_of_values, 1)
     self.assertIsNone(registry_key.offset)
+
+    registry_key._last_written_time = None
+    self.assertIsNotNone(registry_key.last_written_time)
+
+    date_time_string = registry_key.last_written_time.CopyToDateTimeString()
+    self.assertEqual(date_time_string, 'Not set')
 
   def testBuildKeyHierarchy(self):
     """Tests the BuildKeyHierarchy function."""

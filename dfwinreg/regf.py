@@ -103,7 +103,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
 
   @property
   def last_written_time(self):
-    """dfdatetime.DateTimeValues: last written time or None."""
+    """dfdatetime.DateTimeValues: last written time."""
     timestamp = self._pyregf_key.get_last_written_time_as_integer()
     if timestamp == 0:
       return dfdatetime_semantic_time.SemanticTime('Not set')
@@ -285,7 +285,7 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
             'Unable to read data from value: {0:s} with error: {1!s}'.format(
                 self._pyregf_value.name, exception))
 
-    elif self._pyregf_value.type in self._INTEGER_VALUE_TYPES:
+    if self._pyregf_value.type in self._INTEGER_VALUE_TYPES:
       try:
         return self._pyregf_value.get_data_as_integer()
       except (IOError, OverflowError) as exception:
@@ -293,18 +293,25 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
             'Unable to read data from value: {0:s} with error: {1!s}'.format(
                 self._pyregf_value.name, exception))
 
-    # TODO: Add support for REG_MULTI_SZ to pyregf.
-    elif self._pyregf_value.type == definitions.REG_MULTI_SZ:
-      if self._pyregf_value.data is None:
+    try:
+      value_data = self._pyregf_value.data
+    except IOError as exception:
+      raise errors.WinRegistryValueError(
+          'Unable to read data from value: {0:s} with error: {1!s}'.format(
+              self._pyregf_value.name, exception))
+
+    if self._pyregf_value.type == definitions.REG_MULTI_SZ:
+      # TODO: Add support for REG_MULTI_SZ to pyregf.
+      if value_data is None:
         return []
 
       try:
-        utf16_string = self._pyregf_value.data.decode('utf-16-le')
+        utf16_string = value_data.decode('utf-16-le')
         return list(filter(None, utf16_string.split('\x00')))
 
-      except (IOError, UnicodeError) as exception:
+      except UnicodeError as exception:
         raise errors.WinRegistryValueError(
             'Unable to read data from value: {0:s} with error: {1!s}'.format(
                 self._pyregf_value.name, exception))
 
-    return self._pyregf_value.data
+    return value_data

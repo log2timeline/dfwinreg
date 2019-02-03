@@ -6,13 +6,68 @@ from __future__ import unicode_literals
 
 import unittest
 
+from dfwinreg import errors
 from dfwinreg import regf
 
 from tests import test_lib
 
 
+class FakePyREGFKey(object):
+  """Fake pyregf key for testing."""
+
+  def __init__(self):
+    """Initializes a fake pyregf key."""
+    super(FakePyREGFKey, self).__init__()
+    self.number_of_sub_keys = 1
+
+  # pylint: disable=invalid-name,redundant-returns-doc,unused-argument
+
+  def get_last_written_time_as_integer(self):
+    """Retrieves the last written time as an integer.
+
+    Returns:
+      int: last written time, which will be 0 for testing.
+    """
+    return 0
+
+  def get_sub_key(self, sub_key_index):
+    """Retrieves a specific sub key.
+
+    Returns:
+      pyregf.key: sub key, which will be None for testing.
+    """
+    return None
+
+
+class FakePyREGFValue(object):
+  """Fake pyregf value for testing.
+
+  Attributes:
+    name (str): name of the value.
+    type (str): value type.
+  """
+
+  def __init__(self, name='Test', value_type='REG_SZ'):
+    """Initializes a fake pyregf value.
+
+    Args:
+      name (Optional[str]): name of the value.
+      value_type (Optional[str]): value type.
+    """
+    super(FakePyREGFValue, self).__init__()
+    self.name = name
+    self.type = value_type
+
+  # pylint: disable=missing-raises-doc
+
+  @property
+  def data(self):
+    """bytes: value data."""
+    raise IOError('raised for testing purposes.')
+
+
 class REGFWinRegistryFileTest(test_lib.BaseTestCase):
-  """Tests for the REGF Windows Registry file object."""
+  """Tests for the REGF Windows Registry file."""
 
   @test_lib.skipUnlessHasTestFile(['NTUSER.DAT'])
   def testOpenClose(self):
@@ -114,7 +169,9 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
 
 
 class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
-  """Tests for the REGF Windows Registry key object."""
+  """Tests for the REGF Windows Registry key."""
+
+  # pylint: disable=protected-access
 
   @test_lib.skipUnlessHasTestFile(['NTUSER.DAT'])
   def testProperties(self):
@@ -138,6 +195,12 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
       self.assertIsNotNone(registry_key.last_written_time)
       timestamp = registry_key.last_written_time.timestamp
       self.assertEqual(timestamp, 129949578653203344)
+
+      registry_key._pyregf_key = FakePyREGFKey()
+      self.assertIsNotNone(registry_key.last_written_time)
+
+      date_time_string = registry_key.last_written_time.CopyToDateTimeString()
+      self.assertEqual(date_time_string, 'Not set')
 
       registry_file.Close()
 
@@ -164,6 +227,10 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
 
       with self.assertRaises(IndexError):
         registry_key.GetSubkeyByIndex(-1)
+
+      registry_key._pyregf_key = FakePyREGFKey()
+      sub_registry_key = registry_key.GetSubkeyByIndex(0)
+      self.assertIsNone(sub_registry_key)
 
       registry_file.Close()
 
@@ -307,7 +374,9 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
 
 
 class REGFWinRegistryValueTest(test_lib.BaseTestCase):
-  """Tests for the REGF Windows Registry value object."""
+  """Tests for the REGF Windows Registry value."""
+
+  # pylint: disable=protected-access
 
   @test_lib.skipUnlessHasTestFile(['NTUSER.DAT'])
   def testPropertiesWindowsXP(self):
@@ -363,6 +432,10 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
       self.assertEqual(registry_value.offset, 404596)
       self.assertEqual(registry_value.data, expected_data)
 
+      registry_value._pyregf_value = FakePyREGFValue()
+      with self.assertRaises(errors.WinRegistryValueError):
+        _ = registry_value.data
+
       registry_file.Close()
 
   @test_lib.skipUnlessHasTestFile(['WIN7-NTUSER.DAT'])
@@ -401,6 +474,32 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
       self.assertEqual(registry_value.data, expected_data)
 
       registry_file.Close()
+
+  @test_lib.skipUnlessHasTestFile(['NTUSER.DAT'])
+  def testGetDataAsObject(self):
+    """Tests the GetDataAsObject function."""
+    path = self._GetTestFilePath(['NTUSER.DAT'])
+
+    registry_file = regf.REGFWinRegistryFile()
+
+    with open(path, 'rb') as file_object:
+      registry_file.Open(file_object)
+
+      registry_key = registry_file.GetKeyByPath('\\Console')
+      value_name = 'ColorTable14'
+      registry_value = registry_key.GetValueByName(value_name)
+
+      registry_value._pyregf_value = FakePyREGFValue(value_type='REG_SZ')
+      with self.assertRaises(errors.WinRegistryValueError):
+        registry_value.GetDataAsObject()
+
+      registry_value._pyregf_value = FakePyREGFValue(value_type='REG_DWORD_LE')
+      with self.assertRaises(errors.WinRegistryValueError):
+        registry_value.GetDataAsObject()
+
+      registry_value._pyregf_value = FakePyREGFValue(value_type='REG_MULTI_SZ')
+      with self.assertRaises(errors.WinRegistryValueError):
+        registry_value.GetDataAsObject()
 
 
 if __name__ == '__main__':
