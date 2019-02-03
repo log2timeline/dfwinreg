@@ -21,7 +21,7 @@ RPM_PYTHON2_DEPENDENCIES="libregf-python2 python2-dfdatetime python2-dtfabric py
 
 RPM_PYTHON2_TEST_DEPENDENCIES="python2-funcsigs python2-mock python2-pbr python2-six";
 
-RPM_PYTHON3_DEPENDENCIES="libregf-python2 python3-dfdatetime python3-dtfabric python3-pyyaml";
+RPM_PYTHON3_DEPENDENCIES="libregf-python3 python3-dfdatetime python3-dtfabric python3-pyyaml";
 
 RPM_PYTHON3_TEST_DEPENDENCIES="python3-mock python3-pbr python3-six";
 
