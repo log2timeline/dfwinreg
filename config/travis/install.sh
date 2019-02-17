@@ -11,11 +11,11 @@ L2TBINARIES_TEST_DEPENDENCIES="funcsigs mock pbr six";
 
 DPKG_PYTHON2_DEPENDENCIES="libregf-python python-dfdatetime python-dtfabric python-yaml";
 
-DPKG_PYTHON2_TEST_DEPENDENCIES="python-coverage python-funcsigs python-mock python-pbr python-six python-tox";
+DPKG_PYTHON2_TEST_DEPENDENCIES="python-coverage python-funcsigs python-mock python-pbr python-six tox";
 
 DPKG_PYTHON3_DEPENDENCIES="libregf-python3 python3-dfdatetime python3-dtfabric python3-yaml";
 
-DPKG_PYTHON3_TEST_DEPENDENCIES="python3-mock python3-pbr python3-setuptools python3-six python3-tox";
+DPKG_PYTHON3_TEST_DEPENDENCIES="python3-mock python3-pbr python3-setuptools python3-six tox";
 
 RPM_PYTHON2_DEPENDENCIES="libregf-python2 python2-dfdatetime python2-dtfabric python2-pyyaml";
 
