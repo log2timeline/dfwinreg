@@ -157,13 +157,15 @@ class RegistryTest(test_lib.BaseTestCase):
     self.assertEqual(key_path_prefix, key_path)
     self.assertIsNotNone(registry_file)
 
+  # TODO: add tests for _GetCachedUserFileByPath
+
   @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testGetCurrentControlSet(self):
     """Tests the _GetCurrentControlSet function."""
     win_registry = registry.WinRegistry()
 
-    key_path = win_registry._GetCurrentControlSet()
-    self.assertIsNone(key_path)
+    registry_key = win_registry._GetCurrentControlSet('')
+    self.assertIsNone(registry_key)
 
     win_registry = registry.WinRegistry(
         registry_file_reader=TestWinRegistryFileReader())
@@ -173,15 +175,51 @@ class RegistryTest(test_lib.BaseTestCase):
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
     win_registry.MapFile(key_path_prefix, registry_file)
 
+    registry_key = win_registry._GetCurrentControlSet('')
+    self.assertIsNotNone(registry_key)
+
     expected_key_path = 'HKEY_LOCAL_MACHINE\\System\\ControlSet001'
-    key_path = win_registry._GetCurrentControlSet()
-    self.assertEqual(key_path, expected_key_path)
+    self.assertEqual(registry_key.path, expected_key_path)
 
     # Tests Current value is not an integer.
     win_registry = TestWinRegistry()
 
-    key_path = win_registry._GetCurrentControlSet()
-    self.assertIsNone(key_path)
+    registry_key = win_registry._GetCurrentControlSet('')
+    self.assertIsNone(registry_key)
+
+  @test_lib.skipUnlessHasTestFile(['NTUSER.DAT'])
+  @test_lib.skipUnlessHasTestFile(['SOFTWARE'])
+  def testGetUsers(self):
+    """Tests the _GetUsers function."""
+    win_registry = registry.WinRegistry()
+
+    registry_key = win_registry._GetUsers('S-1-5-18')
+    self.assertIsNone(registry_key)
+
+    win_registry = registry.WinRegistry(
+        registry_file_reader=TestWinRegistryFileReader())
+
+    test_path = self._GetTestFilePath(['NTUSER.DAT'])
+    registry_file = win_registry._OpenFile(test_path)
+    profile_path = '%SystemRoot%\\System32\\config\\systemprofile\\NTUSER.DAT'
+    win_registry.MapUserFile(profile_path, registry_file)
+
+    test_path = self._GetTestFilePath(['SOFTWARE'])
+    registry_file = win_registry._OpenFile(test_path)
+    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
+    win_registry.MapFile(key_path_prefix, registry_file)
+
+    registry_key = win_registry._GetUsers('S-1-5-18')
+    self.assertIsNotNone(registry_key)
+
+    expected_key_path = 'HKEY_USERS\\S-1-5-18'
+    self.assertEqual(registry_key.path, expected_key_path)
+
+    registry_key = win_registry._GetUsers('.DEFAULT')
+    self.assertIsNotNone(registry_key)
+
+    expected_key_path = 'HKEY_USERS\\.DEFAULT'
+    self.assertEqual(registry_key.path, expected_key_path)
 
   @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testGetFileByPath(self):
@@ -363,6 +401,19 @@ class RegistryTest(test_lib.BaseTestCase):
     win_registry = registry.WinRegistry()
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
     win_registry.MapFile(key_path_prefix, registry_file)
+
+  @test_lib.skipUnlessHasTestFile(['NTUSER.DAT'])
+  def testMapUserFile(self):
+    """Tests the MapUserFile function."""
+    win_registry = registry.WinRegistry(
+        registry_file_reader=TestWinRegistryFileReader())
+
+    test_path = self._GetTestFilePath(['NTUSER.DAT'])
+    registry_file = win_registry._OpenFile(test_path)
+
+    win_registry = registry.WinRegistry()
+    profile_path = '%SystemRoot%\\System32\\config\\systemprofile'
+    win_registry.MapUserFile(profile_path, registry_file)
 
   # TODO: add tests for SplitKeyPath
 
