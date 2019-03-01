@@ -21,20 +21,19 @@ class FindSpec(object):
     Args:
       key_path (Optional[str|list[str]]): key path or key path segments,
           where None indicates no preference. The key path should be defined
-          relative to the root of the file system. Note that the string will
-          be split into segments based on the file system specific path
-          segment separator.
+          relative to the root of the Windows Registry. Note that the string
+          will be split into segments based on the key path segment separator.
       key_path_glob (Optional[str:list[str]]): key path glob or key path glob
           segments, where None indicates no preference. The key path glob
-          should be defined relative to the root of the file system. The default
-          is None. Note that the string will be split into segments based on
-          the file system specific path segment separator.
+          should be defined relative to the root of the Windows Registry. The
+          default is None. Note that the string will be split into segments
+          based on the key path segment separator.
       key_path_regex (Optional[str|list[str]]): key path regular expression or
           key path regular expression segments, where None indicates no
           preference. The key path regular expression should be defined
-          relative to the root of the file system. The default is None. Note
-          that the string will be split into segments based on the file system
-          specific path segment separator.
+          relative to the root of the Windows Registry. The default is None.
+          Note that the string will be split into segments based on the key
+          path segment separator.
 
     Raises:
       TypeError: if the key_path, key_path_glob or key_path_regex type
