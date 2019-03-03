@@ -120,8 +120,8 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
   """Fake implementation of a Windows Registry key."""
 
   def __init__(
-      self, name, key_path='', last_written_time=None, offset=None,
-      subkeys=None, values=None):
+      self, name, class_name=None, key_path='', last_written_time=None,
+      offset=None, subkeys=None, values=None):
     """Initializes a Windows Registry key.
 
     Subkeys and values with duplicate names are silently ignored.
@@ -129,6 +129,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     Args:
       name (str): name of the Windows Registry key.
       key_path (Optional[str]): Windows Registry key path.
+      class_name (Optional[str]): class name of the Windows Registry key.
       last_written_time (Optional[int]): last written time, formatted as
           a FILETIME timestamp.
       offset (Optional[int]): offset of the key within the Windows Registry
@@ -137,6 +138,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
       values (Optional[list[FakeWinRegistryValue]]): list of values.
     """
     super(FakeWinRegistryKey, self).__init__(key_path=key_path)
+    self._class_name = class_name
     self._last_written_time = last_written_time
     self._name = name
     self._offset = offset
@@ -144,6 +146,11 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     self._values = collections.OrderedDict()
 
     self._BuildKeyHierarchy(subkeys, values)
+
+  @property
+  def class_name(self):
+    """str: class name of the key or None if not available."""
+    return self._class_name
 
   @property
   def last_written_time(self):

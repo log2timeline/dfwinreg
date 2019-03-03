@@ -186,6 +186,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
       key_path = '\\Software'
       registry_key = registry_file.GetKeyByPath(key_path)
       self.assertIsNotNone(registry_key)
+      self.assertIsNone(registry_key.class_name)
       self.assertEqual(registry_key.name, 'Software')
       self.assertEqual(registry_key.number_of_subkeys, 4)
       self.assertEqual(registry_key.number_of_values, 0)

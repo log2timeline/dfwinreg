@@ -173,6 +173,7 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
     registry_key = self._CreateTestKey()
     self.assertIsNotNone(registry_key)
 
+    self.assertIsNone(registry_key.class_name)
     self.assertIsNotNone(registry_key.last_written_time)
     self.assertEqual(registry_key.last_written_time.timestamp, 0)
 

@@ -102,6 +102,11 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     self._pyregf_key = pyregf_key
 
   @property
+  def class_name(self):
+    """str: class name of the key or None if not available."""
+    return self._pyregf_key.class_name
+
+  @property
   def last_written_time(self):
     """dfdatetime.DateTimeValues: last written time."""
     timestamp = self._pyregf_key.get_last_written_time_as_integer()
