@@ -101,10 +101,14 @@ class WinRegistry(object):
       'HKEY_USERS',
   ])
 
-  # TODO: add support for HKEY_USERS.
+  _USER_PROFILE_LIST_KEY_PATH = (
+      'HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\'
+      'ProfileList')
+
   _VIRTUAL_KEYS = [
       ('HKEY_LOCAL_MACHINE\\System\\CurrentControlSet',
-       '_GetCurrentControlSet')]
+       '_GetCurrentControlSet'),
+      ('HKEY_USERS', '_GetUsers')]
 
   def __init__(self, ascii_codepage='cp1252', registry_file_reader=None):
     """Initializes the Windows Registry.
@@ -118,6 +122,7 @@ class WinRegistry(object):
     self._ascii_codepage = ascii_codepage
     self._registry_file_reader = registry_file_reader
     self._registry_files = {}
+    self._user_registry_files = {}
 
   def __del__(self):
     """Cleans up the Windows Registry object."""
@@ -126,8 +131,13 @@ class WinRegistry(object):
       if registry_file:
         registry_file.Close()
 
+    for profile_path_upper, registry_file in self._user_registry_files.items():
+      self._user_registry_files[profile_path_upper] = None
+      if registry_file:
+        registry_file.Close()
+
   def _GetCachedFileByPath(self, key_path_upper):
-    """Retrieves a cached Windows Registry file for a specific path.
+    """Retrieves a cached Windows Registry file for a key path.
 
     Args:
       key_path_upper (str): Windows Registry key path, in upper case with
@@ -156,12 +166,28 @@ class WinRegistry(object):
         longest_key_path_prefix_upper, None)
     return longest_key_path_prefix_upper, registry_file
 
-  def _GetCurrentControlSet(self):
-    """Virtual key callback to determine the current control set.
+  def _GetCachedUserFileByPath(self, profile_path_upper):
+    """Retrieves a cached user Windows Registry file for a profile path.
+
+    Args:
+      profile_path_upper (str): user profile path, in upper case.
 
     Returns:
-      str: resolved key path for the current control set key or None if unable
-          to resolve.
+      WinRegistryFile: corresponding Windows Registry file or None if not
+          available.
+    """
+    return self._user_registry_files.get(profile_path_upper, None)
+
+  def _GetCurrentControlSet(self, key_path_suffix):
+    """Virtual key callback to determine the current control set.
+
+    Args:
+      key_path_suffix (str): current control set Windows Registry key path
+          suffix.
+
+    Returns:
+      WinRegistryKey: the current control set Windows Registry key or None
+          if not available.
     """
     select_key_path = 'HKEY_LOCAL_MACHINE\\System\\Select'
     select_key = self.GetKeyByPath(select_key_path)
@@ -186,7 +212,68 @@ class WinRegistry(object):
     if not control_set or control_set <= 0 or control_set > 999:
       return None
 
-    return 'HKEY_LOCAL_MACHINE\\System\\ControlSet{0:03d}'.format(control_set)
+    control_set_path = 'HKEY_LOCAL_MACHINE\\System\\ControlSet{0:03d}'.format(
+        control_set)
+
+    key_path = definitions.KEY_PATH_SEPARATOR.join([
+        control_set_path, key_path_suffix])
+    return self.GetKeyByPath(key_path)
+
+  def _GetUsers(self, key_path_suffix):
+    """Virtual key callback to determine the users sub keys.
+
+    Args:
+      key_path_suffix (str): users Windows Registry key path suffix.
+
+    Returns:
+      WinRegistryKey: the users Windows Registry key or None if not available.
+    """
+    user_key_name, _, key_path_suffix = key_path_suffix.partition(
+        definitions.KEY_PATH_SEPARATOR)
+
+    # HKEY_USERS\.DEFAULT is an alias for HKEY_USERS\S-1-5-18 which is
+    # the Local System account.
+    if user_key_name == '.DEFAULT':
+      search_key_name = 'S-1-5-18'
+    else:
+      search_key_name = user_key_name
+
+    user_profile_list_key = self.GetKeyByPath(self._USER_PROFILE_LIST_KEY_PATH)
+    if not user_profile_list_key:
+      return None
+
+    for user_profile_key in user_profile_list_key.GetSubkeys():
+      if search_key_name == user_profile_key.name:
+        profile_path_value = user_profile_key.GetValueByName('ProfileImagePath')
+        if not profile_path_value:
+          break
+
+        profile_path = profile_path_value.GetDataAsObject()
+        if not profile_path:
+          break
+
+        key_name_upper = user_profile_key.name.upper()
+        if key_name_upper.endswith('_CLASSES'):
+          profile_path = '\\'.join([
+              profile_path, 'AppData', 'Local', 'Microsoft', 'Windows',
+              'UsrClass.dat'])
+        else:
+          profile_path = '\\'.join([profile_path, 'NTUSER.DAT'])
+
+        profile_path_upper = profile_path.upper()
+        registry_file = self._GetCachedUserFileByPath(profile_path_upper)
+        if not registry_file:
+          break
+
+        key_path_prefix = definitions.KEY_PATH_SEPARATOR.join([
+            'HKEY_USERS', user_key_name])
+        key_path = definitions.KEY_PATH_SEPARATOR.join([
+            key_path_prefix, key_path_suffix])
+
+        registry_file.SetKeyPathPrefix(key_path_prefix)
+        return registry_file.GetKeyByPath(key_path)
+
+    return None
 
   def _GetFileByPath(self, key_path_upper):
     """Retrieves a Windows Registry file for a specific path.
@@ -285,6 +372,19 @@ class WinRegistry(object):
     key_path = definitions.KEY_PATH_SEPARATOR.join([root_key_path, key_path])
     key_path_upper = key_path.upper()
 
+    for virtual_key_path, virtual_key_callback in self._VIRTUAL_KEYS:
+      virtual_key_path_upper = virtual_key_path.upper()
+      if key_path_upper.startswith(virtual_key_path_upper):
+        key_path_suffix = key_path[len(virtual_key_path):]
+
+        callback_function = getattr(self, virtual_key_callback)
+        virtual_key = callback_function(key_path_suffix)
+        if not virtual_key:
+          raise RuntimeError('Unable to resolve virtual key: {0:s}.'.format(
+              virtual_key_path))
+
+        return virtual_key
+
     key_path_prefix_upper, registry_file = self._GetFileByPath(key_path_upper)
     if not registry_file:
       return None
@@ -292,25 +392,8 @@ class WinRegistry(object):
     if not key_path_upper.startswith(key_path_prefix_upper):
       raise RuntimeError('Key path prefix mismatch.')
 
-    for virtual_key_path, virtual_key_callback in self._VIRTUAL_KEYS:
-      if key_path_upper.startswith(virtual_key_path.upper()):
-        callback_function = getattr(self, virtual_key_callback)
-        resolved_key_path = callback_function()
-        if not resolved_key_path:
-          raise RuntimeError('Unable to resolve virtual key: {0:s}.'.format(
-              virtual_key_path))
-
-        virtual_key_path_length = len(virtual_key_path)
-        if (len(key_path) > virtual_key_path_length and
-            key_path[virtual_key_path_length] == (
-                definitions.KEY_PATH_SEPARATOR)):
-          virtual_key_path_length += 1
-
-        key_path = definitions.KEY_PATH_SEPARATOR.join([
-            resolved_key_path, key_path[virtual_key_path_length:]])
-
-    key_path = (
-        key_path[len(key_path_prefix_upper):] or definitions.KEY_PATH_SEPARATOR)
+    key_path_suffix = key_path[len(key_path_prefix_upper):]
+    key_path = key_path_suffix or definitions.KEY_PATH_SEPARATOR
     return registry_file.GetKeyByPath(key_path)
 
   def GetRegistryFileMapping(self, registry_file):
@@ -406,6 +489,15 @@ class WinRegistry(object):
     """
     self._registry_files[key_path_prefix.upper()] = registry_file
     registry_file.SetKeyPathPrefix(key_path_prefix)
+
+  def MapUserFile(self, profile_path, registry_file):
+    """Maps the user Windows Registry file to a specific profile path.
+
+    Args:
+      profile_path (str): profile path.
+      registry_file (WinRegistryFile): user Windows Registry file.
+    """
+    self._user_registry_files[profile_path.upper()] = registry_file
 
   def SplitKeyPath(self, key_path):
     """Splits the key path into path segments.
