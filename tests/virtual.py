@@ -156,6 +156,7 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
     mapped_key = registry_key.GetSubkeyByName('System')
     self.assertIsNotNone(mapped_key)
 
+    self.assertIsNone(mapped_key.class_name)
     self.assertIsNotNone(mapped_key.last_written_time)
     timestamp = mapped_key.last_written_time.timestamp
     self.assertEqual(timestamp, 129955760615200288)

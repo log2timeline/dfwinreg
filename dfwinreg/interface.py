@@ -125,6 +125,10 @@ class WinRegistryKey(object):
     self._key_path = key_paths.JoinKeyPath([key_path])
 
   @abc.abstractproperty
+  def class_name(self):
+    """str: class name of the key or None if not available."""
+
+  @abc.abstractproperty
   def last_written_time(self):
     """dfdatetime.DateTimeValues: last written time or None."""
 

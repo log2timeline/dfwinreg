@@ -35,6 +35,17 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     self._subkeys = collections.OrderedDict()
 
   @property
+  def class_name(self):
+    """str: class name of the key or None if not available."""
+    if not self._registry_key and self._registry:
+      self._GetKeyFromRegistry()
+
+    if not self._registry_key:
+      return None
+
+    return self._registry_key.class_name
+
+  @property
   def last_written_time(self):
     """dfdatetime.DateTimeValues: last written time or None."""
     if not self._registry_key and self._registry:
