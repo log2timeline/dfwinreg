@@ -183,7 +183,7 @@ class WinRegistry(object):
 
     Args:
       key_path_suffix (str): current control set Windows Registry key path
-          suffix.
+          suffix with leading path separator.
 
     Returns:
       WinRegistryKey: the current control set Windows Registry key or None
@@ -215,15 +215,15 @@ class WinRegistry(object):
     control_set_path = 'HKEY_LOCAL_MACHINE\\System\\ControlSet{0:03d}'.format(
         control_set)
 
-    key_path = definitions.KEY_PATH_SEPARATOR.join([
-        control_set_path, key_path_suffix])
+    key_path = ''.join([control_set_path, key_path_suffix])
     return self.GetKeyByPath(key_path)
 
   def _GetUsers(self, key_path_suffix):
     """Virtual key callback to determine the users sub keys.
 
     Args:
-      key_path_suffix (str): users Windows Registry key path suffix.
+      key_path_suffix (str): users Windows Registry key path suffix with
+          leading path separator.
 
     Returns:
       WinRegistryKey: the users Windows Registry key or None if not available.
@@ -267,8 +267,7 @@ class WinRegistry(object):
 
         key_path_prefix = definitions.KEY_PATH_SEPARATOR.join([
             'HKEY_USERS', user_key_name])
-        key_path = definitions.KEY_PATH_SEPARATOR.join([
-            key_path_prefix, key_path_suffix])
+        key_path = ''.join([key_path_prefix, key_path_suffix])
 
         registry_file.SetKeyPathPrefix(key_path_prefix)
         return registry_file.GetKeyByPath(key_path)

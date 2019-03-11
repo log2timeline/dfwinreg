@@ -224,6 +224,10 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
         'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Control')
     self.assertIsNotNone(registry_key)
 
+    registry_key = searcher.GetKeyByPath(
+        'HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control')
+    self.assertIsNotNone(registry_key)
+
   @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testSplitKeyPath(self):
     """Tests the SplitKeyPath function."""
