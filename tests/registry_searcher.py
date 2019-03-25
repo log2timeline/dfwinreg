@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 
+import os
 import unittest
 
 from dfwinreg import fake
@@ -158,13 +159,15 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
 
   # TODO: add tests for _FindInKey
 
-  @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testFind(self):
     """Tests the Find function."""
+    test_path = self._GetTestFilePath(['SYSTEM'])
+    if not os.path.exists(test_path):
+      raise unittest.SkipTest('missing test file: SYSTEM')
+
     win_registry = registry.WinRegistry(
         registry_file_reader=test_registry.TestWinRegistryFileReader())
 
-    test_path = self._GetTestFilePath(['SYSTEM'])
     registry_file = win_registry._OpenFile(test_path)
 
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
@@ -208,13 +211,15 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
     key_paths = list(searcher.Find())
     self.assertEqual(len(key_paths), 31351)
 
-  @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testGetKeyByPath(self):
     """Tests the GetKeyByPath function."""
+    test_path = self._GetTestFilePath(['SYSTEM'])
+    if not os.path.exists(test_path):
+      raise unittest.SkipTest('missing test file: SYSTEM')
+
     win_registry = registry.WinRegistry(
         registry_file_reader=test_registry.TestWinRegistryFileReader())
 
-    test_path = self._GetTestFilePath(['SYSTEM'])
     registry_file = win_registry._OpenFile(test_path)
 
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
@@ -230,13 +235,15 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
         'HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control')
     self.assertIsNotNone(registry_key)
 
-  @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testSplitKeyPath(self):
     """Tests the SplitKeyPath function."""
+    test_path = self._GetTestFilePath(['SYSTEM'])
+    if not os.path.exists(test_path):
+      raise unittest.SkipTest('missing test file: SYSTEM')
+
     win_registry = registry.WinRegistry(
         registry_file_reader=test_registry.TestWinRegistryFileReader())
 
-    test_path = self._GetTestFilePath(['SYSTEM'])
     registry_file = win_registry._OpenFile(test_path)
 
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
