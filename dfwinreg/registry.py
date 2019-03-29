@@ -471,7 +471,8 @@ class WinRegistry(object):
         registry_key = sub_registry_key
 
       sub_registry_key = registry_key.GetSubkeyByName(key_path_segments[-1])
-      if not sub_registry_key:
+      if (not sub_registry_key and
+          isinstance(registry_key, virtual.VirtualWinRegistryKey)):
         sub_registry_key = virtual.VirtualWinRegistryKey(
             key_path_segments[-1], registry=self)
 
