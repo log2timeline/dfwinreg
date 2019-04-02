@@ -186,6 +186,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
         'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Control',
         'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Enum',
         'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Hardware Profiles',
+        'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Policies',
         'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Services']
     key_paths = list(searcher.Find(find_specs=[find_spec]))
     self.assertEqual(key_paths, expected_key_paths)
@@ -198,13 +199,14 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
         'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Control',
         'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Enum',
         'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Hardware Profiles',
+        'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Policies',
         'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Services']
     key_paths = list(searcher.Find(find_specs=[find_spec]))
     self.assertEqual(key_paths, expected_key_paths)
 
     # Test without find specifications.
     key_paths = list(searcher.Find())
-    self.assertEqual(len(key_paths), 15400)
+    self.assertEqual(len(key_paths), 31351)
 
   @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testGetKeyByPath(self):

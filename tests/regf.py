@@ -153,7 +153,7 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
       registry_keys = list(registry_file.RecurseKeys())
       registry_file.Close()
 
-    self.assertEqual(len(registry_keys), 845)
+    self.assertEqual(len(registry_keys), 1597)
 
     path = self._GetTestFilePath(['NTUSER.DAT.LOG'])
 
@@ -188,14 +188,14 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
       self.assertIsNotNone(registry_key)
       self.assertIsNone(registry_key.class_name)
       self.assertEqual(registry_key.name, 'Software')
-      self.assertEqual(registry_key.number_of_subkeys, 4)
+      self.assertEqual(registry_key.number_of_subkeys, 7)
       self.assertEqual(registry_key.number_of_values, 0)
-      self.assertEqual(registry_key.offset, 82652)
+      self.assertEqual(registry_key.offset, 4372)
       self.assertEqual(registry_key.path, key_path)
 
       self.assertIsNotNone(registry_key.last_written_time)
       timestamp = registry_key.last_written_time.timestamp
-      self.assertEqual(timestamp, 129949578653203344)
+      self.assertEqual(timestamp, 131205170396534120)
 
       registry_key._pyregf_key = FakePyREGFKey()
       self.assertIsNotNone(registry_key.last_written_time)
@@ -303,7 +303,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
       registry_key = registry_file.GetKeyByPath(key_path)
 
       sub_registry_keys = list(registry_key.GetSubkeys())
-      self.assertEqual(len(sub_registry_keys), 4)
+      self.assertEqual(len(sub_registry_keys), 7)
 
       registry_file.Close()
 
@@ -352,7 +352,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
       registry_key = registry_file.GetKeyByPath(key_path)
 
       values = list(registry_key.GetValues())
-      self.assertEqual(len(values), 31)
+      self.assertEqual(len(values), 37)
 
       registry_file.Close()
 
@@ -371,7 +371,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
       registry_keys = list(registry_key.RecurseKeys())
       registry_file.Close()
 
-    self.assertEqual(len(registry_keys), 522)
+    self.assertEqual(len(registry_keys), 1219)
 
 
 class REGFWinRegistryValueTest(test_lib.BaseTestCase):
@@ -380,8 +380,8 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
   # pylint: disable=protected-access
 
   @test_lib.skipUnlessHasTestFile(['NTUSER.DAT'])
-  def testPropertiesWindowsXP(self):
-    """Tests the properties functions on a Windows XP NTUSER.DAT file."""
+  def testProperties(self):
+    """Tests the properties functions on a NTUSER.DAT file."""
     path = self._GetTestFilePath(['NTUSER.DAT'])
 
     registry_file = regf.REGFWinRegistryFile()
@@ -399,7 +399,7 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
       self.assertEqual(registry_value.data_type_string, 'REG_DWORD_LE')
       self.assertEqual(registry_value.GetDataAsObject(), 65535)
       self.assertEqual(registry_value.name, value_name)
-      self.assertEqual(registry_value.offset, 29516)
+      self.assertEqual(registry_value.offset, 105212)
       self.assertEqual(registry_value.data, expected_data)
 
       registry_key = registry_file.GetKeyByPath(
@@ -407,72 +407,33 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
       value_name = 'DispFileName'
       registry_value = registry_key.GetValueByName(value_name)
       expected_data = (
-          b'@\x00m\x00m\x00s\x00y\x00s\x00.\x00c\x00p\x00l\x00,\x00-\x005\x008'
+          b'@\x00m\x00m\x00r\x00e\x00s\x00.\x00d\x00l\x00l\x00,\x00-\x005\x008'
           b'\x002\x007\x00\x00\x00')
 
       self.assertIsNotNone(registry_value)
       self.assertEqual(registry_value.data_type, 1)
       self.assertEqual(registry_value.data_type_string, 'REG_SZ')
-      self.assertEqual(registry_value.GetDataAsObject(), '@mmsys.cpl,-5827')
+      self.assertEqual(registry_value.GetDataAsObject(), '@mmres.dll,-5827')
       self.assertEqual(registry_value.name, value_name)
-      self.assertEqual(registry_value.offset, 6012)
+      self.assertEqual(registry_value.offset, 62028)
       self.assertEqual(registry_value.data, expected_data)
 
-      registry_key = registry_file.GetKeyByPath(
-          '\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU')
-      value_name = '0'
+      registry_key = registry_file.GetKeyByPath('\\Control Panel\\Appearance')
+      value_name = 'SchemeLangID'
       registry_value = registry_key.GetValueByName(value_name)
-      expected_data = (
-          b'\x14\x00\x1fP\xe0O\xd0 \xea:i\x10\xa2\xd8\x08\x00+00\x9d\x00\x00')
+      expected_data = b'\x00\x00'
 
       self.assertIsNotNone(registry_value)
       self.assertEqual(registry_value.data_type, 3)
       self.assertEqual(registry_value.data_type_string, 'REG_BINARY')
       self.assertEqual(registry_value.GetDataAsObject(), expected_data)
       self.assertEqual(registry_value.name, value_name)
-      self.assertEqual(registry_value.offset, 404596)
+      self.assertEqual(registry_value.offset, 46468)
       self.assertEqual(registry_value.data, expected_data)
 
       registry_value._pyregf_value = FakePyREGFValue()
       with self.assertRaises(errors.WinRegistryValueError):
         _ = registry_value.data
-
-      registry_file.Close()
-
-  @test_lib.skipUnlessHasTestFile(['WIN7-NTUSER.DAT'])
-  def testPropertiesWindows7(self):
-    """Tests the properties functions on a Windows 7 NTUSER.DAT file."""
-    path = self._GetTestFilePath(['WIN7-NTUSER.DAT'])
-
-    registry_file = regf.REGFWinRegistryFile()
-
-    with open(path, 'rb') as file_object:
-      registry_file.Open(file_object)
-
-      registry_key = registry_file.GetKeyByPath(
-          '\\Software\\Microsoft\\Cryptography\\CertificateTemplateCache\\User')
-      value_name = 'SupportedCSPs'
-      registry_value = registry_key.GetValueByName(value_name)
-      expected_string = [
-          'Microsoft Enhanced Cryptographic Provider v1.0',
-          'Microsoft Base Cryptographic Provider v1.0']
-      expected_data = (
-          b'M\x00i\x00c\x00r\x00o\x00s\x00o\x00f\x00t\x00 \x00E\x00n\x00h\x00a'
-          b'\x00n\x00c\x00e\x00d\x00 \x00C\x00r\x00y\x00p\x00t\x00o\x00g\x00r'
-          b'\x00a\x00p\x00h\x00i\x00c\x00 \x00P\x00r\x00o\x00v\x00i\x00d\x00e'
-          b'\x00r\x00 \x00v\x001\x00.\x000\x00\x00\x00M\x00i\x00c\x00r\x00o'
-          b'\x00s\x00o\x00f\x00t\x00 \x00B\x00a\x00s\x00e\x00 \x00C\x00r\x00y'
-          b'\x00p\x00t\x00o\x00g\x00r\x00a\x00p\x00h\x00i\x00c\x00 \x00P\x00r'
-          b'\x00o\x00v\x00i\x00d\x00e\x00r\x00 \x00v\x001\x00.\x000\x00\x00'
-          b'\x00\x00\x00')
-
-      self.assertIsNotNone(registry_value)
-      self.assertEqual(registry_value.data_type, 7)
-      self.assertEqual(registry_value.data_type_string, 'REG_MULTI_SZ')
-      self.assertEqual(registry_value.GetDataAsObject(), expected_string)
-      self.assertEqual(registry_value.name, value_name)
-      self.assertEqual(registry_value.offset, 241452)
-      self.assertEqual(registry_value.data, expected_data)
 
       registry_file.Close()
 
