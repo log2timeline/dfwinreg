@@ -120,7 +120,7 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
     mapped_key = registry_key.GetSubkeyByName('System')
     self.assertIsNotNone(mapped_key)
 
-    self.assertEqual(mapped_key.number_of_subkeys, 8)
+    self.assertEqual(mapped_key.number_of_subkeys, 9)
 
   @test_lib.skipUnlessHasTestFile(['SYSTEM'])
   def testNumberOfValues(self):
@@ -159,9 +159,9 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
     self.assertIsNone(mapped_key.class_name)
     self.assertIsNotNone(mapped_key.last_written_time)
     timestamp = mapped_key.last_written_time.timestamp
-    self.assertEqual(timestamp, 129955760615200288)
+    self.assertEqual(timestamp, 131243722185199451)
 
-    self.assertEqual(mapped_key.number_of_subkeys, 8)
+    self.assertEqual(mapped_key.number_of_subkeys, 9)
     self.assertEqual(mapped_key.number_of_values, 0)
     self.assertEqual(mapped_key.offset, 4132)
 
@@ -176,7 +176,7 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
     self.assertEqual(len(mapped_key._subkeys), 0)
 
     mapped_key._GetKeyFromRegistry()
-    self.assertEqual(len(mapped_key._subkeys), 8)
+    self.assertEqual(len(mapped_key._subkeys), 9)
 
     registry_key = virtual.VirtualWinRegistryKey(
         'HKEY_LOCAL_MACHINE', key_path='')
@@ -306,7 +306,7 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
     self.assertIsNotNone(mapped_key)
 
     sub_registry_keys = list(mapped_key.GetSubkeys())
-    self.assertEqual(len(sub_registry_keys), 8)
+    self.assertEqual(len(sub_registry_keys), 9)
 
   def testGetValueByName(self):
     """Tests the GetValueByName function."""
