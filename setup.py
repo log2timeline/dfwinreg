@@ -22,6 +22,11 @@ try:
 except ImportError:
   bdist_rpm = None
 
+try:
+  from setuptools.commands.sdist import sdist
+except ImportError:
+  from distutils.command.sdist import sdist
+
 version_tuple = (sys.version_info[0], sys.version_info[1])
 if version_tuple[0] not in (2, 3):
   print('Unsupported Python version: {0:s}.'.format(sys.version))
@@ -217,7 +222,8 @@ setup(
     maintainer_email='log2timeline-maintainers@googlegroups.com',
     cmdclass={
         'bdist_msi': BdistMSICommand,
-        'bdist_rpm': BdistRPMCommand},
+        'bdist_rpm': BdistRPMCommand,
+        'sdist_test_data': sdist},
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
