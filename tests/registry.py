@@ -134,8 +134,7 @@ class RegistryTest(test_lib.BaseTestCase):
   def testGetCachedFileByPath(self):
     """Tests the _GetCachedFileByPath function."""
     test_path = self._GetTestFilePath(['SYSTEM'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: SYSTEM')
+    self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry()
 
@@ -164,8 +163,7 @@ class RegistryTest(test_lib.BaseTestCase):
   def testGetCurrentControlSet(self):
     """Tests the _GetCurrentControlSet function."""
     test_path = self._GetTestFilePath(['SYSTEM'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: SYSTEM')
+    self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry()
 
@@ -194,12 +192,10 @@ class RegistryTest(test_lib.BaseTestCase):
   def testGetUsers(self):
     """Tests the _GetUsers function."""
     ntuser_test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(ntuser_test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(ntuser_test_path)
 
     software_test_path = self._GetTestFilePath(['SOFTWARE'])
-    if not os.path.exists(software_test_path):
-      raise unittest.SkipTest('missing test file: SOFTWARE')
+    self._SkipIfPathNotExists(software_test_path)
 
     win_registry = registry.WinRegistry()
 
@@ -232,8 +228,7 @@ class RegistryTest(test_lib.BaseTestCase):
   def testGetFileByPath(self):
     """Tests the _GetFileByPath function."""
     test_path = self._GetTestFilePath(['SYSTEM'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: SYSTEM')
+    self._SkipIfPathNotExists(test_path)
 
     key_path = 'HKEY_LOCAL_MACHINE\\SYSTEM'
 
@@ -297,8 +292,7 @@ class RegistryTest(test_lib.BaseTestCase):
   def testGetKeyByPathOnNTUserDat(self):
     """Tests the GetKeyByPath function on a NTUSER.DAT file."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry(
         registry_file_reader=TestWinRegistryFileReader())
@@ -358,12 +352,10 @@ class RegistryTest(test_lib.BaseTestCase):
   def testGetRegistryFileMappingOnNTUserDat(self):
     """Tests the GetRegistryFileMapping function on a NTUSER.DAT file."""
     dat_test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(dat_test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(dat_test_path)
 
     log_test_path = self._GetTestFilePath(['NTUSER.DAT.LOG'])
-    if not os.path.exists(log_test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT.LOG')
+    self._SkipIfPathNotExists(log_test_path)
 
     win_registry = registry.WinRegistry(
         registry_file_reader=TestWinRegistryFileReader())
@@ -388,8 +380,7 @@ class RegistryTest(test_lib.BaseTestCase):
   def testGetRegistryFileMappingOnSystem(self):
     """Tests the GetRegistryFileMapping function on a SYSTEM file."""
     test_path = self._GetTestFilePath(['SYSTEM'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: SYSTEM')
+    self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry(
         registry_file_reader=TestWinRegistryFileReader())
@@ -408,8 +399,7 @@ class RegistryTest(test_lib.BaseTestCase):
   def testMapFile(self):
     """Tests the MapFile function."""
     test_path = self._GetTestFilePath(['SYSTEM'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: SYSTEM')
+    self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry(
         registry_file_reader=TestWinRegistryFileReader())
@@ -423,8 +413,7 @@ class RegistryTest(test_lib.BaseTestCase):
   def testMapUserFile(self):
     """Tests the MapUserFile function."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: SYSTEM')
+    self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry(
         registry_file_reader=TestWinRegistryFileReader())

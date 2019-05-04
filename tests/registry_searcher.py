@@ -4,7 +4,6 @@
 
 from __future__ import unicode_literals
 
-import os
 import unittest
 
 from dfwinreg import fake
@@ -162,8 +161,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
   def testFind(self):
     """Tests the Find function."""
     test_path = self._GetTestFilePath(['SYSTEM'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: SYSTEM')
+    self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry(
         registry_file_reader=test_registry.TestWinRegistryFileReader())
@@ -214,8 +212,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
   def testGetKeyByPath(self):
     """Tests the GetKeyByPath function."""
     test_path = self._GetTestFilePath(['SYSTEM'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: SYSTEM')
+    self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry(
         registry_file_reader=test_registry.TestWinRegistryFileReader())
@@ -238,8 +235,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
   def testSplitKeyPath(self):
     """Tests the SplitKeyPath function."""
     test_path = self._GetTestFilePath(['SYSTEM'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: SYSTEM')
+    self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry(
         registry_file_reader=test_registry.TestWinRegistryFileReader())

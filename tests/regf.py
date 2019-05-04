@@ -4,7 +4,6 @@
 
 from __future__ import unicode_literals
 
-import os
 import unittest
 
 from dfwinreg import errors
@@ -73,8 +72,7 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
   def testOpenClose(self):
     """Tests the Open and Close functions."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(test_path)
 
     registry_file = regf.REGFWinRegistryFile()
 
@@ -85,12 +83,10 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
   def testGetRootKey(self):
     """Tests the GetRootKey function."""
     dat_test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(dat_test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(dat_test_path)
 
     log_test_path = self._GetTestFilePath(['NTUSER.DAT.LOG'])
-    if not os.path.exists(log_test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT.LOG')
+    self._SkipIfPathNotExists(log_test_path)
 
     registry_file = regf.REGFWinRegistryFile()
 
@@ -116,8 +112,7 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
   def testGetKeyByPath(self):
     """Tests the GetKeyByPath function."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(test_path)
 
     registry_file = regf.REGFWinRegistryFile()
 
@@ -147,12 +142,10 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
   def testRecurseKeys(self):
     """Tests the RecurseKeys function."""
     dat_test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(dat_test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(dat_test_path)
 
     log_test_path = self._GetTestFilePath(['NTUSER.DAT.LOG'])
-    if not os.path.exists(log_test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT.LOG')
+    self._SkipIfPathNotExists(log_test_path)
 
     registry_file = regf.REGFWinRegistryFile()
 
@@ -183,8 +176,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
   def testProperties(self):
     """Tests the properties functions."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(test_path)
 
     registry_file = regf.REGFWinRegistryFile()
 
@@ -216,8 +208,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
   def testGetSubkeyByIndex(self):
     """Tests the GetSubkeyByIndex function."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(test_path)
 
     registry_file = regf.REGFWinRegistryFile(
         key_path_prefix='HKEY_CURRENT_USER')
@@ -247,8 +238,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
   def testGetSubkeyByName(self):
     """Tests the GetSubkeyByName function."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(test_path)
 
     registry_file = regf.REGFWinRegistryFile(
         key_path_prefix='HKEY_CURRENT_USER')
@@ -275,8 +265,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
   def testGetSubkeyByPath(self):
     """Tests the GetSubkeyByPath function."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(test_path)
 
     registry_file = regf.REGFWinRegistryFile(
         key_path_prefix='HKEY_CURRENT_USER')
@@ -303,8 +292,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
   def testGetSubkeys(self):
     """Tests the GetSubkeys function."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(test_path)
 
     registry_file = regf.REGFWinRegistryFile()
 
@@ -322,8 +310,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
   def testGetValueByName(self):
     """Tests the GetValueByName function."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(test_path)
 
     registry_file = regf.REGFWinRegistryFile()
 
@@ -354,8 +341,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
   def testGetValues(self):
     """Tests the GetValues function."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(test_path)
 
     registry_file = regf.REGFWinRegistryFile()
 
@@ -373,8 +359,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
   def testRecurseKeys(self):
     """Tests the RecurseKeys function."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(test_path)
 
     registry_file = regf.REGFWinRegistryFile()
 
@@ -397,8 +382,7 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
   def testProperties(self):
     """Tests the properties functions on a NTUSER.DAT file."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(test_path)
 
     registry_file = regf.REGFWinRegistryFile()
 
@@ -456,8 +440,7 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
   def testGetDataAsObject(self):
     """Tests the GetDataAsObject function."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: NTUSER.DAT')
+    self._SkipIfPathNotExists(test_path)
 
     registry_file = regf.REGFWinRegistryFile()
 

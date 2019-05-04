@@ -4,7 +4,6 @@
 
 from __future__ import unicode_literals
 
-import os
 import unittest
 
 from dfwinreg import registry
@@ -86,8 +85,7 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
       VirtualWinRegistryKey: virtual Windows Registry key.
     """
     test_path = self._GetTestFilePath(['SYSTEM'])
-    if not os.path.exists(test_path):
-      raise unittest.SkipTest('missing test file: SYSTEM')
+    self._SkipIfPathNotExists(test_path)
 
     registry_key = virtual.VirtualWinRegistryKey(
         'HKEY_LOCAL_MACHINE', key_path='HKEY_LOCAL_MACHINE')
