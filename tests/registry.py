@@ -324,6 +324,9 @@ class RegistryTest(test_lib.BaseTestCase):
 
   def testGetKeyByPathOnSystem(self):
     """Tests the GetKeyByPath function on a SYSTEM file."""
+    test_path = self._GetTestFilePath(['SYSTEM'])
+    self._SkipIfPathNotExists(test_path)
+
     win_registry = registry.WinRegistry(
         registry_file_reader=TestWinRegistryFileReaderMapped())
 
