@@ -246,7 +246,7 @@ class WinRegistryValue(object):
       7: 'REG_MULTI_SZ',
       8: 'REG_RESOURCE_LIST',
       9: 'REG_FULL_RESOURCE_DESCRIPTOR',
-      10: 'REG_RESOURCE_REQUIREMENT_LIST',
+      10: 'REG_RESOURCE_REQUIREMENTS_LIST',
       11: 'REG_QWORD'
   }
 
