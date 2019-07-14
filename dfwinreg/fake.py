@@ -410,7 +410,6 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
     elif self._data_type == definitions.REG_MULTI_SZ:
       try:
         utf16_string = self._data.decode('utf-16-le')
-        # TODO: evaluate the use of filter here is appropriate behavior.
         return list(filter(None, utf16_string.split('\x00')))
 
       # AttributeError is raised when self._data has no decode method.
