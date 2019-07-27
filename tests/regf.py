@@ -448,8 +448,10 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
       registry_file.Open(file_object)
 
       registry_key = registry_file.GetKeyByPath('\\Console')
-      value_name = 'ColorTable14'
-      registry_value = registry_key.GetValueByName(value_name)
+      registry_value = registry_key.GetValueByName('ColorTable14')
+
+      data_object = registry_value.GetDataAsObject()
+      self.assertEqual(data_object, 65535)
 
       registry_value._pyregf_value = FakePyREGFValue(value_type='REG_SZ')
       with self.assertRaises(errors.WinRegistryValueError):
@@ -462,6 +464,23 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
       registry_value._pyregf_value = FakePyREGFValue(value_type='REG_MULTI_SZ')
       with self.assertRaises(errors.WinRegistryValueError):
         registry_value.GetDataAsObject()
+
+      # Test REG_MULTI_SZ without additional empty string.
+      registry_key = registry_file.GetKeyByPath(
+          '\\Control Panel\\International\\User Profile')
+      registry_value = registry_key.GetValueByName('Languages')
+
+      data_object = registry_value.GetDataAsObject()
+      self.assertEqual(len(data_object), 1)
+
+      # Test REG_MULTI_SZ with additional empty string.
+      registry_key = registry_file.GetKeyByPath(
+          '\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\'
+          'Discardable\\PostSetup\\ShellNew')
+      registry_value = registry_key.GetValueByName('Classes')
+
+      data_object = registry_value.GetDataAsObject()
+      self.assertEqual(len(data_object), 9)
 
 
 if __name__ == '__main__':

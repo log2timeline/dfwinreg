@@ -371,12 +371,33 @@ class FakeWinRegistryValueTest(test_lib.BaseTestCase):
     value_data = registry_value.GetDataAsObject()
     self.assertEqual(value_data, 0x1122334455667788)
 
-    data = 'Multi\x00String\x00ValueData\x00'.encode('utf-16-le')
+    # Test REG_MULTI_SZ without additional empty string.
+    data = b'\x65\x00\x6e\x00\x2d\x00\x55\x00\x53\x00\x00\x00'
     registry_value = fake.FakeWinRegistryValue(
         'MRU', data=data, data_type=definitions.REG_MULTI_SZ)
 
     value_data = registry_value.GetDataAsObject()
-    self.assertEqual(value_data, ['Multi', 'String', 'ValueData'])
+    self.assertEqual(value_data, ['en-US'])
+
+    # Test REG_MULTI_SZ with additional empty string.
+    data = (
+        b'\x2e\x00\x62\x00\x6d\x00\x70\x00\x00\x00\x2e\x00\x63\x00\x6f\x00'
+        b'\x6e\x00\x74\x00\x61\x00\x63\x00\x74\x00\x00\x00\x2e\x00\x6a\x00'
+        b'\x6e\x00\x74\x00\x00\x00\x2e\x00\x6c\x00\x69\x00\x62\x00\x72\x00'
+        b'\x61\x00\x72\x00\x79\x00\x2d\x00\x6d\x00\x73\x00\x00\x00\x2e\x00'
+        b'\x6c\x00\x6e\x00\x6b\x00\x00\x00\x2e\x00\x72\x00\x74\x00\x66\x00'
+        b'\x00\x00\x2e\x00\x74\x00\x78\x00\x74\x00\x00\x00\x2e\x00\x7a\x00'
+        b'\x69\x00\x70\x00\x00\x00\x46\x00\x6f\x00\x6c\x00\x64\x00\x65\x00'
+        b'\x72\x00\x00\x00\x00\x00')
+    registry_value = fake.FakeWinRegistryValue(
+        'MRU', data=data, data_type=definitions.REG_MULTI_SZ)
+
+    expected_value_data = [
+        '.bmp', '.contact', '.jnt', '.library-ms', '.lnk', '.rtf', '.txt',
+        '.zip', 'Folder']
+
+    value_data = registry_value.GetDataAsObject()
+    self.assertEqual(value_data, expected_value_data)
 
     data = '\xed\x44'
     registry_value = fake.FakeWinRegistryValue(
