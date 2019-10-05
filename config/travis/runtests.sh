@@ -78,16 +78,5 @@ then
 
 elif test "${TRAVIS_OS_NAME}" = "osx";
 then
-	PYTHONPATH=/Library/Python/2.7/site-packages/ /usr/bin/python ./run_tests.py;
-
-	python ./setup.py build
-
-	python ./setup.py sdist
-
-	python ./setup.py bdist
-
-	if test -f tests/end-to-end.py;
-	then
-		PYTHONPATH=. python ./tests/end-to-end.py --debug -c config/end-to-end.ini;
-	fi
+	tox -e ${TOXENV};
 fi
