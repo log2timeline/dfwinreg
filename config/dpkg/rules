@@ -5,7 +5,9 @@
 
 .PHONY: override_dh_auto_clean
 override_dh_auto_clean:
-	dh_auto_clean
+	set -ex; for python in $(shell py3versions -r); do \
+		$$python setup.py clean -a; \
+	done;
 	rm -rf build dfwinreg.egg-info/SOURCES.txt dfwinreg.egg-info/PKG-INFO
 
 .PHONY: override_dh_auto_build
