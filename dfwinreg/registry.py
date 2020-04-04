@@ -227,9 +227,17 @@ class WinRegistry(object):
 
     Returns:
       WinRegistryKey: the users Windows Registry key or None if not available.
+
+    Raises:
+      RuntimeError: if the key path suffix is not supported.
     """
-    user_key_name, _, key_path_suffix = key_path_suffix.partition(
+    if key_path_suffix[0] != definitions.KEY_PATH_SEPARATOR:
+      raise RuntimeError('Unsupported key path suffix: {0:s}'.format(
+          key_path_suffix))
+
+    user_key_name, _, key_path_suffix = key_path_suffix[1:].partition(
         definitions.KEY_PATH_SEPARATOR)
+    user_key_name = user_key_name.upper()
 
     # HKEY_USERS\.DEFAULT is an alias for HKEY_USERS\S-1-5-18 which is
     # the Local System account.
@@ -237,6 +245,9 @@ class WinRegistry(object):
       search_key_name = 'S-1-5-18'
     else:
       search_key_name = user_key_name
+
+    if search_key_name.endswith('_CLASSES'):
+      search_key_name = search_key_name[:-8]
 
     user_profile_list_key = self.GetKeyByPath(self._USER_PROFILE_LIST_KEY_PATH)
     if not user_profile_list_key:
@@ -252,16 +263,15 @@ class WinRegistry(object):
         if not profile_path:
           break
 
-        key_name_upper = user_profile_key.name.upper()
-        if key_name_upper.endswith('_CLASSES'):
+        # HKEY_USERS\%SID%_CLASSES maps to UsrClass.dat
+        if user_key_name.endswith('_CLASSES'):
           profile_path = '\\'.join([
               profile_path, 'AppData', 'Local', 'Microsoft', 'Windows',
               'UsrClass.dat'])
         else:
           profile_path = '\\'.join([profile_path, 'NTUSER.DAT'])
 
-        profile_path_upper = profile_path.upper()
-        registry_file = self._GetCachedUserFileByPath(profile_path_upper)
+        registry_file = self._GetUserFileByPath(profile_path)
         if not registry_file:
           break
 
@@ -330,6 +340,26 @@ class WinRegistry(object):
         key=lambda mapping: len(mapping.key_path_prefix), reverse=True)
     for mapping in candidate_mappings:
       yield mapping
+
+  def _GetUserFileByPath(self, path):
+    """Retrieves an user Windows Registry file for a specific path.
+
+    Args:
+      path (str): path of the user Windows Registry file.
+
+    Returns:
+      WinRegistryFile: corresponding Windows Registry file or None if not
+          available.
+    """
+    path_upper = path.upper()
+    registry_file = self._GetCachedUserFileByPath(path_upper)
+    if not registry_file:
+      try:
+        registry_file = self._OpenFile(path)
+      except IOError:
+        registry_file = None
+
+    return registry_file
 
   def _OpenFile(self, path):
     """Opens a Windows Registry file.

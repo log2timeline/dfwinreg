@@ -199,7 +199,7 @@ class RegistryTest(test_lib.BaseTestCase):
 
     win_registry = registry.WinRegistry()
 
-    registry_key = win_registry._GetUsers('S-1-5-18')
+    registry_key = win_registry._GetUsers('\\S-1-5-18')
     self.assertIsNone(registry_key)
 
     win_registry = registry.WinRegistry(
@@ -213,17 +213,20 @@ class RegistryTest(test_lib.BaseTestCase):
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
     win_registry.MapFile(key_path_prefix, registry_file)
 
-    registry_key = win_registry._GetUsers('S-1-5-18')
+    registry_key = win_registry._GetUsers('\\S-1-5-18')
     self.assertIsNotNone(registry_key)
 
     expected_key_path = 'HKEY_USERS\\S-1-5-18'
     self.assertEqual(registry_key.path, expected_key_path)
 
-    registry_key = win_registry._GetUsers('.DEFAULT')
+    registry_key = win_registry._GetUsers('\\.DEFAULT')
     self.assertIsNotNone(registry_key)
 
     expected_key_path = 'HKEY_USERS\\.DEFAULT'
     self.assertEqual(registry_key.path, expected_key_path)
+
+    with self.assertRaises(RuntimeError):
+      win_registry._GetUsers('.DEFAULT')
 
   def testGetFileByPath(self):
     """Tests the _GetFileByPath function."""
