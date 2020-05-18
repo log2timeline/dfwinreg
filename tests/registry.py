@@ -105,8 +105,6 @@ class TestWinRegistryFileReader(interface.WinRegistryFileReader):
 class TestWinRegistryFileReaderMapped(TestWinRegistryFileReader):
   """Single file Windows Registry file reader that maps Windows paths."""
 
-  _TEST_DATA_PATH = os.path.join(os.getcwd(), 'test_data')
-
   def Open(self, path, ascii_codepage='cp1252'):
     """Opens the Windows Registry file specified by the path.
 
@@ -118,9 +116,9 @@ class TestWinRegistryFileReaderMapped(TestWinRegistryFileReader):
       WinRegistryFile: Windows Registry file or None.
     """
     if path == '%SystemRoot%\\System32\\config\\SYSTEM':
-      path = os.path.join(self._TEST_DATA_PATH, 'SYSTEM')
+      path = os.path.join(test_lib.TEST_DATA_PATH, 'SYSTEM')
     elif path == '%UserProfile%\\NTUSER.DAT':
-      path = os.path.join(self._TEST_DATA_PATH, 'NTUSER.DAT')
+      path = os.path.join(test_lib.TEST_DATA_PATH, 'NTUSER.DAT')
 
     return super(TestWinRegistryFileReaderMapped, self).Open(
         path, ascii_codepage=ascii_codepage)
