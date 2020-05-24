@@ -60,7 +60,7 @@ class FindSpec(object):
       elif isinstance(key_path, list):
         self._key_path_segments = key_path
       else:
-        raise TypeError('Unsupported key path type: {0:s}.'.format(
+        raise TypeError('Unsupported key path type: {0!s}.'.format(
             type(key_path)))
 
     elif key_path_glob is not None:
@@ -84,7 +84,7 @@ class FindSpec(object):
           self._key_path_segments.append(key_path_regex)
 
       else:
-        raise TypeError('Unsupported key_path_glob type: {0:s}.'.format(
+        raise TypeError('Unsupported key_path_glob type: {0!s}.'.format(
             type(key_path_glob)))
 
       self._is_regex = True
@@ -97,7 +97,7 @@ class FindSpec(object):
       elif isinstance(key_path_regex, list):
         self._key_path_segments = key_path_regex
       else:
-        raise TypeError('Unsupported key_path_regex type: {0:s}.'.format(
+        raise TypeError('Unsupported key_path_regex type: {0!s}.'.format(
             type(key_path_regex)))
 
       self._is_regex = True
