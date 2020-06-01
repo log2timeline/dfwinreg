@@ -8,7 +8,6 @@ import sre_constants
 
 from dfwinreg import glob2regex
 from dfwinreg import key_paths
-from dfwinreg import py2to3
 
 
 class FindSpec(object):
@@ -55,7 +54,7 @@ class FindSpec(object):
     self._number_of_key_path_segments = 0
 
     if key_path is not None:
-      if isinstance(key_path, py2to3.STRING_TYPES):
+      if isinstance(key_path, str):
         self._key_path_segments = key_paths.SplitKeyPath(key_path)
       elif isinstance(key_path, list):
         self._key_path_segments = key_path
@@ -67,7 +66,7 @@ class FindSpec(object):
       # The regular expression from glob2regex contains escaped forward
       # slashes "/", which needs to be undone.
 
-      if isinstance(key_path_glob, py2to3.STRING_TYPES):
+      if isinstance(key_path_glob, str):
         key_path_regex = glob2regex.Glob2Regex(key_path_glob)
         key_path_regex = key_path_regex.replace('\\/', '/')
 
@@ -90,7 +89,7 @@ class FindSpec(object):
       self._is_regex = True
 
     elif key_path_regex is not None:
-      if isinstance(key_path_regex, py2to3.STRING_TYPES):
+      if isinstance(key_path_regex, str):
         # The backslash '\' is escaped within a regular expression.
         self._key_path_segments = key_paths.SplitKeyPath(
             key_path_regex, path_separator='\\\\')
@@ -130,7 +129,7 @@ class FindSpec(object):
       segment_name = self._key_path_segments[search_depth - 1]
 
       if self._is_regex:
-        if isinstance(segment_name, py2to3.STRING_TYPES):
+        if isinstance(segment_name, str):
           # Allow '\n' to be matched by '.' and make '\w', '\W', '\b', '\B',
           # '\d', '\D', '\s' and '\S' Unicode safe.
           flags = re.DOTALL | re.IGNORECASE | re.UNICODE
