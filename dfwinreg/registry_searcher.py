@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import re
 import sre_constants
 
+from dfwinreg import decorators
 from dfwinreg import glob2regex
 from dfwinreg import key_paths
 
@@ -144,7 +145,7 @@ class FindSpec(object):
           self._key_path_segments[search_depth - 1] = segment_name
 
       else:
-        segment_name = segment_name.lower()
+        segment_name = segment_name.upper()
         self._key_path_segments[search_depth - 1] = segment_name
 
     if search_depth > 0:
@@ -153,13 +154,71 @@ class FindSpec(object):
         if not segment_name.match(registry_key.name):
           return False
 
-      elif segment_name != registry_key.name.lower():
+      elif segment_name != registry_key.name.upper():
         return False
 
     return True
 
+  def _CompareWithKeyPathSegment(self, key_path_segment, segment_index):
+    """Compares a key path segment against a find specification.
+
+    Args:
+      key_path_segment (str): key path segment.
+      segment_index (int): index of the key path segment to compare against,
+          where 0 represents the root segment.
+
+    Returns:
+      bool: True if the key path segment of the Windows Registry key matches
+          that of the find specification, False if not or if the find
+          specification has no key path defined.
+    """
+    if (self._key_path_segments is None or segment_index < 0 or
+        segment_index > self._number_of_key_path_segments):
+      return False
+
+    segment_name = self._key_path_segments[segment_index]
+
+    if self._is_regex:
+      if isinstance(segment_name, str):
+        # Allow '\n' to be matched by '.' and make '\w', '\W', '\b', '\B',
+        # '\d', '\D', '\s' and '\S' Unicode safe.
+        flags = re.DOTALL | re.UNICODE | re.IGNORECASE
+
+        try:
+          segment_name = r'^{0:s}$'.format(segment_name)
+          segment_name = re.compile(segment_name, flags=flags)
+        except sre_constants.error:
+          # TODO: set self._key_path_segments[segment_index] to None ?
+          return False
+
+        self._key_path_segments[segment_index] = segment_name
+
+    else:
+      segment_name = segment_name.upper()
+      self._key_path_segments[segment_index] = segment_name
+
+    if self._is_regex:
+      return bool(segment_name.match(key_path_segment))  # pylint: disable=no-member
+
+    return bool(segment_name == key_path_segment.upper())
+
+  def AtLastKeyPathSegment(self, segment_index):
+    """Determines if the a key path segment is the last one or greater.
+
+    Args:
+      segment_index (int): index of the key path segment.
+
+    Returns:
+      bool: True if at maximum depth, False if not.
+    """
+    return bool(self._key_path_segments is not None and
+                (segment_index + 1) >= self._number_of_key_path_segments)
+
+  @decorators.deprecated
   def AtMaximumDepth(self, search_depth):
     """Determines if the find specification is at maximum depth.
+
+    This method is deprecated use AtLastKeyPathSegment instead.
 
     Args:
       search_depth (int): number of key path segments to compare.
@@ -173,8 +232,75 @@ class FindSpec(object):
 
     return False
 
+  def CompareKeyPath(self, registry_key):
+    """Compares a Windows Registry key path against the find specification.
+
+    Args:
+      registry_key (WinRegistryKey): Windows Registry key.
+
+    Returns:
+      bool: True if the key path of the Windows Registry key matches that of
+          the find specification, False if not or if the find specification
+          has no key path defined.
+    """
+    key_path = getattr(registry_key, 'path', None)
+    if self._key_path_segments is None or key_path is None:
+      return False
+
+    key_path_segments = key_path.split('\\')
+
+    for segment_index in range(self._number_of_key_path_segments):
+      try:
+        key_path_segment = key_path_segments[segment_index]
+      except IndexError:
+        return False
+
+      if not self._CompareWithKeyPathSegment(key_path_segment, segment_index):
+        return False
+
+    return True
+
+  def CompareNameWithKeyPathSegment(self, registry_key, segment_index):
+    """Compares a Windows Registry key name against a key path segment.
+
+    Args:
+      registry_key (WinRegistryKey): Windows Registry key.
+      segment_index (int): index of the key path segment to compare against,
+          where 0 represents the root segment.
+
+    Returns:
+      bool: True if the key path segment of the Windows Registry key matches
+          that of the find specification, False if not or if the find
+          specification has no key path defined.
+    """
+    return self._CompareWithKeyPathSegment(registry_key.name, segment_index)
+
+  def HasKeyPath(self):
+    """Determines if the find specification has a key path defined.
+
+    Returns:
+      bool: True if find specification has a key path defined, False if not.
+    """
+    return bool(self._key_path_segments)
+
+  def IsLastKeyPathSegment(self, segment_index):
+    """Determines if the a key path segment is the last one.
+
+    Args:
+      segment_index (int): index of the key path path segment.
+
+    Returns:
+      bool: True if at maximum depth, False if not.
+    """
+    return bool(self._key_path_segments is not None and
+                (segment_index + 1) == self._number_of_key_path_segments)
+
+  @decorators.deprecated
   def Matches(self, registry_key, search_depth):
     """Determines if the Windows Registry key matches the find specification.
+
+    This method is deprecated use CompareKeyPath or
+    CompareNameWithKeyPathSegment instead.
 
     Args:
       registry_key (WinRegistryKey): Windows Registry key.
@@ -219,33 +345,43 @@ class WinRegistrySearcher(object):
     super(WinRegistrySearcher, self).__init__()
     self._win_registry = win_registry
 
-  def _FindInKey(self, registry_key, find_specs, search_depth):
+  def _FindInKey(self, registry_key, find_specs, segment_index):
     """Searches for matching keys within the Windows Registry key.
 
     Args:
       registry_key (WinRegistryKey): Windows Registry key.
       find_specs (list[FindSpec]): find specifications.
-      search_depth (int): number of key path segments to compare.
+      segment_index (int): index of the key path segment to compare.
 
     Yields:
       str: key path of a matching Windows Registry key.
     """
     sub_find_specs = []
     for find_spec in find_specs:
-      match, key_path_match = find_spec.Matches(registry_key, search_depth)
-      if match:
+      has_key_path = find_spec.HasKeyPath()
+      # Do a quick check to see if the current key path segment matches.
+      key_path_match = find_spec.CompareNameWithKeyPathSegment(
+          registry_key, segment_index)
+      is_last_key_path_segment = find_spec.IsLastKeyPathSegment(segment_index)
+
+      if key_path_match and is_last_key_path_segment:
+        # Check if the full key path matches.
+        key_path_match = find_spec.CompareKeyPath(registry_key)
+
+      if not has_key_path or (key_path_match and is_last_key_path_segment):
+        # TODO: add support for CompareTraits.
         yield registry_key.path
 
-      # pylint: disable=singleton-comparison
-      if key_path_match != False and not find_spec.AtMaximumDepth(search_depth):
+      at_last_key_path_segment = find_spec.AtLastKeyPathSegment(segment_index)
+      if (not has_key_path or key_path_match) and not at_last_key_path_segment:
         sub_find_specs.append(find_spec)
 
     if sub_find_specs:
-      search_depth += 1
+      segment_index += 1
       for sub_registry_key in registry_key.GetSubkeys():
-        for matching_path in self._FindInKey(
-            sub_registry_key, sub_find_specs, search_depth):
-          yield matching_path
+        for matching_key_path in self._FindInKey(
+            sub_registry_key, sub_find_specs, segment_index):
+          yield matching_key_path
 
   def Find(self, find_specs=None):
     """Searches for matching keys within the Windows Registry.
@@ -260,9 +396,10 @@ class WinRegistrySearcher(object):
     if not find_specs:
       find_specs = [FindSpec()]
 
-    registry_key = self._win_registry.GetRootKey()
-    for matching_path in self._FindInKey(registry_key, find_specs, 0):
-      yield matching_path
+    root_registry_key = self._win_registry.GetRootKey()
+    for sub_registry_key in root_registry_key.GetSubkeys():
+      for matching_path in self._FindInKey(sub_registry_key, find_specs, 0):
+        yield matching_path
 
   def GetKeyByPath(self, key_path):
     """Retrieves a Windows Registry key for a path specification.

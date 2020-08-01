@@ -68,7 +68,7 @@ class FindSpecTest(test_lib.BaseTestCase):
         key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
 
     registry_key = fake.FakeWinRegistryKey(
-        'Microsoft', key_path='HKEY_CURRENT_USER\\Software')
+        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
 
     result = find_spec._CheckKeyPath(registry_key, 3)
     self.assertTrue(result)
@@ -92,7 +92,7 @@ class FindSpecTest(test_lib.BaseTestCase):
         key_path_regex=['HKEY_CURRENT_USER', 'Software', 'Microsoft'])
 
     registry_key = fake.FakeWinRegistryKey(
-        'Microsoft', key_path='HKEY_CURRENT_USER\\Software')
+        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
 
     result = find_spec._CheckKeyPath(registry_key, 3)
     self.assertTrue(result)
@@ -107,10 +107,46 @@ class FindSpecTest(test_lib.BaseTestCase):
         key_path_regex=['HKEY_CURRENT_USER', 'Software', 'Mi(rosoft'])
 
     registry_key = fake.FakeWinRegistryKey(
-        'Microsoft', key_path='HKEY_CURRENT_USER\\Software')
+        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
 
     result = find_spec._CheckKeyPath(registry_key, 3)
     self.assertFalse(result)
+
+  def testCompareWithKeyPathSegment(self):
+    """Test the _CompareWithKeyPathSegment function."""
+    find_spec = registry_searcher.FindSpec(
+        key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
+
+    result = find_spec._CompareWithKeyPathSegment('Microsoft', 2)
+    self.assertTrue(result)
+
+    result = find_spec._CompareWithKeyPathSegment('Microsoft', 1)
+    self.assertFalse(result)
+
+    find_spec = registry_searcher.FindSpec(
+        key_path='HKEY_CURRENT_USER\\Software\\Bogus')
+
+    result = find_spec._CompareWithKeyPathSegment('Microsoft', 2)
+    self.assertFalse(result)
+
+  def testAtLastKeyPathSegment(self):
+    """Test the AtLastKeyPathSegment function."""
+    find_spec = registry_searcher.FindSpec()
+
+    result = find_spec.AtLastKeyPathSegment(2)
+    self.assertFalse(result)
+
+    find_spec = registry_searcher.FindSpec(
+        key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
+
+    result = find_spec.AtLastKeyPathSegment(0)
+    self.assertFalse(result)
+
+    result = find_spec.AtLastKeyPathSegment(2)
+    self.assertTrue(result)
+
+    result = find_spec.AtLastKeyPathSegment(5)
+    self.assertTrue(result)
 
   def testAtMaximumDepth(self):
     """Tests the AtMaximumDepth function."""
@@ -123,13 +159,77 @@ class FindSpecTest(test_lib.BaseTestCase):
     result = find_spec.AtMaximumDepth(5)
     self.assertTrue(result)
 
+  def testCompareKeyPath(self):
+    """Test the CompareKeyPath function."""
+    registry_key = fake.FakeWinRegistryKey(
+        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
+
+    find_spec = registry_searcher.FindSpec(
+        key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
+
+    result = find_spec.CompareKeyPath(registry_key)
+    self.assertTrue(result)
+
+    find_spec = registry_searcher.FindSpec(
+        key_path='HKEY_CURRENT_USER\\Software\\Bogus')
+
+    result = find_spec.CompareKeyPath(registry_key)
+    self.assertFalse(result)
+
+  def testCompareNameWithKeyPathSegment(self):
+    """Test the CompareNameWithKeyPathSegment function."""
+    registry_key = fake.FakeWinRegistryKey(
+        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
+
+    find_spec = registry_searcher.FindSpec(
+        key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
+
+    result = find_spec.CompareNameWithKeyPathSegment(registry_key, 2)
+    self.assertTrue(result)
+
+    result = find_spec.CompareNameWithKeyPathSegment(registry_key, 1)
+    self.assertFalse(result)
+
+    find_spec = registry_searcher.FindSpec(
+        key_path='HKEY_CURRENT_USER\\Software\\Bogus')
+
+    result = find_spec.CompareNameWithKeyPathSegment(registry_key, 2)
+    self.assertFalse(result)
+
+  def testHasKeyPath(self):
+    """Test the HasKeyPath function."""
+    find_spec = registry_searcher.FindSpec()
+
+    result = find_spec.HasKeyPath()
+    self.assertFalse(result)
+
+    find_spec = registry_searcher.FindSpec(
+        key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
+
+    result = find_spec.HasKeyPath()
+    self.assertTrue(result)
+
+  def testIsLastKeyPathSegment(self):
+    """Test the IsLastKeyPathSegment function."""
+    find_spec = registry_searcher.FindSpec(
+        key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
+
+    result = find_spec.IsLastKeyPathSegment(0)
+    self.assertFalse(result)
+
+    result = find_spec.IsLastKeyPathSegment(2)
+    self.assertTrue(result)
+
+    result = find_spec.IsLastKeyPathSegment(5)
+    self.assertFalse(result)
+
   def testMatches(self):
     """Tests the Matches function."""
     find_spec = registry_searcher.FindSpec(
         key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
 
     registry_key = fake.FakeWinRegistryKey(
-        'Microsoft', key_path='HKEY_CURRENT_USER\\Software')
+        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
 
     result = find_spec.Matches(registry_key, 3)
     self.assertEqual(result, (True, True))
@@ -207,7 +307,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
 
     # Test without find specifications.
     key_paths = list(searcher.Find())
-    self.assertEqual(len(key_paths), 31351)
+    self.assertEqual(len(key_paths), 31350)
 
   def testGetKeyByPath(self):
     """Tests the GetKeyByPath function."""
