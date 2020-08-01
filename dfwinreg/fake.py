@@ -54,13 +54,13 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
     for path_segment in path_segments:
       try:
         subkey = FakeWinRegistryKey(path_segment)
-        parent_key.AddSubkey(subkey)
+        parent_key.AddSubkey(subkey.name, subkey)
       except KeyError:
         subkey = parent_key.GetSubkeyByName(path_segment)
 
       parent_key = subkey
 
-    parent_key.AddSubkey(registry_key)
+    parent_key.AddSubkey(registry_key.name, registry_key)
 
   def Close(self):
     """Closes the Windows Registry file."""
@@ -205,23 +205,23 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
           continue
         self._values[name] = registry_value
 
-  def AddSubkey(self, registry_key):
+  def AddSubkey(self, name, registry_key):
     """Adds a subkey.
 
     Args:
+      name (str): name of the Windows Registry subkey.
       registry_key (WinRegistryKey): Windows Registry subkey.
 
     Raises:
       KeyError: if the subkey already exists.
     """
-    name = registry_key.name.upper()
-    if name in self._subkeys:
-      raise KeyError(
-          'Subkey: {0:s} already exists.'.format(registry_key.name))
+    name_upper = name.upper()
+    if name_upper in self._subkeys:
+      raise KeyError('Subkey: {0:s} already exists.'.format(name))
 
-    self._subkeys[name] = registry_key
+    self._subkeys[name_upper] = registry_key
 
-    key_path = key_paths.JoinKeyPath([self._key_path, registry_key.name])
+    key_path = key_paths.JoinKeyPath([self._key_path, name])
     registry_key._key_path = key_path  # pylint: disable=protected-access
 
   def AddValue(self, registry_value):

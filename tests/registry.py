@@ -158,14 +158,32 @@ class RegistryTest(test_lib.BaseTestCase):
 
   # TODO: add tests for _GetCachedUserFileByPath
 
-  def testGetCurrentControlSet(self):
-    """Tests the _GetCurrentControlSet function."""
+  def testGetCandidateFileMappingsByPath(self):
+    """Tests the _GetCandidateFileMappingsByPath function."""
+    win_registry = registry.WinRegistry()
+
+    # Note that _GetCandidateFileMappingsByPath expects the key path to be in
+    # upper case.
+    key_path = 'HKEY_USERS'
+    mappings = list(win_registry._GetCandidateFileMappingsByPath(key_path))
+    self.assertEqual(len(mappings), 1)
+
+    key_path = 'HKEY_BOGUS\\SYSTEM'
+    mappings = list(win_registry._GetCandidateFileMappingsByPath(key_path))
+    self.assertEqual(len(mappings), 0)
+
+    key_path = 'HKEY_CURRENT_USER\\SOFTWARE\\CLASSES'
+    mappings = list(win_registry._GetCandidateFileMappingsByPath(key_path))
+    self.assertEqual(len(mappings), 3)
+
+  def testGetCurrentControlSetVirtualKey(self):
+    """Tests the _GetCurrentControlSetVirtualKey function."""
     test_path = self._GetTestFilePath(['SYSTEM'])
     self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry()
 
-    registry_key = win_registry._GetCurrentControlSet('')
+    registry_key = win_registry._GetCurrentControlSetVirtualKey('')
     self.assertIsNone(registry_key)
 
     win_registry = registry.WinRegistry(
@@ -175,7 +193,7 @@ class RegistryTest(test_lib.BaseTestCase):
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
     win_registry.MapFile(key_path_prefix, registry_file)
 
-    registry_key = win_registry._GetCurrentControlSet('')
+    registry_key = win_registry._GetCurrentControlSetVirtualKey('')
     self.assertIsNotNone(registry_key)
 
     expected_key_path = 'HKEY_LOCAL_MACHINE\\System\\ControlSet001'
@@ -184,11 +202,11 @@ class RegistryTest(test_lib.BaseTestCase):
     # Tests Current value is not an integer.
     win_registry = TestWinRegistry()
 
-    registry_key = win_registry._GetCurrentControlSet('')
+    registry_key = win_registry._GetCurrentControlSetVirtualKey('')
     self.assertIsNone(registry_key)
 
-  def testGetUsers(self):
-    """Tests the _GetUsers function."""
+  def testGetUsersVirtualKey(self):
+    """Tests the _GetUsersVirtualKey function."""
     ntuser_test_path = self._GetTestFilePath(['NTUSER.DAT'])
     self._SkipIfPathNotExists(ntuser_test_path)
 
@@ -197,7 +215,7 @@ class RegistryTest(test_lib.BaseTestCase):
 
     win_registry = registry.WinRegistry()
 
-    registry_key = win_registry._GetUsers('\\S-1-5-18')
+    registry_key = win_registry._GetUsersVirtualKey('\\S-1-5-18')
     self.assertIsNone(registry_key)
 
     win_registry = registry.WinRegistry(
@@ -211,20 +229,20 @@ class RegistryTest(test_lib.BaseTestCase):
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
     win_registry.MapFile(key_path_prefix, registry_file)
 
-    registry_key = win_registry._GetUsers('\\S-1-5-18')
+    registry_key = win_registry._GetUsersVirtualKey('\\S-1-5-18')
     self.assertIsNotNone(registry_key)
 
     expected_key_path = 'HKEY_USERS\\S-1-5-18'
     self.assertEqual(registry_key.path, expected_key_path)
 
-    registry_key = win_registry._GetUsers('\\.DEFAULT')
+    registry_key = win_registry._GetUsersVirtualKey('\\.DEFAULT')
     self.assertIsNotNone(registry_key)
 
     expected_key_path = 'HKEY_USERS\\.DEFAULT'
     self.assertEqual(registry_key.path, expected_key_path)
 
     with self.assertRaises(RuntimeError):
-      win_registry._GetUsers('.DEFAULT')
+      win_registry._GetUsersVirtualKey('.DEFAULT')
 
   def testGetFileByPath(self):
     """Tests the _GetFileByPath function."""
@@ -253,15 +271,14 @@ class RegistryTest(test_lib.BaseTestCase):
     win_registry.MapFile('', registry_file)
 
     key_path_prefix, registry_file = win_registry._GetFileByPath(key_path)
-    self.assertIsNone(key_path_prefix)
+    self.assertEqual(key_path_prefix, key_path)
     self.assertIsNone(registry_file)
 
     # Test without mapped file.
     win_registry = registry.WinRegistry()
 
-    # Note that _GetFileByPath expects the key path to be in upper case.
     key_path_prefix, registry_file = win_registry._GetFileByPath(key_path)
-    self.assertIsNone(key_path_prefix)
+    self.assertEqual(key_path_prefix, key_path)
     self.assertIsNone(registry_file)
 
     # Tests open file based on predefined mapping.
@@ -271,24 +288,6 @@ class RegistryTest(test_lib.BaseTestCase):
     key_path_prefix, registry_file = win_registry._GetFileByPath(key_path)
     self.assertEqual(key_path_prefix, key_path)
     self.assertIsNotNone(registry_file)
-
-  def testGetFileMappingsByPath(self):
-    """Tests the _GetFileMappingsByPath function."""
-    win_registry = registry.WinRegistry()
-
-    # Note that _GetFileMappingsByPath expects the key path to be in
-    # upper case.
-    key_path = 'HKEY_LOCAL_MACHINE\\SYSTEM'
-    mappings = list(win_registry._GetFileMappingsByPath(key_path))
-    self.assertEqual(len(mappings), 1)
-
-    key_path = 'HKEY_BOGUS\\SYSTEM'
-    mappings = list(win_registry._GetFileMappingsByPath(key_path))
-    self.assertEqual(len(mappings), 0)
-
-    key_path = 'HKEY_CURRENT_USER\\SOFTWARE\\CLASSES'
-    mappings = list(win_registry._GetFileMappingsByPath(key_path))
-    self.assertEqual(len(mappings), 3)
 
   def testGetKeyByPathOnNTUserDat(self):
     """Tests the GetKeyByPath function on a NTUSER.DAT file."""
