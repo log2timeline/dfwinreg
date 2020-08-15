@@ -17,5 +17,11 @@ dfWinReg is currently developed and maintained by:
 * Daniel White
 * Joachim Metz
 
-Test data was copied with permission from studentpc8 from the Greendale data
-set.
+Copied with permission from [the Greendale data set](https://github.com/dfirlabs/greendale-specimens).
+* regf/studentpc8/NTUSER.DAT
+* regf/studentpc8/NTUSER.DAT.LOG
+* regf/studentpc8/SAM
+* regf/studentpc8/SECURITY
+* regf/studentpc8/SOFTWARE
+* regf/studentpc8/SYSTEM
+* regf/studentpc8/UsrClass.dat
