@@ -105,12 +105,12 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
       return
 
     for sub_registry_key in self._registry_key.GetSubkeys():
-      self.AddSubkey(sub_registry_key)
+      self.AddSubkey(sub_registry_key.name, sub_registry_key)
 
     if self._key_path == 'HKEY_LOCAL_MACHINE\\System':
       sub_registry_key = VirtualWinRegistryKey(
           'CurrentControlSet', registry=self._registry)
-      self.AddSubkey(sub_registry_key)
+      self.AddSubkey(sub_registry_key.name, sub_registry_key)
 
     self._registry = None
 
@@ -140,23 +140,23 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
 
     return definitions.KEY_PATH_SEPARATOR.join(path_segments)
 
-  def AddSubkey(self, registry_key):
+  def AddSubkey(self, name, registry_key):
     """Adds a subkey.
 
     Args:
+      name (str): name of the Windows Registry subkey.
       registry_key (WinRegistryKey): Windows Registry subkey.
 
     Raises:
       KeyError: if the subkey already exists.
     """
-    name = registry_key.name.upper()
-    if name in self._subkeys:
-      raise KeyError(
-          'Subkey: {0:s} already exists.'.format(registry_key.name))
+    name_upper = name.upper()
+    if name_upper in self._subkeys:
+      raise KeyError('Subkey: {0:s} already exists.'.format(name))
 
-    self._subkeys[name] = registry_key
+    self._subkeys[name_upper] = registry_key
 
-    key_path = self._JoinKeyPath([self._key_path, registry_key.name])
+    key_path = self._JoinKeyPath([self._key_path, name])
     registry_key._key_path = key_path  # pylint: disable=protected-access
 
   def GetSubkeyByIndex(self, index):

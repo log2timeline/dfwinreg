@@ -68,13 +68,13 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
         'HKEY_LOCAL_MACHINE', key_path='HKEY_LOCAL_MACHINE')
 
     sub_registry_key = virtual.VirtualWinRegistryKey('System')
-    registry_key.AddSubkey(sub_registry_key)
+    registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
 
     sub_registry_key = virtual.VirtualWinRegistryKey('Software')
-    registry_key.AddSubkey(sub_registry_key)
+    registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
 
     test_registry_key = virtual.VirtualWinRegistryKey('Classes')
-    sub_registry_key.AddSubkey(test_registry_key)
+    sub_registry_key.AddSubkey(test_registry_key.name, test_registry_key)
 
     return registry_key
 
@@ -100,7 +100,7 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
 
     sub_registry_key = virtual.VirtualWinRegistryKey(
         'System', registry=win_registry)
-    registry_key.AddSubkey(sub_registry_key)
+    registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
 
     return registry_key
 
@@ -205,10 +205,10 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
     sub_registry_key = virtual.VirtualWinRegistryKey(
         'System', key_path='HKEY_LOCAL_MACHINE')
 
-    registry_key.AddSubkey(sub_registry_key)
+    registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
 
     with self.assertRaises(KeyError):
-      registry_key.AddSubkey(sub_registry_key)
+      registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
 
   def testGetSubkeyByIndex(self):
     """Tests the GetSubkeyByIndex function."""

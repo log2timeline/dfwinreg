@@ -149,12 +149,13 @@ class FindSpec(object):
         self._key_path_segments[search_depth - 1] = segment_name
 
     if search_depth > 0:
+      key_name = registry_key.path.split('\\')[-1]
       if self._is_regex:
         # pylint: disable=no-member
-        if not segment_name.match(registry_key.name):
+        if not segment_name.match(key_name):
           return False
 
-      elif segment_name != registry_key.name.upper():
+      elif segment_name != key_name.upper():
         return False
 
     return True
@@ -198,9 +199,11 @@ class FindSpec(object):
       self._key_path_segments[segment_index] = segment_name
 
     if self._is_regex:
-      return bool(segment_name.match(key_path_segment))  # pylint: disable=no-member
+      result = bool(segment_name.match(key_path_segment))  # pylint: disable=no-member
+      return result
 
-    return bool(segment_name == key_path_segment.upper())
+    result = bool(segment_name == key_path_segment.upper())
+    return result
 
   def AtLastKeyPathSegment(self, segment_index):
     """Determines if the a key path segment is the last one or greater.
@@ -273,7 +276,8 @@ class FindSpec(object):
           that of the find specification, False if not or if the find
           specification has no key path defined.
     """
-    return self._CompareWithKeyPathSegment(registry_key.name, segment_index)
+    key_name = registry_key.path.split('\\')[-1]
+    return self._CompareWithKeyPathSegment(key_name, segment_index)
 
   def HasKeyPath(self):
     """Determines if the find specification has a key path defined.

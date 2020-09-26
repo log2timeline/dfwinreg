@@ -307,7 +307,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
 
     # Test without find specifications.
     key_paths = list(searcher.Find())
-    self.assertEqual(len(key_paths), 31350)
+    self.assertEqual(len(key_paths), 21512)
 
   def testGetKeyByPath(self):
     """Tests the GetKeyByPath function."""

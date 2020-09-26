@@ -157,11 +157,11 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
 
     sub_registry_key = fake.FakeWinRegistryKey(
         'Microsoft', last_written_time=0)
-    registry_key.AddSubkey(sub_registry_key)
+    registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
 
     test_registry_key = fake.FakeWinRegistryKey(
         'Internet Explorer', last_written_time=0)
-    sub_registry_key.AddSubkey(test_registry_key)
+    sub_registry_key.AddSubkey(test_registry_key.name, test_registry_key)
 
     registry_value = fake.FakeWinRegistryValue('')
     registry_key.AddValue(registry_value)
@@ -223,10 +223,10 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
         'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft',
         last_written_time=0)
 
-    registry_key.AddSubkey(sub_registry_key)
+    registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
 
     with self.assertRaises(KeyError):
-      registry_key.AddSubkey(sub_registry_key)
+      registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
 
   def testAddValue(self):
     """Tests the AddValue function."""
