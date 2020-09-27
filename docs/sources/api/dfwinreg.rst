@@ -4,6 +4,14 @@ dfwinreg package
 Submodules
 ----------
 
+dfwinreg.creg module
+--------------------
+
+.. automodule:: dfwinreg.creg
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 dfwinreg.decorators module
 --------------------------
 
@@ -91,7 +99,6 @@ dfwinreg.virtual module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------
