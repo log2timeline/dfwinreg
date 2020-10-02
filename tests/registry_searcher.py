@@ -264,7 +264,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
     self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry(
-        registry_file_reader=test_registry.TestWinRegistryFileReader())
+        registry_file_reader=test_registry.TestREGFWinRegistryFileReader())
 
     registry_file = win_registry._OpenFile(test_path)
 
@@ -273,6 +273,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
 
     searcher = registry_searcher.WinRegistrySearcher(win_registry)
 
+    # Test with key path.
     find_spec = registry_searcher.FindSpec(
         key_path='HKEY_LOCAL_MACHINE\\System\\ControlSet001')
 
@@ -280,6 +281,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
     key_paths = list(searcher.Find(find_specs=[find_spec]))
     self.assertEqual(key_paths, expected_key_paths)
 
+    # Test with key path glob.
     find_spec = registry_searcher.FindSpec(
         key_path_glob='HKEY_LOCAL_MACHINE\\System\\ControlSet001\\*')
 
@@ -292,6 +294,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
     key_paths = list(searcher.Find(find_specs=[find_spec]))
     self.assertEqual(key_paths, expected_key_paths)
 
+    # Test with key path regular expression.
     find_spec = registry_searcher.FindSpec(
         key_path_regex=[
             'HKEY_LOCAL_MACHINE', 'System', 'ControlSet001', '.*'])
@@ -305,7 +308,30 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
     key_paths = list(searcher.Find(find_specs=[find_spec]))
     self.assertEqual(key_paths, expected_key_paths)
 
+    # Test with CurrentControlSet.
+    find_spec = registry_searcher.FindSpec(
+        key_path_glob='HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\*')
+
+    expected_key_paths = [
+        'HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control',
+        'HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Enum',
+        'HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Hardware Profiles',
+        'HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Policies',
+        'HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Services']
+    key_paths = list(searcher.Find(find_specs=[find_spec]))
+    self.assertEqual(key_paths, expected_key_paths)
+
     # Test without find specifications.
+    win_registry = registry.WinRegistry(
+        registry_file_reader=test_registry.TestREGFWinRegistryFileReader(
+            emulate_virtual_keys=False))
+
+    registry_file = win_registry._OpenFile(test_path)
+
+    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
+    win_registry.MapFile(key_path_prefix, registry_file)
+
+    searcher = registry_searcher.WinRegistrySearcher(win_registry)
     key_paths = list(searcher.Find())
     self.assertEqual(len(key_paths), 21512)
 
@@ -315,7 +341,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
     self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry(
-        registry_file_reader=test_registry.TestWinRegistryFileReader())
+        registry_file_reader=test_registry.TestREGFWinRegistryFileReader())
 
     registry_file = win_registry._OpenFile(test_path)
 
@@ -338,7 +364,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
     self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry(
-        registry_file_reader=test_registry.TestWinRegistryFileReader())
+        registry_file_reader=test_registry.TestREGFWinRegistryFileReader())
 
     registry_file = win_registry._OpenFile(test_path)
 

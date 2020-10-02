@@ -109,6 +109,8 @@ class WinRegistry(object):
       'System',
   ])
 
+  _SELECT_KEY_PATH = 'HKEY_LOCAL_MACHINE\\System\\Select'
+
   _USER_PROFILE_LIST_KEY_PATH = (
       'HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\'
       'ProfileList')
@@ -117,9 +119,8 @@ class WinRegistry(object):
   # TODO: add support for HKEY_CURRENT_CONFIG
   # TODO: add support for HKEY_CURRENT_USER
   # TODO: add support for HKEY_DYN_DATA
+
   _VIRTUAL_KEYS = [
-      ('HKEY_LOCAL_MACHINE\\System\\CurrentControlSet',
-       '_GetCurrentControlSetVirtualKey'),
       ('HKEY_USERS', '_GetUsersVirtualKey')]
 
   def __init__(self, ascii_codepage='cp1252', registry_file_reader=None):
@@ -211,46 +212,6 @@ class WinRegistry(object):
 
     return candidate_mappings
 
-  def _GetCurrentControlSetVirtualKey(self, key_path_suffix):
-    """Virtual key callback to determine the current control set key.
-
-    Args:
-      key_path_suffix (str): current control set Windows Registry key path
-          suffix with leading path separator.
-
-    Returns:
-      VirtualWinRegistryKey: the current control set Windows Registry key or
-          None if not available.
-    """
-    select_key_path = 'HKEY_LOCAL_MACHINE\\System\\Select'
-    select_key = self.GetKeyByPath(select_key_path)
-    if not select_key:
-      return None
-
-    # To determine the current control set check:
-    # 1. The "Current" value.
-    # 2. The "Default" value.
-    # 3. The "LastKnownGood" value.
-    control_set = None
-    for value_name in ('Current', 'Default', 'LastKnownGood'):
-      value = select_key.GetValueByName(value_name)
-      if not value or not value.DataIsInteger():
-        continue
-
-      control_set = value.GetDataAsObject()
-      # If the control set is 0 then we need to check the other values.
-      if control_set > 0 or control_set <= 999:
-        break
-
-    if not control_set or control_set <= 0 or control_set > 999:
-      return None
-
-    control_set_path = 'HKEY_LOCAL_MACHINE\\System\\ControlSet{0:03d}'.format(
-        control_set)
-
-    key_path = ''.join([control_set_path, key_path_suffix])
-    return self.GetKeyByPath(key_path)
-
   def _GetFileByPath(self, key_path_upper):
     """Retrieves a Windows Registry file for a specific path.
 
@@ -306,6 +267,32 @@ class WinRegistry(object):
     self.MapFile(key_path_prefix, registry_file)
 
     return key_path_prefix, registry_file
+
+  def _GetKeyByPathFromFile(self, key_path):
+    """Retrieves the key for a specific path from file.
+
+    Args:
+      key_path (str): Windows Registry key path.
+
+    Returns:
+      WinRegistryKey: Windows Registry key or None if not available.
+
+    Raises:
+      RuntimeError: if the key path prefix does not match the key path.
+    """
+    key_path_upper = key_path.upper()
+
+    key_path_prefix_upper, registry_file = self._GetFileByPath(key_path_upper)
+    if not registry_file:
+      return None
+
+    if not key_path_upper.startswith(key_path_prefix_upper):
+      raise RuntimeError('Key path prefix mismatch.')
+
+    key_path_suffix = key_path[len(key_path_prefix_upper):]
+    relative_key_path = key_path_suffix or definitions.KEY_PATH_SEPARATOR
+
+    return registry_file.GetKeyByPath(relative_key_path)
 
   def _GetRootVirtualKey(self):
     """Retrieves the root key.
@@ -480,7 +467,7 @@ class WinRegistry(object):
       WinRegistryKey: Windows Registry key or None if not available.
 
     Raises:
-      RuntimeError: if the root key is not supported or the kyet path prefix
+      RuntimeError: if the root key is not supported or the key path prefix
           does not match the key path.
     """
     root_key_path, _, key_path = key_path.partition(
@@ -494,19 +481,8 @@ class WinRegistry(object):
       raise RuntimeError('Unsupported root subkey: {0:s}'.format(root_key_path))
 
     key_path = definitions.KEY_PATH_SEPARATOR.join([root_key_path, key_path])
-    key_path_upper = key_path.upper()
-    registry_key = None
 
-    key_path_prefix_upper, registry_file = self._GetFileByPath(key_path_upper)
-    if registry_file:
-      if not key_path_upper.startswith(key_path_prefix_upper):
-        raise RuntimeError('Key path prefix mismatch.')
-
-      key_path_suffix = key_path[len(key_path_prefix_upper):]
-      relative_key_path = key_path_suffix or definitions.KEY_PATH_SEPARATOR
-
-      registry_key = registry_file.GetKeyByPath(relative_key_path)
-
+    registry_key = self._GetKeyByPathFromFile(key_path)
     if not registry_key:
       registry_key = self._GetVirtualKeyByPath(key_path)
 
@@ -587,6 +563,16 @@ class WinRegistry(object):
       registry_file (WinRegistryFile): user Windows Registry file.
     """
     self._user_registry_files[profile_path.upper()] = registry_file
+
+  def OpenAndMapFile(self, path):
+    """Opens Windows Registry file and maps it to its key path prefix.
+
+    Args:
+      path (str): path of the Windows Registry file.
+    """
+    registry_file = self._OpenFile(path)
+    key_path_prefix = self.GetRegistryFileMapping(registry_file)
+    self.MapFile(key_path_prefix, registry_file)
 
   def SplitKeyPath(self, key_path):
     """Splits the key path into path segments.

@@ -14,10 +14,9 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
   """Virtual Windows Registry key.
 
   Virtual Windows Registry key are keys that do not exist on-disk but do exist
-  at run-time, for example HKEY_LOCAL_MACHINE\\System\\CurrentControlSet.
-
-  The virtual key is also used to "mount" a Windows Registry file for example
-  SYSTEM onto the Windows Registry key HKEY_LOCAL_MACHINE\\System.
+  at run-time, sucha a example HKEY_LOCAL_MACHINE\\System. The virtual key is
+  used to "mount" the SYSTEM Windows Registry file onto the key
+  HKEY_LOCAL_MACHINE\\System.
   """
 
   def __init__(self, name, key_path='', registry=None):
@@ -105,11 +104,6 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
       return
 
     for sub_registry_key in self._registry_key.GetSubkeys():
-      self.AddSubkey(sub_registry_key.name, sub_registry_key)
-
-    if self._key_path == 'HKEY_LOCAL_MACHINE\\System':
-      sub_registry_key = VirtualWinRegistryKey(
-          'CurrentControlSet', registry=self._registry)
       self.AddSubkey(sub_registry_key.name, sub_registry_key)
 
     self._registry = None

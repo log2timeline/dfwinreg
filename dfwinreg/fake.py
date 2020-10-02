@@ -247,7 +247,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
       index (int): index of the subkey.
 
     Returns:
-      WinRegistryKey: Windows Registry subkey or None if not found.
+      WinRegistryKey: Windows Registry subkey.
 
     Raises:
       IndexError: if the index is out of bounds.

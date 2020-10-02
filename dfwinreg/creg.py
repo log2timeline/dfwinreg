@@ -137,7 +137,7 @@ class CREGWinRegistryKey(interface.WinRegistryKey):
       index (int): index of the subkey.
 
     Returns:
-      WinRegistryKey: Windows Registry subkey or None if not found.
+      WinRegistryKey: Windows Registry subkey.
 
     Raises:
       IndexError: if the index is out of bounds.
@@ -146,9 +146,6 @@ class CREGWinRegistryKey(interface.WinRegistryKey):
       raise IndexError('Index out of bounds.')
 
     pycreg_key = self._pycreg_key.get_sub_key(index)
-    if not pycreg_key:
-      return None
-
     key_path = key_paths.JoinKeyPath([self._key_path, pycreg_key.name])
     return CREGWinRegistryKey(pycreg_key, key_path=key_path)
 
@@ -281,7 +278,7 @@ class CREGWinRegistryValue(interface.WinRegistryValue):
       if self._pycreg_value.type in self._STRING_VALUE_TYPES:
         value_data = self._pycreg_value.get_data_as_string()
 
-      elif self._pycreg_value.type in self._INTEGER_VALUE_TYPES:
+      elif self._pycreg_value.type in definitions.INTEGER_VALUE_TYPES:
         value_data = self._pycreg_value.get_data_as_integer()
 
       elif self._pycreg_value.type == definitions.REG_MULTI_SZ:

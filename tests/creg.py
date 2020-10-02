@@ -204,10 +204,6 @@ class CREGWinRegistryKeyTest(test_lib.BaseTestCase):
       with self.assertRaises(IndexError):
         registry_key.GetSubkeyByIndex(-1)
 
-      registry_key._pycreg_key = FakePyCREGKey()
-      sub_registry_key = registry_key.GetSubkeyByIndex(0)
-      self.assertIsNone(sub_registry_key)
-
       registry_file.Close()
 
   def testGetSubkeyByName(self):

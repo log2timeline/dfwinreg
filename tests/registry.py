@@ -77,8 +77,18 @@ class TestWinRegistryKeyPathPrefixMismatch(registry.WinRegistry):
     return 'BOGUS', registry_file
 
 
-class TestWinRegistryFileReader(interface.WinRegistryFileReader):
+class TestREGFWinRegistryFileReader(interface.WinRegistryFileReader):
   """Single file Windows Registry file reader."""
+
+  def __init__(self, emulate_virtual_keys=True):
+    """Initializes a file Windows Registry file reader.
+
+    Args:
+      emulate_virtual_keys (Optional[bool]): True if virtual keys should be
+          emulated.
+    """
+    super(TestREGFWinRegistryFileReader, self).__init__()
+    self._emulate_virtual_keys = emulate_virtual_keys
 
   def Open(self, path, ascii_codepage='cp1252'):
     """Opens the Windows Registry file specified by the path.
@@ -90,7 +100,9 @@ class TestWinRegistryFileReader(interface.WinRegistryFileReader):
     Returns:
       WinRegistryFile: Windows Registry file or None.
     """
-    registry_file = regf.REGFWinRegistryFile(ascii_codepage=ascii_codepage)
+    registry_file = regf.REGFWinRegistryFile(
+        ascii_codepage=ascii_codepage,
+        emulate_virtual_keys=self._emulate_virtual_keys)
     file_object = open(path, 'rb')
     try:
       # If open is successful Registry file will manage the file object.
@@ -102,7 +114,7 @@ class TestWinRegistryFileReader(interface.WinRegistryFileReader):
     return registry_file
 
 
-class TestWinRegistryFileReaderMapped(TestWinRegistryFileReader):
+class TestREGFWinRegistryFileReaderMapped(TestREGFWinRegistryFileReader):
   """Single file Windows Registry file reader that maps Windows paths."""
 
   def Open(self, path, ascii_codepage='cp1252'):
@@ -120,7 +132,7 @@ class TestWinRegistryFileReaderMapped(TestWinRegistryFileReader):
     elif path == '%UserProfile%\\NTUSER.DAT':
       path = os.path.join(test_lib.TEST_DATA_PATH, 'NTUSER.DAT')
 
-    return super(TestWinRegistryFileReaderMapped, self).Open(
+    return super(TestREGFWinRegistryFileReaderMapped, self).Open(
         path, ascii_codepage=ascii_codepage)
 
 
@@ -145,7 +157,7 @@ class RegistryTest(test_lib.BaseTestCase):
     self.assertIsNone(registry_file)
 
     win_registry = registry.WinRegistry(
-        registry_file_reader=TestWinRegistryFileReader())
+        registry_file_reader=TestREGFWinRegistryFileReader())
 
     registry_file = win_registry._OpenFile(test_path)
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
@@ -176,33 +188,33 @@ class RegistryTest(test_lib.BaseTestCase):
     mappings = list(win_registry._GetCandidateFileMappingsByPath(key_path))
     self.assertEqual(len(mappings), 3)
 
-  def testGetCurrentControlSetVirtualKey(self):
-    """Tests the _GetCurrentControlSetVirtualKey function."""
-    test_path = self._GetTestFilePath(['SYSTEM'])
+  def testGetKeyByPathFromFile(self):
+    """Tests the _GetKeyByPathFromFile function."""
+    test_path = self._GetTestFilePath(['NTUSER.DAT'])
     self._SkipIfPathNotExists(test_path)
 
-    win_registry = registry.WinRegistry()
-
-    registry_key = win_registry._GetCurrentControlSetVirtualKey('')
-    self.assertIsNone(registry_key)
-
     win_registry = registry.WinRegistry(
-        registry_file_reader=TestWinRegistryFileReader())
+        registry_file_reader=TestREGFWinRegistryFileReader())
 
     registry_file = win_registry._OpenFile(test_path)
+
+    win_registry = registry.WinRegistry()
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
     win_registry.MapFile(key_path_prefix, registry_file)
 
-    registry_key = win_registry._GetCurrentControlSetVirtualKey('')
+    # Test an existing key.
+    registry_key = win_registry._GetKeyByPathFromFile(
+        'HKEY_CURRENT_USER\\Software\\Microsoft')
     self.assertIsNotNone(registry_key)
 
-    expected_key_path = 'HKEY_LOCAL_MACHINE\\System\\ControlSet001'
-    self.assertEqual(registry_key.path, expected_key_path)
+    # Test a non-existing key.
+    registry_key = win_registry._GetKeyByPathFromFile(
+        'HKEY_CURRENT_USER\\Software\\Bogus')
+    self.assertIsNone(registry_key)
 
-    # Tests Current value is not an integer.
-    win_registry = TestWinRegistry()
-
-    registry_key = win_registry._GetCurrentControlSetVirtualKey('')
+    # Test a non-existing key outside the Registry file.
+    registry_key = win_registry._GetKeyByPathFromFile(
+        'HKEY_LOCAL_MACHINE\\System\\ControlSet001')
     self.assertIsNone(registry_key)
 
   def testGetUsersVirtualKey(self):
@@ -219,7 +231,7 @@ class RegistryTest(test_lib.BaseTestCase):
     self.assertIsNone(registry_key)
 
     win_registry = registry.WinRegistry(
-        registry_file_reader=TestWinRegistryFileReader())
+        registry_file_reader=TestREGFWinRegistryFileReader())
 
     registry_file = win_registry._OpenFile(ntuser_test_path)
     profile_path = '%SystemRoot%\\System32\\config\\systemprofile\\NTUSER.DAT'
@@ -253,7 +265,7 @@ class RegistryTest(test_lib.BaseTestCase):
 
     # Test mapped file with key path prefix.
     win_registry = registry.WinRegistry(
-        registry_file_reader=TestWinRegistryFileReader())
+        registry_file_reader=TestREGFWinRegistryFileReader())
 
     registry_file = win_registry._OpenFile(test_path)
     key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
@@ -265,7 +277,7 @@ class RegistryTest(test_lib.BaseTestCase):
 
     # Test mapped file without key path prefix.
     win_registry = registry.WinRegistry(
-        registry_file_reader=TestWinRegistryFileReader())
+        registry_file_reader=TestREGFWinRegistryFileReader())
 
     registry_file = win_registry._OpenFile(test_path)
     win_registry.MapFile('', registry_file)
@@ -283,7 +295,7 @@ class RegistryTest(test_lib.BaseTestCase):
 
     # Tests open file based on predefined mapping.
     win_registry = registry.WinRegistry(
-        registry_file_reader=TestWinRegistryFileReaderMapped())
+        registry_file_reader=TestREGFWinRegistryFileReaderMapped())
 
     key_path_prefix, registry_file = win_registry._GetFileByPath(key_path)
     self.assertEqual(key_path_prefix, key_path)
@@ -295,7 +307,7 @@ class RegistryTest(test_lib.BaseTestCase):
     self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry(
-        registry_file_reader=TestWinRegistryFileReader())
+        registry_file_reader=TestREGFWinRegistryFileReader())
 
     registry_file = win_registry._OpenFile(test_path)
 
@@ -325,17 +337,23 @@ class RegistryTest(test_lib.BaseTestCase):
   def testGetKeyByPathOnSystem(self):
     """Tests the GetKeyByPath function on a SYSTEM file."""
     win_registry = registry.WinRegistry(
-        registry_file_reader=TestWinRegistryFileReaderMapped())
+        registry_file_reader=TestREGFWinRegistryFileReaderMapped())
 
     # Test an existing key.
     registry_key = win_registry.GetKeyByPath(
         'HKEY_LOCAL_MACHINE\\System\\ControlSet001')
     self.assertIsNotNone(registry_key)
 
+    self.assertEqual(
+        registry_key.path, 'HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001')
+
     # Test a virtual key.
     registry_key = win_registry.GetKeyByPath(
         'HKEY_LOCAL_MACHINE\\System\\CurrentControlSet')
     self.assertIsNotNone(registry_key)
+
+    self.assertEqual(
+        registry_key.path, 'HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet')
 
     # Test a non-existing key.
     registry_key = win_registry.GetKeyByPath(
@@ -344,7 +362,7 @@ class RegistryTest(test_lib.BaseTestCase):
 
     # Tests Current value is not an integer.
     win_registry = TestWinRegistryKeyPathPrefixMismatch(
-        registry_file_reader=TestWinRegistryFileReaderMapped())
+        registry_file_reader=TestREGFWinRegistryFileReaderMapped())
 
     with self.assertRaises(RuntimeError):
       win_registry.GetKeyByPath('HKEY_LOCAL_MACHINE\\System\\ControlSet001')
@@ -358,7 +376,7 @@ class RegistryTest(test_lib.BaseTestCase):
     self._SkipIfPathNotExists(log_test_path)
 
     win_registry = registry.WinRegistry(
-        registry_file_reader=TestWinRegistryFileReader())
+        registry_file_reader=TestREGFWinRegistryFileReader())
 
     registry_file = win_registry._OpenFile(dat_test_path)
 
@@ -383,7 +401,7 @@ class RegistryTest(test_lib.BaseTestCase):
     self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry(
-        registry_file_reader=TestWinRegistryFileReader())
+        registry_file_reader=TestREGFWinRegistryFileReader())
 
     registry_file = win_registry._OpenFile(test_path)
 
@@ -402,7 +420,7 @@ class RegistryTest(test_lib.BaseTestCase):
     self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry(
-        registry_file_reader=TestWinRegistryFileReader())
+        registry_file_reader=TestREGFWinRegistryFileReader())
 
     registry_file = win_registry._OpenFile(test_path)
 
@@ -416,7 +434,7 @@ class RegistryTest(test_lib.BaseTestCase):
     self._SkipIfPathNotExists(test_path)
 
     win_registry = registry.WinRegistry(
-        registry_file_reader=TestWinRegistryFileReader())
+        registry_file_reader=TestREGFWinRegistryFileReader())
 
     registry_file = win_registry._OpenFile(test_path)
 

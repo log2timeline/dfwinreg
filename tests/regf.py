@@ -69,6 +69,12 @@ class FakePyREGFValue(object):
 class REGFWinRegistryFileTest(test_lib.BaseTestCase):
   """Tests for the REGF Windows Registry file."""
 
+  # pylint: disable=protected-access
+
+  # TODO: add tests for _GetCurrentControlSetKey
+  # TODO: add tests for _GetCurrentControlSetKeyPath
+  # TODO: add tests for _GetKeyByPathFromFile
+
   def testOpenClose(self):
     """Tests the Open and Close functions."""
     test_path = self._GetTestFilePath(['NTUSER.DAT'])
@@ -82,26 +88,45 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
 
   def testGetRootKey(self):
     """Tests the GetRootKey function."""
-    dat_test_path = self._GetTestFilePath(['NTUSER.DAT'])
-    self._SkipIfPathNotExists(dat_test_path)
-
-    log_test_path = self._GetTestFilePath(['NTUSER.DAT.LOG'])
-    self._SkipIfPathNotExists(log_test_path)
+    # Test GetRootKey on NTUSER.DAT file
+    test_path = self._GetTestFilePath(['NTUSER.DAT'])
+    self._SkipIfPathNotExists(test_path)
 
     registry_file = regf.REGFWinRegistryFile()
 
-    with open(dat_test_path, 'rb') as file_object:
+    with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
       registry_key = registry_file.GetRootKey()
       self.assertIsNotNone(registry_key)
+      self.assertIsInstance(registry_key, regf.REGFWinRegistryKey)
       self.assertEqual(registry_key.path, '\\')
 
       registry_file.Close()
 
+    # Test GetRootKey on SYSTEM file
+    test_path = self._GetTestFilePath(['SYSTEM'])
+    self._SkipIfPathNotExists(test_path)
+
     registry_file = regf.REGFWinRegistryFile()
 
-    with open(log_test_path, 'rb') as file_object:
+    with open(test_path, 'rb') as file_object:
+      registry_file.Open(file_object)
+
+      registry_key = registry_file.GetRootKey()
+      self.assertIsNotNone(registry_key)
+      self.assertIsInstance(registry_key, regf.VirtualREGFWinRegistryKey)
+      self.assertEqual(registry_key.path, '\\')
+
+      registry_file.Close()
+
+    # Test GetRootKey on NTUSER.DAT.LOG file
+    registry_file = regf.REGFWinRegistryFile()
+
+    test_path = self._GetTestFilePath(['NTUSER.DAT.LOG'])
+    self._SkipIfPathNotExists(test_path)
+
+    with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
       root_key = registry_file.GetRootKey()
@@ -111,7 +136,7 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
 
   def testGetKeyByPath(self):
     """Tests the GetKeyByPath function."""
-    test_path = self._GetTestFilePath(['NTUSER.DAT'])
+    test_path = self._GetTestFilePath(['SYSTEM'])
     self._SkipIfPathNotExists(test_path)
 
     registry_file = regf.REGFWinRegistryFile()
@@ -124,16 +149,21 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
       self.assertIsNotNone(registry_key)
       self.assertEqual(registry_key.path, key_path)
 
-      key_path = '\\Software'
+      key_path = '\\ControlSet001'
+      registry_key = registry_file.GetKeyByPath(key_path)
+      self.assertIsNotNone(registry_key)
+      self.assertEqual(registry_key.path, key_path)
+
+      registry_key = registry_file.GetKeyByPath('ControlSet001')
+      self.assertIsNotNone(registry_key)
+      self.assertEqual(registry_key.path, key_path)
+
+      key_path = '\\CurrentControlSet'
       registry_key = registry_file.GetKeyByPath(key_path)
       self.assertIsNotNone(registry_key)
       self.assertEqual(registry_key.path, key_path)
 
       key_path = '\\Bogus'
-      registry_key = registry_file.GetKeyByPath(key_path)
-      self.assertIsNone(registry_key)
-
-      key_path = 'Bogus'
       registry_key = registry_file.GetKeyByPath(key_path)
       self.assertIsNone(registry_key)
 
@@ -229,10 +259,6 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
       with self.assertRaises(IndexError):
         registry_key.GetSubkeyByIndex(-1)
 
-      registry_key._pyregf_key = FakePyREGFKey()
-      sub_registry_key = registry_key.GetSubkeyByIndex(0)
-      self.assertIsNone(sub_registry_key)
-
       registry_file.Close()
 
   def testGetSubkeyByName(self):
@@ -247,6 +273,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
       registry_file.Open(file_object)
 
       registry_key = registry_file.GetRootKey()
+      self.assertIsNotNone(registry_key)
 
       key_name = 'Software'
       sub_registry_key = registry_key.GetSubkeyByName(key_name)
@@ -301,6 +328,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
 
       key_path = '\\Software'
       registry_key = registry_file.GetKeyByPath(key_path)
+      self.assertIsNotNone(registry_key)
 
       sub_registry_keys = list(registry_key.GetSubkeys())
       self.assertEqual(len(sub_registry_keys), 7)
@@ -318,6 +346,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
       registry_file.Open(file_object)
 
       registry_key = registry_file.GetKeyByPath('\\Console')
+      self.assertIsNotNone(registry_key)
 
       value_name = 'ColorTable14'
       registry_value = registry_key.GetValueByName(value_name)
@@ -331,6 +360,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
       # Test retrieving the default (or nameless) value.
       registry_key = registry_file.GetKeyByPath(
           '\\AppEvents\\EventLabels\\.Default')
+      self.assertIsNotNone(registry_key)
 
       registry_value = registry_key.GetValueByName('')
       self.assertIsNotNone(registry_value)
@@ -350,6 +380,7 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
 
       key_path = '\\Console'
       registry_key = registry_file.GetKeyByPath(key_path)
+      self.assertIsNotNone(registry_key)
 
       values = list(registry_key.GetValues())
       self.assertEqual(len(values), 37)
@@ -368,6 +399,8 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
 
       key_path = '\\Software'
       registry_key = registry_file.GetKeyByPath(key_path)
+      self.assertIsNotNone(registry_key)
+
       registry_keys = list(registry_key.RecurseKeys())
       registry_file.Close()
 
@@ -390,6 +423,8 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
       registry_file.Open(file_object)
 
       registry_key = registry_file.GetKeyByPath('\\Console')
+      self.assertIsNotNone(registry_key)
+
       value_name = 'ColorTable14'
       registry_value = registry_key.GetValueByName(value_name)
       expected_data = b'\xff\xff\x00\x00'
@@ -404,6 +439,8 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
 
       registry_key = registry_file.GetKeyByPath(
           '\\AppEvents\\EventLabels\\CriticalBatteryAlarm')
+      self.assertIsNotNone(registry_key)
+
       value_name = 'DispFileName'
       registry_value = registry_key.GetValueByName(value_name)
       expected_data = (
@@ -419,6 +456,8 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
       self.assertEqual(registry_value.data, expected_data)
 
       registry_key = registry_file.GetKeyByPath('\\Control Panel\\Appearance')
+      self.assertIsNotNone(registry_key)
+
       value_name = 'SchemeLangID'
       registry_value = registry_key.GetValueByName(value_name)
       expected_data = b'\x00\x00'
@@ -448,7 +487,10 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
       registry_file.Open(file_object)
 
       registry_key = registry_file.GetKeyByPath('\\Console')
+      self.assertIsNotNone(registry_key)
+
       registry_value = registry_key.GetValueByName('ColorTable14')
+      self.assertIsNotNone(registry_value)
 
       data_object = registry_value.GetDataAsObject()
       self.assertEqual(data_object, 65535)
@@ -468,7 +510,10 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
       # Test REG_MULTI_SZ without additional empty string.
       registry_key = registry_file.GetKeyByPath(
           '\\Control Panel\\International\\User Profile')
+      self.assertIsNotNone(registry_key)
+
       registry_value = registry_key.GetValueByName('Languages')
+      self.assertIsNotNone(registry_value)
 
       data_object = registry_value.GetDataAsObject()
       self.assertEqual(len(data_object), 1)
@@ -477,7 +522,10 @@ class REGFWinRegistryValueTest(test_lib.BaseTestCase):
       registry_key = registry_file.GetKeyByPath(
           '\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\'
           'Discardable\\PostSetup\\ShellNew')
+      self.assertIsNotNone(registry_key)
+
       registry_value = registry_key.GetValueByName('Classes')
+      self.assertIsNotNone(registry_value)
 
       data_object = registry_value.GetDataAsObject()
       self.assertEqual(len(data_object), 9)
