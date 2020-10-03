@@ -13,7 +13,7 @@ class WinRegistryFile(object):
   """Windows Registry file interface."""
 
   # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
-  # methods
+  # methods.
   # pylint: disable=redundant-returns-doc
 
   def __init__(self, ascii_codepage='cp1252', key_path_prefix=''):
@@ -89,7 +89,7 @@ class WinRegistryFileReader(object):
   """Windows Registry file reader interface."""
 
   # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
-  # methods
+  # methods.
   # pylint: disable=redundant-returns-doc
 
   @abc.abstractmethod
@@ -112,7 +112,7 @@ class WinRegistryKey(object):
   """Windows Registry key interface."""
 
   # Note that redundant-returns-doc and redundant-yields-doc are broken for
-  # pylint 1.7.x for abstract methods
+  # pylint 1.7.x for abstract methods.
   # pylint: disable=redundant-returns-doc,redundant-yields-doc
 
   def __init__(self, key_path=''):
@@ -161,7 +161,7 @@ class WinRegistryKey(object):
       index (int): index of the subkey.
 
     Returns:
-      WinRegistryKey: Windows Registry subkey or None if not found.
+      WinRegistryKey: Windows Registry subkey.
 
     Raises:
       IndexError: if the index is out of bounds.
@@ -232,7 +232,7 @@ class WinRegistryValue(object):
   """Windows Registry value interface."""
 
   # Note that redundant-returns-doc is broken for pylint 1.7.x for abstract
-  # methods
+  # methods.
   # pylint: disable=redundant-returns-doc
 
   _DATA_TYPE_STRINGS = {
@@ -247,12 +247,7 @@ class WinRegistryValue(object):
       8: 'REG_RESOURCE_LIST',
       9: 'REG_FULL_RESOURCE_DESCRIPTOR',
       10: 'REG_RESOURCE_REQUIREMENTS_LIST',
-      11: 'REG_QWORD'
-  }
-
-  _INTEGER_VALUE_TYPES = frozenset([
-      definitions.REG_DWORD, definitions.REG_DWORD_BIG_ENDIAN,
-      definitions.REG_QWORD])
+      11: 'REG_QWORD'}
 
   _STRING_VALUE_TYPES = frozenset([
       definitions.REG_SZ, definitions.REG_EXPAND_SZ, definitions.REG_LINK])
