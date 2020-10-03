@@ -12,7 +12,6 @@ from dfwinreg import definitions
 from dfwinreg import errors
 from dfwinreg import interface
 from dfwinreg import key_paths
-from dfwinreg import virtual
 
 
 class REGFWinRegistryFile(interface.WinRegistryFile):
