@@ -87,9 +87,6 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
     test_path = self._GetTestFilePath(['SYSTEM'])
     self._SkipIfPathNotExists(test_path)
 
-    registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', key_path='HKEY_LOCAL_MACHINE')
-
     win_registry = registry.WinRegistry(
         registry_file_reader=test_registry.TestREGFWinRegistryFileReader())
     win_registry.OpenAndMapFile(test_path)
