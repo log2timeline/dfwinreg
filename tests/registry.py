@@ -99,11 +99,21 @@ class TestREGFWinRegistryFileReader(interface.WinRegistryFileReader):
 
     Returns:
       WinRegistryFile: Windows Registry file or None.
+
+    Raises:
+      SkipTest: if the Windows Registry file does not exist and the test
+          should be skipped.
     """
+    if not os.path.exists(path):
+      filename = os.path.basename(path)
+      raise unittest.SkipTest('missing test file: {0:s}'.format(filename))
+
     registry_file = regf.REGFWinRegistryFile(
         ascii_codepage=ascii_codepage,
         emulate_virtual_keys=self._emulate_virtual_keys)
+
     file_object = open(path, 'rb')
+
     try:
       # If open is successful Registry file will manage the file object.
       registry_file.Open(file_object)
@@ -126,6 +136,10 @@ class TestREGFWinRegistryFileReaderMapped(TestREGFWinRegistryFileReader):
 
     Returns:
       WinRegistryFile: Windows Registry file or None.
+
+    Raises:
+      SkipTest: if the Windows Registry file does not exist and the test
+          should be skipped.
     """
     if path == '%SystemRoot%\\System32\\config\\SYSTEM':
       path = os.path.join(test_lib.TEST_DATA_PATH, 'SYSTEM')
