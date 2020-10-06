@@ -81,7 +81,7 @@ class WinRegistry(object):
       WinRegistryFileMapping(
           'HKEY_LOCAL_MACHINE\\System',
           '%SystemRoot%\\System32\\config\\SYSTEM',
-          ['\\MountedDevices', '\\RNG', '\\Select', '\\Setup']),
+          ['\\MountedDevices', '\\Select', '\\Setup']),
   ]
 
   _ROOT_KEY_ALIASES = {
