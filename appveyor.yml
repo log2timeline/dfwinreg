@@ -29,7 +29,7 @@ test_script:
 - cmd: "%PYTHON%\\python.exe run_tests.py"
 - cmd: IF EXIST "tests\\end-to-end.py" (
     set PYTHONPATH=. &&
-    "%PYTHON%\\python.exe tests\\end-to-end.py --debug -c config\\end-to-end.ini" )
+    "%PYTHON%\\python.exe" "tests\\end-to-end.py" --debug -c "config\\end-to-end.ini" )
 - sh: config/appveyor/runtests.sh
 
 artifacts:
