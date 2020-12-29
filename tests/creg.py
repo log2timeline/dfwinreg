@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 """Tests for the Windows 9x/Me Registry (CREG) back-end."""
 
-from __future__ import unicode_literals
-
 import unittest
 
 from dfwinreg import errors

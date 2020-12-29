@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Virtual Windows Registry key implementation."""
 
-from __future__ import unicode_literals
-
 import collections
 
 from dfwinreg import definitions

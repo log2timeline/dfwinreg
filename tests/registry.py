@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 """This file contains the tests for the Windows Registry library."""
 
-from __future__ import unicode_literals
-
 import os
 import unittest
 

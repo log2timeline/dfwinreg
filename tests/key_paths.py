@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 """Tests for the key path functions."""
 
-from __future__ import unicode_literals
-
 import unittest
 
 from dfwinreg import key_paths
