@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Key path functions."""
 
-from __future__ import unicode_literals
-
 from dfwinreg import definitions
 
 

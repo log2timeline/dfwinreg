@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Windows NT Registry (REGF) objects implementation using pyregf."""
 
-from __future__ import unicode_literals
-
 from dfdatetime import filetime as dfdatetime_filetime
 from dfdatetime import semantic_time as dfdatetime_semantic_time
 

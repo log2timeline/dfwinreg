@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Fake Windows Registry objects implementation."""
 
-from __future__ import unicode_literals
-
 import collections
 import os
 

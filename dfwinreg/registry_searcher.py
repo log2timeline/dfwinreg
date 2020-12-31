@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """A searcher to find keys and values within a Windows Registry."""
 
-from __future__ import unicode_literals
-
 import re
 import sre_constants
 

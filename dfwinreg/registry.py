@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Classes for Windows Registry access."""
 
-from __future__ import unicode_literals
-
 from dfwinreg import definitions
 from dfwinreg import key_paths
 from dfwinreg import virtual

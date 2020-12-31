@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Windows Registry related functions and classes for testing."""
 
-from __future__ import unicode_literals
-
 import os
 import unittest
 
