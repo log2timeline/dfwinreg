@@ -48,7 +48,7 @@ The [l2tbinaries](https://github.com/log2timeline/l2tbinaries) contains the
 necessary packages for running dfWinReg. l2tbinaries provides the following
 branches:
 
-* master; branch intended for the "packaged release" of dfWinReg and dependencies;
+* main; branch intended for the "packaged release" of dfWinReg and dependencies;
 * dev; branch intended for the "development release" of dfWinReg;
 * testing; branch intended for testing newly created packages.
 
