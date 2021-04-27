@@ -420,7 +420,7 @@ class CREGWinRegistryValueTest(test_lib.BaseTestCase):
       self.assertEqual(registry_value.data_type_string, 'REG_DWORD_LE')
       self.assertEqual(registry_value.GetDataAsObject(), 163214)
       self.assertEqual(registry_value.name, value_name)
-      self.assertEqual(registry_value.offset, 90167)
+      self.assertEqual(registry_value.offset, 90258)
       self.assertEqual(registry_value.data, expected_data)
 
       registry_key = registry_file.GetKeyByPath(
@@ -436,7 +436,7 @@ class CREGWinRegistryValueTest(test_lib.BaseTestCase):
       self.assertEqual(registry_value.data_type_string, 'REG_SZ')
       self.assertEqual(registry_value.GetDataAsObject(), 'C:\\My Documents')
       self.assertEqual(registry_value.name, value_name)
-      self.assertEqual(registry_value.offset, 24645)
+      self.assertEqual(registry_value.offset, 57547)
       self.assertEqual(registry_value.data, expected_data)
 
       registry_key = registry_file.GetKeyByPath(
@@ -450,7 +450,7 @@ class CREGWinRegistryValueTest(test_lib.BaseTestCase):
       self.assertEqual(registry_value.data_type_string, 'REG_BINARY')
       self.assertEqual(registry_value.GetDataAsObject(), expected_data)
       self.assertEqual(registry_value.name, value_name)
-      self.assertEqual(registry_value.offset, 24608)
+      self.assertEqual(registry_value.offset, 30271)
       self.assertEqual(registry_value.data, expected_data)
 
       registry_value._pycreg_value = FakePyCREGValue()
