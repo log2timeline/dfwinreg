@@ -110,7 +110,7 @@ class TestREGFWinRegistryFileReader(interface.WinRegistryFileReader):
         ascii_codepage=ascii_codepage,
         emulate_virtual_keys=self._emulate_virtual_keys)
 
-    file_object = open(path, 'rb')
+    file_object = open(path, 'rb')  # pylint: disable=consider-using-with
 
     try:
       # If open is successful Registry file will manage the file object.
