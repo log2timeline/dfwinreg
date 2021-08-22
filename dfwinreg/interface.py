@@ -122,27 +122,33 @@ class WinRegistryKey(object):
     super(WinRegistryKey, self).__init__()
     self._key_path = key_paths.JoinKeyPath([key_path])
 
-  @abc.abstractproperty
+  @property
+  @abc.abstractmethod
   def class_name(self):
     """str: class name of the key or None if not available."""
 
-  @abc.abstractproperty
+  @property
+  @abc.abstractmethod
   def last_written_time(self):
     """dfdatetime.DateTimeValues: last written time or None."""
 
-  @abc.abstractproperty
+  @property
+  @abc.abstractmethod
   def name(self):
     """str: name of the key."""
 
-  @abc.abstractproperty
+  @property
+  @abc.abstractmethod
   def number_of_subkeys(self):
     """int: number of subkeys within the key."""
 
-  @abc.abstractproperty
+  @property
+  @abc.abstractmethod
   def number_of_values(self):
     """int: number of values within the key."""
 
-  @abc.abstractproperty
+  @property
+  @abc.abstractmethod
   def offset(self):
     """int: offset of the key within the Windows Registry file or None."""
 
@@ -250,11 +256,13 @@ class WinRegistryValue(object):
   _STRING_VALUE_TYPES = frozenset([
       definitions.REG_SZ, definitions.REG_EXPAND_SZ, definitions.REG_LINK])
 
-  @abc.abstractproperty
+  @property
+  @abc.abstractmethod
   def data(self):
     """bytes: value data."""
 
-  @abc.abstractproperty
+  @property
+  @abc.abstractmethod
   def data_type(self):
     """int: data type."""
 
@@ -263,11 +271,13 @@ class WinRegistryValue(object):
     """str: string representation of the data type."""
     return self._DATA_TYPE_STRINGS.get(self.data_type, 'UNKNOWN')
 
-  @abc.abstractproperty
+  @property
+  @abc.abstractmethod
   def name(self):
     """str: name of the value."""
 
-  @abc.abstractproperty
+  @property
+  @abc.abstractmethod
   def offset(self):
     """int: offset of the value within the Windows Registry file."""
 
