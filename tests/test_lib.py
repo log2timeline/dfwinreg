@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Windows Registry related functions and classes for testing."""
+"""Functions and classes for testing."""
 
 import os
 import unittest
@@ -7,6 +7,7 @@ import unittest
 
 # The path to top of the dfWinReg source tree.
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
 # The paths below are all derived from the project path directory.
 # They are enumerated explicitly here so that they can be overwritten for
 # compatibility with different build systems.
@@ -16,8 +17,7 @@ TEST_DATA_PATH = os.path.join(PROJECT_PATH, 'test_data')
 class BaseTestCase(unittest.TestCase):
   """The base test case."""
 
-  # Show full diff results, part of TestCase so does not follow our naming
-  # conventions.
+  # Show full diff results.
   maxDiff = None
 
   def _GetTestFilePath(self, path_segments):
