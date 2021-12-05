@@ -397,7 +397,7 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
       name = 'CurrentControlSet'
     else:
       pyregf_key = self._pyregf_key.get_sub_key_by_name(name)
-      name = pyregf_key.name
+      name = getattr(pyregf_key, 'name', None)
 
     if not pyregf_key:
       return None
