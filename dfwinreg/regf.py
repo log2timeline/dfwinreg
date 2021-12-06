@@ -372,14 +372,15 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
     if index < 0 or index >= self.number_of_subkeys:
       raise IndexError('Index out of bounds.')
 
-    if index == self._pyregf_key.number_of_sub_keys:
-      pyregf_key = self._current_control_set_key
+    if (self._current_control_set_key and
+        index == self._pyregf_key.number_of_sub_keys):
       name = 'CurrentControlSet'
-    else:
-      pyregf_key = self._pyregf_key.get_sub_key(index)
-      name = pyregf_key.name
+      key_path = key_paths.JoinKeyPath([self._key_path, name])
+      return VirtualREGFWinRegistryKey(
+          name, self._current_control_set_key, key_path=key_path)
 
-    key_path = key_paths.JoinKeyPath([self._key_path, name])
+    pyregf_key = self._pyregf_key.get_sub_key(index)
+    key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
     return REGFWinRegistryKey(pyregf_key, key_path=key_path)
 
   def GetSubkeyByName(self, name):
@@ -391,18 +392,17 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
     Returns:
       WinRegistryKey: Windows Registry subkey or None if not found.
     """
-    if (self._current_control_set_key and
-        name.upper() == 'CURRENTCONTROLSET'):
-      pyregf_key = self._current_control_set_key
+    if self._current_control_set_key and name.upper() == 'CURRENTCONTROLSET':
       name = 'CurrentControlSet'
-    else:
-      pyregf_key = self._pyregf_key.get_sub_key_by_name(name)
-      name = getattr(pyregf_key, 'name', None)
+      key_path = key_paths.JoinKeyPath([self._key_path, name])
+      return VirtualREGFWinRegistryKey(
+          name, self._current_control_set_key, key_path=key_path)
 
+    pyregf_key = self._pyregf_key.get_sub_key_by_name(name)
     if not pyregf_key:
       return None
 
-    key_path = key_paths.JoinKeyPath([self._key_path, name])
+    key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
     return REGFWinRegistryKey(pyregf_key, key_path=key_path)
 
   def GetSubkeyByPath(self, key_path):
@@ -414,9 +414,24 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
     Returns:
       WinRegistryKey: Windows Registry subkey or None if not found.
     """
+    key_path_segments = key_path.split('\\')
+    if not key_path_segments[0]:
+      key_path_segments.pop(0)
+
     if (self._current_control_set_key and
-        key_path.startswith('CurrentControlSet')):
-      pyregf_key = self._current_control_set_key
+        key_path_segments[0].upper() == 'CURRENTCONTROLSET'):
+      key_path_segments.pop(0)
+
+      if not key_path_segments:
+        name = 'CurrentControlSet'
+        key_path = key_paths.JoinKeyPath([self._key_path, name])
+        return VirtualREGFWinRegistryKey(
+            name, self._current_control_set_key, key_path=key_path)
+
+      sub_key_path = '\\'.join(key_path_segments)
+      pyregf_key = self._current_control_set_key.get_sub_key_by_path(
+          sub_key_path)
+
     else:
       pyregf_key = self._pyregf_key.get_sub_key_by_path(key_path)
 
