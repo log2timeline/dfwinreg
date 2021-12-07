@@ -397,11 +397,12 @@ class WinRegistry(object):
 
         # HKEY_USERS\%SID%_CLASSES maps to UsrClass.dat
         if user_key_name.endswith('_CLASSES'):
-          profile_path = '\\'.join([
+          profile_path = definitions.KEY_PATH_SEPARATOR.join([
               profile_path, 'AppData', 'Local', 'Microsoft', 'Windows',
               'UsrClass.dat'])
         else:
-          profile_path = '\\'.join([profile_path, 'NTUSER.DAT'])
+          profile_path = definitions.KEY_PATH_SEPARATOR.join([
+              profile_path, 'NTUSER.DAT'])
 
         registry_file = self._GetUserFileByPath(profile_path)
         if not registry_file:
@@ -409,7 +410,8 @@ class WinRegistry(object):
 
         key_path_prefix = definitions.KEY_PATH_SEPARATOR.join([
             'HKEY_USERS', user_key_name])
-        key_path = ''.join([key_path_prefix, key_path_suffix])
+        key_path = definitions.KEY_PATH_SEPARATOR.join([
+            key_path_prefix, key_path_suffix])
 
         registry_file.SetKeyPathPrefix(key_path_prefix)
         return registry_file.GetKeyByPath(key_path)
