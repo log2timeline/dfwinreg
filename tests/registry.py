@@ -97,14 +97,9 @@ class TestREGFWinRegistryFileReader(interface.WinRegistryFileReader):
 
     Returns:
       WinRegistryFile: Windows Registry file or None.
-
-    Raises:
-      SkipTest: if the Windows Registry file does not exist and the test
-          should be skipped.
     """
     if not os.path.exists(path):
-      filename = os.path.basename(path)
-      raise unittest.SkipTest('missing test file: {0:s}'.format(filename))
+      return None
 
     registry_file = regf.REGFWinRegistryFile(
         ascii_codepage=ascii_codepage,
@@ -259,6 +254,14 @@ class RegistryTest(test_lib.BaseTestCase):
     expected_key_path = 'HKEY_USERS\\S-1-5-18'
     self.assertEqual(registry_key.path, expected_key_path)
 
+    registry_key = win_registry._GetUsersVirtualKey(
+        '\\S-1-5-18\\Software\\Microsoft\\Windows\\CurrentVersion')
+    self.assertIsNotNone(registry_key)
+
+    expected_key_path = (
+        'HKEY_USERS\\S-1-5-18\\Software\\Microsoft\\Windows\\CurrentVersion')
+    self.assertEqual(registry_key.path, expected_key_path)
+
     registry_key = win_registry._GetUsersVirtualKey('\\.DEFAULT')
     self.assertIsNotNone(registry_key)
 
@@ -359,6 +362,13 @@ class RegistryTest(test_lib.BaseTestCase):
     self.assertEqual(
         registry_key.path, 'HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001')
 
+    registry_key = win_registry.GetKeyByPath(
+        'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Enum')
+    self.assertIsNotNone(registry_key)
+
+    self.assertEqual(
+        registry_key.path, 'HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Enum')
+
     # Test a virtual key.
     registry_key = win_registry.GetKeyByPath(
         'HKEY_LOCAL_MACHINE\\System\\CurrentControlSet')
@@ -366,6 +376,15 @@ class RegistryTest(test_lib.BaseTestCase):
 
     self.assertEqual(
         registry_key.path, 'HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet')
+
+    # Test a subkey of a virtual key.
+    registry_key = win_registry.GetKeyByPath(
+        'HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Enum')
+    self.assertIsNotNone(registry_key)
+
+    self.assertEqual(
+        registry_key.path,
+        'HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Enum')
 
     # Test a non-existing key.
     registry_key = win_registry.GetKeyByPath(
@@ -392,17 +411,21 @@ class RegistryTest(test_lib.BaseTestCase):
 
     registry_file = win_registry._OpenFile(dat_test_path)
 
-    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
-    self.assertEqual(key_path_prefix, 'HKEY_CURRENT_USER')
+    try:
+      key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
+      self.assertEqual(key_path_prefix, 'HKEY_CURRENT_USER')
 
-    registry_file.Close()
+    finally:
+      registry_file.Close()
 
     registry_file = win_registry._OpenFile(log_test_path)
 
-    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
-    self.assertEqual(key_path_prefix, '')
+    try:
+      key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
+      self.assertEqual(key_path_prefix, '')
 
-    registry_file.Close()
+    finally:
+      registry_file.Close()
 
     key_path_prefix = win_registry.GetRegistryFileMapping(None)
     self.assertEqual(key_path_prefix, '')
@@ -417,10 +440,12 @@ class RegistryTest(test_lib.BaseTestCase):
 
     registry_file = win_registry._OpenFile(test_path)
 
-    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
-    self.assertEqual(key_path_prefix, 'HKEY_LOCAL_MACHINE\\System')
+    try:
+      key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
+      self.assertEqual(key_path_prefix, 'HKEY_LOCAL_MACHINE\\System')
 
-    registry_file.Close()
+    finally:
+      registry_file.Close()
 
   # TODO: add GetRegistryFileMapping on UsrClass file test.
 

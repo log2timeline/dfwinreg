@@ -88,11 +88,13 @@ class CREGWinRegistryFileTest(test_lib.BaseTestCase):
     with open(dat_test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
-      registry_key = registry_file.GetRootKey()
-      self.assertIsNotNone(registry_key)
-      self.assertEqual(registry_key.path, '\\')
+      try:
+        registry_key = registry_file.GetRootKey()
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.path, '\\')
 
-      registry_file.Close()
+      finally:
+        registry_file.Close()
 
   def testGetKeyByPath(self):
     """Tests the GetKeyByPath function."""
@@ -104,25 +106,27 @@ class CREGWinRegistryFileTest(test_lib.BaseTestCase):
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
-      key_path = '\\'
-      registry_key = registry_file.GetKeyByPath(key_path)
-      self.assertIsNotNone(registry_key)
-      self.assertEqual(registry_key.path, key_path)
+      try:
+        key_path = '\\'
+        registry_key = registry_file.GetKeyByPath(key_path)
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.path, key_path)
 
-      key_path = '\\Software'
-      registry_key = registry_file.GetKeyByPath(key_path)
-      self.assertIsNotNone(registry_key)
-      self.assertEqual(registry_key.path, key_path)
+        key_path = '\\Software'
+        registry_key = registry_file.GetKeyByPath(key_path)
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.path, key_path)
 
-      key_path = '\\Bogus'
-      registry_key = registry_file.GetKeyByPath(key_path)
-      self.assertIsNone(registry_key)
+        key_path = '\\Bogus'
+        registry_key = registry_file.GetKeyByPath(key_path)
+        self.assertIsNone(registry_key)
 
-      key_path = 'Bogus'
-      registry_key = registry_file.GetKeyByPath(key_path)
-      self.assertIsNone(registry_key)
+        key_path = 'Bogus'
+        registry_key = registry_file.GetKeyByPath(key_path)
+        self.assertIsNone(registry_key)
 
-      registry_file.Close()
+      finally:
+        registry_file.Close()
 
   def testRecurseKeys(self):
     """Tests the RecurseKeys function."""
@@ -134,8 +138,11 @@ class CREGWinRegistryFileTest(test_lib.BaseTestCase):
     with open(dat_test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
-      registry_keys = list(registry_file.RecurseKeys())
-      registry_file.Close()
+      try:
+        registry_keys = list(registry_file.RecurseKeys())
+
+      finally:
+        registry_file.Close()
 
     self.assertEqual(len(registry_keys), 788)
 
@@ -155,28 +162,30 @@ class CREGWinRegistryKeyTest(test_lib.BaseTestCase):
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
-      key_path = '\\Software'
-      registry_key = registry_file.GetKeyByPath(key_path)
-      self.assertIsNotNone(registry_key)
-      self.assertIsNone(registry_key.class_name)
-      self.assertEqual(registry_key.name, 'Software')
-      self.assertEqual(registry_key.number_of_subkeys, 1)
-      self.assertEqual(registry_key.number_of_values, 0)
-      self.assertEqual(registry_key.offset, 27948)
-      self.assertEqual(registry_key.path, key_path)
+      try:
+        key_path = '\\Software'
+        registry_key = registry_file.GetKeyByPath(key_path)
+        self.assertIsNotNone(registry_key)
+        self.assertIsNone(registry_key.class_name)
+        self.assertEqual(registry_key.name, 'Software')
+        self.assertEqual(registry_key.number_of_subkeys, 1)
+        self.assertEqual(registry_key.number_of_values, 0)
+        self.assertEqual(registry_key.offset, 27948)
+        self.assertEqual(registry_key.path, key_path)
 
-      self.assertIsNotNone(registry_key.last_written_time)
+        self.assertIsNotNone(registry_key.last_written_time)
 
-      date_time_string = registry_key.last_written_time.CopyToDateTimeString()
-      self.assertEqual(date_time_string, 'Not set')
+        date_time_string = registry_key.last_written_time.CopyToDateTimeString()
+        self.assertEqual(date_time_string, 'Not set')
 
-      registry_key._pycreg_key = FakePyCREGKey()
-      self.assertIsNotNone(registry_key.last_written_time)
+        registry_key._pycreg_key = FakePyCREGKey()
+        self.assertIsNotNone(registry_key.last_written_time)
 
-      date_time_string = registry_key.last_written_time.CopyToDateTimeString()
-      self.assertEqual(date_time_string, 'Not set')
+        date_time_string = registry_key.last_written_time.CopyToDateTimeString()
+        self.assertEqual(date_time_string, 'Not set')
 
-      registry_file.Close()
+      finally:
+        registry_file.Close()
 
   def testGetSubkeyByIndex(self):
     """Tests the GetSubkeyByIndex function."""
@@ -189,20 +198,22 @@ class CREGWinRegistryKeyTest(test_lib.BaseTestCase):
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
-      registry_key = registry_file.GetRootKey()
+      try:
+        registry_key = registry_file.GetRootKey()
 
-      key_name = '.DEFAULT'
-      sub_registry_key = registry_key.GetSubkeyByIndex(0)
-      self.assertIsNotNone(sub_registry_key)
-      self.assertEqual(sub_registry_key.name, key_name)
+        key_name = '.DEFAULT'
+        sub_registry_key = registry_key.GetSubkeyByIndex(0)
+        self.assertIsNotNone(sub_registry_key)
+        self.assertEqual(sub_registry_key.name, key_name)
 
-      expected_key_path = 'HKEY_CURRENT_USER\\.DEFAULT'
-      self.assertEqual(sub_registry_key.path, expected_key_path)
+        expected_key_path = 'HKEY_CURRENT_USER\\.DEFAULT'
+        self.assertEqual(sub_registry_key.path, expected_key_path)
 
-      with self.assertRaises(IndexError):
-        registry_key.GetSubkeyByIndex(-1)
+        with self.assertRaises(IndexError):
+          registry_key.GetSubkeyByIndex(-1)
 
-      registry_file.Close()
+      finally:
+        registry_file.Close()
 
   def testGetSubkeyByName(self):
     """Tests the GetSubkeyByName function."""
@@ -215,21 +226,23 @@ class CREGWinRegistryKeyTest(test_lib.BaseTestCase):
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
-      registry_key = registry_file.GetRootKey()
+      try:
+        registry_key = registry_file.GetRootKey()
 
-      key_name = 'Software'
-      sub_registry_key = registry_key.GetSubkeyByName(key_name)
-      self.assertIsNotNone(sub_registry_key)
-      self.assertEqual(sub_registry_key.name, key_name)
+        key_name = 'Software'
+        sub_registry_key = registry_key.GetSubkeyByName(key_name)
+        self.assertIsNotNone(sub_registry_key)
+        self.assertEqual(sub_registry_key.name, key_name)
 
-      expected_key_path = 'HKEY_CURRENT_USER\\Software'
-      self.assertEqual(sub_registry_key.path, expected_key_path)
+        expected_key_path = 'HKEY_CURRENT_USER\\Software'
+        self.assertEqual(sub_registry_key.path, expected_key_path)
 
-      key_name = 'Bogus'
-      sub_registry_key = registry_key.GetSubkeyByName(key_name)
-      self.assertIsNone(sub_registry_key)
+        key_name = 'Bogus'
+        sub_registry_key = registry_key.GetSubkeyByName(key_name)
+        self.assertIsNone(sub_registry_key)
 
-      registry_file.Close()
+      finally:
+        registry_file.Close()
 
   def testGetSubkeyByPath(self):
     """Tests the GetSubkeyByPath function."""
@@ -242,21 +255,23 @@ class CREGWinRegistryKeyTest(test_lib.BaseTestCase):
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
-      registry_key = registry_file.GetRootKey()
+      try:
+        registry_key = registry_file.GetRootKey()
 
-      key_path = 'Software\\Microsoft'
-      sub_registry_key = registry_key.GetSubkeyByPath(key_path)
-      self.assertIsNotNone(sub_registry_key)
-      self.assertEqual(sub_registry_key.name, 'Microsoft')
+        key_path = 'Software\\Microsoft'
+        sub_registry_key = registry_key.GetSubkeyByPath(key_path)
+        self.assertIsNotNone(sub_registry_key)
+        self.assertEqual(sub_registry_key.name, 'Microsoft')
 
-      expected_key_path = 'HKEY_CURRENT_USER\\Software\\Microsoft'
-      self.assertEqual(sub_registry_key.path, expected_key_path)
+        expected_key_path = 'HKEY_CURRENT_USER\\Software\\Microsoft'
+        self.assertEqual(sub_registry_key.path, expected_key_path)
 
-      key_path = 'Software\\Bogus'
-      sub_registry_key = registry_key.GetSubkeyByPath(key_path)
-      self.assertIsNone(sub_registry_key)
+        key_path = 'Software\\Bogus'
+        sub_registry_key = registry_key.GetSubkeyByPath(key_path)
+        self.assertIsNone(sub_registry_key)
 
-      registry_file.Close()
+      finally:
+        registry_file.Close()
 
   def testGetSubkeys(self):
     """Tests the GetSubkeys function."""
@@ -268,13 +283,15 @@ class CREGWinRegistryKeyTest(test_lib.BaseTestCase):
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
-      key_path = '\\Software'
-      registry_key = registry_file.GetKeyByPath(key_path)
+      try:
+        key_path = '\\Software'
+        registry_key = registry_file.GetKeyByPath(key_path)
 
-      sub_registry_keys = list(registry_key.GetSubkeys())
-      self.assertEqual(len(sub_registry_keys), 1)
+        sub_registry_keys = list(registry_key.GetSubkeys())
+        self.assertEqual(len(sub_registry_keys), 1)
 
-      registry_file.Close()
+      finally:
+        registry_file.Close()
 
   def testGetValueByName(self):
     """Tests the GetValueByName function."""
@@ -286,28 +303,30 @@ class CREGWinRegistryKeyTest(test_lib.BaseTestCase):
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
-      registry_key = registry_file.GetKeyByPath(
-          '\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer'
-          '\\MountPoints\\A\\_Autorun')
+      try:
+        registry_key = registry_file.GetKeyByPath(
+            '\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer'
+            '\\MountPoints\\A\\_Autorun')
 
-      value_name = 'LastUpdate'
-      registry_value = registry_key.GetValueByName(value_name)
-      self.assertIsNotNone(registry_value)
-      self.assertEqual(registry_value.name, value_name)
+        value_name = 'LastUpdate'
+        registry_value = registry_key.GetValueByName(value_name)
+        self.assertIsNotNone(registry_value)
+        self.assertEqual(registry_value.name, value_name)
 
-      value_name = 'Bogus'
-      registry_value = registry_key.GetValueByName(value_name)
-      self.assertIsNone(registry_value)
+        value_name = 'Bogus'
+        registry_value = registry_key.GetValueByName(value_name)
+        self.assertIsNone(registry_value)
 
-      # Test retrieving the default (or nameless) value.
-      registry_key = registry_file.GetKeyByPath(
-          '\\.DEFAULT\\AppEvents\\EventLabels\\.Default')
+        # Test retrieving the default (or nameless) value.
+        registry_key = registry_file.GetKeyByPath(
+            '\\.DEFAULT\\AppEvents\\EventLabels\\.Default')
 
-      registry_value = registry_key.GetValueByName('')
-      self.assertIsNotNone(registry_value)
-      self.assertIsNone(registry_value.name)
+        registry_value = registry_key.GetValueByName('')
+        self.assertIsNotNone(registry_value)
+        self.assertIsNone(registry_value.name)
 
-      registry_file.Close()
+      finally:
+        registry_file.Close()
 
   def testGetValues(self):
     """Tests the GetValues function."""
@@ -319,15 +338,17 @@ class CREGWinRegistryKeyTest(test_lib.BaseTestCase):
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
-      key_path = (
-          '\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer'
-          '\\MountPoints\\A\\_Autorun')
-      registry_key = registry_file.GetKeyByPath(key_path)
+      try:
+        key_path = (
+            '\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion'
+            '\\Explorer\\MountPoints\\A\\_Autorun')
+        registry_key = registry_file.GetKeyByPath(key_path)
 
-      values = list(registry_key.GetValues())
-      self.assertEqual(len(values), 3)
+        values = list(registry_key.GetValues())
+        self.assertEqual(len(values), 3)
 
-      registry_file.Close()
+      finally:
+        registry_file.Close()
 
   def testRecurseKeys(self):
     """Tests the RecurseKeys function."""
@@ -339,10 +360,13 @@ class CREGWinRegistryKeyTest(test_lib.BaseTestCase):
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
-      key_path = '\\Software'
-      registry_key = registry_file.GetKeyByPath(key_path)
-      registry_keys = list(registry_key.RecurseKeys())
-      registry_file.Close()
+      try:
+        key_path = '\\Software'
+        registry_key = registry_file.GetKeyByPath(key_path)
+        registry_keys = list(registry_key.RecurseKeys())
+
+      finally:
+        registry_file.Close()
 
     self.assertEqual(len(registry_keys), 6)
 
@@ -408,56 +432,58 @@ class CREGWinRegistryValueTest(test_lib.BaseTestCase):
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
-      registry_key = registry_file.GetKeyByPath(
-          '\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer'
-          '\\MountPoints\\A\\_Autorun')
-      value_name = 'LastUpdate'
-      registry_value = registry_key.GetValueByName(value_name)
-      expected_data = b'\x8e\x7d\x02\x00'
+      try:
+        registry_key = registry_file.GetKeyByPath(
+            '\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer'
+            '\\MountPoints\\A\\_Autorun')
+        value_name = 'LastUpdate'
+        registry_value = registry_key.GetValueByName(value_name)
+        expected_data = b'\x8e\x7d\x02\x00'
 
-      self.assertIsNotNone(registry_value)
-      self.assertEqual(registry_value.data_type, 4)
-      self.assertEqual(registry_value.data_type_string, 'REG_DWORD_LE')
-      self.assertEqual(registry_value.GetDataAsObject(), 163214)
-      self.assertEqual(registry_value.name, value_name)
-      self.assertEqual(registry_value.offset, 90258)
-      self.assertEqual(registry_value.data, expected_data)
+        self.assertIsNotNone(registry_value)
+        self.assertEqual(registry_value.data_type, 4)
+        self.assertEqual(registry_value.data_type_string, 'REG_DWORD_LE')
+        self.assertEqual(registry_value.GetDataAsObject(), 163214)
+        self.assertEqual(registry_value.name, value_name)
+        self.assertEqual(registry_value.offset, 90258)
+        self.assertEqual(registry_value.data, expected_data)
 
-      registry_key = registry_file.GetKeyByPath(
-          '\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer'
-          '\\Shell Folders')
-      value_name = 'Personal'
-      registry_value = registry_key.GetValueByName(value_name)
-      expected_data = (
-          b'\x43\x3a\x5c\x4d\x79\x20\x44\x6f\x63\x75\x6d\x65\x6e\x74\x73')
+        registry_key = registry_file.GetKeyByPath(
+            '\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer'
+            '\\Shell Folders')
+        value_name = 'Personal'
+        registry_value = registry_key.GetValueByName(value_name)
+        expected_data = (
+            b'\x43\x3a\x5c\x4d\x79\x20\x44\x6f\x63\x75\x6d\x65\x6e\x74\x73')
 
-      self.assertIsNotNone(registry_value)
-      self.assertEqual(registry_value.data_type, 1)
-      self.assertEqual(registry_value.data_type_string, 'REG_SZ')
-      self.assertEqual(registry_value.GetDataAsObject(), 'C:\\My Documents')
-      self.assertEqual(registry_value.name, value_name)
-      self.assertEqual(registry_value.offset, 57547)
-      self.assertEqual(registry_value.data, expected_data)
+        self.assertIsNotNone(registry_value)
+        self.assertEqual(registry_value.data_type, 1)
+        self.assertEqual(registry_value.data_type_string, 'REG_SZ')
+        self.assertEqual(registry_value.GetDataAsObject(), 'C:\\My Documents')
+        self.assertEqual(registry_value.name, value_name)
+        self.assertEqual(registry_value.offset, 57547)
+        self.assertEqual(registry_value.data, expected_data)
 
-      registry_key = registry_file.GetKeyByPath(
-          '\\.DEFAULT\\Control Panel\\Appearance\\Schemes')
-      value_name = 'Brick'
-      registry_value = registry_key.GetValueByName(value_name)
-      expected_data = self._EXPECTED_BINARY_DATA_VALUE
+        registry_key = registry_file.GetKeyByPath(
+            '\\.DEFAULT\\Control Panel\\Appearance\\Schemes')
+        value_name = 'Brick'
+        registry_value = registry_key.GetValueByName(value_name)
+        expected_data = self._EXPECTED_BINARY_DATA_VALUE
 
-      self.assertIsNotNone(registry_value)
-      self.assertEqual(registry_value.data_type, 3)
-      self.assertEqual(registry_value.data_type_string, 'REG_BINARY')
-      self.assertEqual(registry_value.GetDataAsObject(), expected_data)
-      self.assertEqual(registry_value.name, value_name)
-      self.assertEqual(registry_value.offset, 30271)
-      self.assertEqual(registry_value.data, expected_data)
+        self.assertIsNotNone(registry_value)
+        self.assertEqual(registry_value.data_type, 3)
+        self.assertEqual(registry_value.data_type_string, 'REG_BINARY')
+        self.assertEqual(registry_value.GetDataAsObject(), expected_data)
+        self.assertEqual(registry_value.name, value_name)
+        self.assertEqual(registry_value.offset, 30271)
+        self.assertEqual(registry_value.data, expected_data)
 
-      registry_value._pycreg_value = FakePyCREGValue()
-      with self.assertRaises(errors.WinRegistryValueError):
-        _ = registry_value.data
+        registry_value._pycreg_value = FakePyCREGValue()
+        with self.assertRaises(errors.WinRegistryValueError):
+          _ = registry_value.data
 
-      registry_file.Close()
+      finally:
+        registry_file.Close()
 
   def testGetDataAsObject(self):
     """Tests the GetDataAsObject function."""
@@ -469,25 +495,31 @@ class CREGWinRegistryValueTest(test_lib.BaseTestCase):
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
-      registry_key = registry_file.GetKeyByPath(
-          '\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer'
-          '\\MountPoints\\A\\_Autorun')
-      registry_value = registry_key.GetValueByName('LastUpdate')
+      try:
+        registry_key = registry_file.GetKeyByPath(
+            '\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer'
+            '\\MountPoints\\A\\_Autorun')
+        registry_value = registry_key.GetValueByName('LastUpdate')
 
-      data_object = registry_value.GetDataAsObject()
-      self.assertEqual(data_object, 163214)
+        data_object = registry_value.GetDataAsObject()
+        self.assertEqual(data_object, 163214)
 
-      registry_value._pycreg_value = FakePyCREGValue(value_type='REG_SZ')
-      with self.assertRaises(errors.WinRegistryValueError):
-        registry_value.GetDataAsObject()
+        registry_value._pycreg_value = FakePyCREGValue(value_type='REG_SZ')
+        with self.assertRaises(errors.WinRegistryValueError):
+          registry_value.GetDataAsObject()
 
-      registry_value._pycreg_value = FakePyCREGValue(value_type='REG_DWORD_LE')
-      with self.assertRaises(errors.WinRegistryValueError):
-        registry_value.GetDataAsObject()
+        registry_value._pycreg_value = FakePyCREGValue(
+            value_type='REG_DWORD_LE')
+        with self.assertRaises(errors.WinRegistryValueError):
+          registry_value.GetDataAsObject()
 
-      registry_value._pycreg_value = FakePyCREGValue(value_type='REG_MULTI_SZ')
-      with self.assertRaises(errors.WinRegistryValueError):
-        registry_value.GetDataAsObject()
+        registry_value._pycreg_value = FakePyCREGValue(
+            value_type='REG_MULTI_SZ')
+        with self.assertRaises(errors.WinRegistryValueError):
+          registry_value.GetDataAsObject()
+
+      finally:
+        registry_file.Close()
 
 
 if __name__ == '__main__':
