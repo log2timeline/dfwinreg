@@ -152,20 +152,30 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
         key_path = '\\'
         registry_key = registry_file.GetKeyByPath(key_path)
         self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.name, '')
         self.assertEqual(registry_key.path, key_path)
 
         key_path = '\\ControlSet001'
         registry_key = registry_file.GetKeyByPath(key_path)
         self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.name, 'ControlSet001')
         self.assertEqual(registry_key.path, key_path)
 
         registry_key = registry_file.GetKeyByPath('ControlSet001')
         self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.name, 'ControlSet001')
         self.assertEqual(registry_key.path, key_path)
 
         key_path = '\\CurrentControlSet'
         registry_key = registry_file.GetKeyByPath(key_path)
         self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.name, 'CurrentControlSet')
+        self.assertEqual(registry_key.path, key_path)
+
+        key_path = '\\CurrentControlSet\\Enum'
+        registry_key = registry_file.GetKeyByPath(key_path)
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.name, 'Enum')
         self.assertEqual(registry_key.path, key_path)
 
         key_path = '\\Bogus'
