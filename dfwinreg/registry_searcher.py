@@ -309,7 +309,7 @@ class FindSpec(object):
       search_depth (int): number of key path segments to compare.
 
     Returns:
-      tuple: contains:
+      tuple: containing:
 
         bool: True if the Windows Registry key matches the find specification,
             False otherwise.
