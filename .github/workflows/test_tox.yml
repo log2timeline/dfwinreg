@@ -25,8 +25,6 @@ jobs:
           toxenv: 'py310'
         - python-version: '3.8'
           toxenv: 'pylint'
-        - python-version: '3.8'
-          toxenv: 'docs'
     container:
       image: ubuntu:20.04
     steps:
