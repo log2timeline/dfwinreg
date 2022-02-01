@@ -58,7 +58,7 @@ napoleon_include_special_with_doc = True
 # General information about the project.
 # pylint: disable=redefined-builtin
 project = 'dfWinReg'
-copyright = 'The dfWinReg Project Authors'
+copyright = 'The dfWinReg authors'
 version = dfwinreg.__version__
 release = dfwinreg.__version__
 
