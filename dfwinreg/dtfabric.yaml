@@ -1,3 +1,5 @@
+# dtFabric format specification.
+---
 name: fake
 type: format
 description: Definitions for the fake Windows Registry
