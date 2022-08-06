@@ -196,6 +196,7 @@ setup(
     version=dfwinreg.__version__,
     description=dfwinreg_description,
     long_description=dfwinreg_long_description,
+    long_description_content_type='text/plain',
     license='Apache License, Version 2.0',
     url='https://github.com/log2timeline/dfwinreg',
     maintainer='Log2Timeline maintainers',
