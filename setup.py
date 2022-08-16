@@ -191,6 +191,12 @@ dfwinreg_long_description = (
     'generic interface for accessing Windows Registry objects that resembles '
     'the Registry key hierarchy as seen on a live Windows system.')
 
+command_classes = {'sdist_test_data': sdist}
+if BdistMSICommand:
+  command_classes['bdist_msi'] = BdistMSICommand
+if BdistRPMCommand:
+  command_classes['bdist_rpm'] = BdistRPMCommand
+
 setup(
     name='dfwinreg',
     version=dfwinreg.__version__,
@@ -201,10 +207,7 @@ setup(
     url='https://github.com/log2timeline/dfwinreg',
     maintainer='Log2Timeline maintainers',
     maintainer_email='log2timeline-maintainers@googlegroups.com',
-    cmdclass={
-        'bdist_msi': BdistMSICommand,
-        'bdist_rpm': BdistRPMCommand,
-        'sdist_test_data': sdist},
+    cmdclass=command_classes,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
