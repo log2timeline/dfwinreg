@@ -144,7 +144,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     """
     name_upper = name.upper()
     if name_upper in self._subkeys:
-      raise KeyError('Subkey: {0:s} already exists.'.format(name))
+      raise KeyError(f'Subkey: {name:s} already exists.')
 
     self._subkeys[name_upper] = registry_key
 

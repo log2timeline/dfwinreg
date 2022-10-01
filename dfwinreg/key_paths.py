@@ -30,7 +30,7 @@ def JoinKeyPath(path_segments):
 
   key_path = definitions.KEY_PATH_SEPARATOR.join(path_segments)
   if not key_path.startswith('HKEY_'):
-    key_path = '{0:s}{1:s}'.format(definitions.KEY_PATH_SEPARATOR, key_path)
+    key_path = ''.join([definitions.KEY_PATH_SEPARATOR, key_path])
   return key_path
 
 

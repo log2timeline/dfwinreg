@@ -244,9 +244,9 @@ class CREGWinRegistryValue(interface.WinRegistryValue):
     try:
       return self._pycreg_value.data
     except IOError as exception:
-      raise errors.WinRegistryValueError(
-          'Unable to read data from value: {0:s} with error: {1!s}'.format(
-              self._pycreg_value.name, exception))
+      raise errors.WinRegistryValueError((
+          f'Unable to read data from value: {self._pycreg_value.name:s} '
+          f'with error: {exception!s}'))
 
   @property
   def data_type(self):
@@ -286,8 +286,8 @@ class CREGWinRegistryValue(interface.WinRegistryValue):
         value_data = self._pycreg_value.data
 
     except (IOError, OverflowError) as exception:
-      raise errors.WinRegistryValueError(
-          'Unable to read data from value: {0:s} with error: {1!s}'.format(
-              self._pycreg_value.name, exception))
+      raise errors.WinRegistryValueError((
+          f'Unable to read data from value: {self._pycreg_value.name:s} '
+          f'with error: {exception!s}'))
 
     return value_data
