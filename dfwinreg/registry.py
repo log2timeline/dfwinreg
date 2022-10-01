@@ -364,8 +364,7 @@ class WinRegistry(object):
       RuntimeError: if the key path suffix is not supported.
     """
     if key_path_suffix[0] != definitions.KEY_PATH_SEPARATOR:
-      raise RuntimeError('Unsupported key path suffix: {0:s}'.format(
-          key_path_suffix))
+      raise RuntimeError(f'Unsupported key path suffix: {key_path_suffix:s}')
 
     user_key_name, _, key_path_suffix = key_path_suffix[1:].partition(
         definitions.KEY_PATH_SEPARATOR)
@@ -478,7 +477,7 @@ class WinRegistry(object):
     root_key_path = self._ROOT_KEY_ALIASES.get(root_key_path, root_key_path)
 
     if root_key_path not in self._ROOT_SUB_KEYS:
-      raise RuntimeError('Unsupported root subkey: {0:s}'.format(root_key_path))
+      raise RuntimeError(f'Unsupported root subkey: {root_key_path:s}')
 
     key_path = definitions.KEY_PATH_SEPARATOR.join([root_key_path, key_path])
 

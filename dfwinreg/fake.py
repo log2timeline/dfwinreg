@@ -41,8 +41,8 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
       ValueError: if the Windows Registry key cannot be added.
     """
     if not key_path.startswith(definitions.KEY_PATH_SEPARATOR):
-      raise ValueError('Key path does not start with: {0:s}'.format(
-          definitions.KEY_PATH_SEPARATOR))
+      raise ValueError(
+          f'Key path does not start with: {definitions.KEY_PATH_SEPARATOR:s}')
 
     if not self._root_key:
       self._root_key = FakeWinRegistryKey(self._key_path_prefix)
@@ -215,7 +215,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     """
     name_upper = name.upper()
     if name_upper in self._subkeys:
-      raise KeyError('Subkey: {0:s} already exists.'.format(name))
+      raise KeyError(f'Subkey: {name:s} already exists.')
 
     self._subkeys[name_upper] = registry_key
 
@@ -233,8 +233,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     """
     name = registry_value.name.upper()
     if name in self._values:
-      raise KeyError(
-          'Value: {0:s} already exists.'.format(registry_value.name))
+      raise KeyError(f'Value: {registry_value.name:s} already exists.')
 
     self._values[name] = registry_value
 
@@ -384,14 +383,15 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
 
       # AttributeError is raised when self._data has no decode method.
       except AttributeError as exception:
+        data_type = type(self._data)
         raise errors.WinRegistryValueError((
-            'Unsupported data type: {0!s} of value: {1!s} with error: '
-            '{2!s}').format(type(self._data), self._name, exception))
+            f'Unsupported data type: {data_type!s} of value: {self._name!s} '
+            f'with error: {exception!s}'))
 
       except UnicodeError as exception:
-        raise errors.WinRegistryValueError(
-            'Unable to decode data of value: {0!s} with error: {1!s}'.format(
-                self._name, exception))
+        raise errors.WinRegistryValueError((
+            f'Unable to decode data of value: {self._name!s} with error: '
+            f'{exception!s}'))
 
     elif (self._data_type == definitions.REG_DWORD and
           self._data_size == 4):
@@ -412,13 +412,14 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
 
       # AttributeError is raised when self._data has no decode method.
       except AttributeError as exception:
+        data_type = type(self._data)
         raise errors.WinRegistryValueError((
-            'Unsupported data type: {0!s} of value: {1!s} with error: '
-            '{2!s}').format(type(self._data), self._name, exception))
+            f'Unsupported data type: {data_type!s} of value: {self._name!s} '
+            f'with error: {exception!s}'))
 
       except UnicodeError as exception:
-        raise errors.WinRegistryValueError(
-            'Unable to read data from value: {0!s} with error: {1!s}'.format(
-                self._name, exception))
+        raise errors.WinRegistryValueError((
+            f'Unable to read data from value: {self._name!s} with error: '
+            f'{exception!s}'))
 
     return self._data

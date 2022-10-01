@@ -84,7 +84,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     if not control_set or control_set <= 0 or control_set > 999:
       return None
 
-    return '\\ControlSet{0:03d}'.format(control_set)
+    return f'\\ControlSet{control_set:03d}'
 
   def _GetKeyByPathFromFile(self, key_path):
     """Retrieves the key for a specific path form the Windows Registry file.
@@ -489,9 +489,9 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
     try:
       return self._pyregf_value.data
     except IOError as exception:
-      raise errors.WinRegistryValueError(
-          'Unable to read data from value: {0:s} with error: {1!s}'.format(
-              self._pyregf_value.name, exception))
+      raise errors.WinRegistryValueError((
+          f'Unable to read data from value: {self._pyregf_value.name:s} '
+          f'with error: {exception!s}'))
 
   @property
   def data_type(self):
@@ -531,8 +531,8 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
         value_data = self._pyregf_value.data
 
     except (IOError, OverflowError) as exception:
-      raise errors.WinRegistryValueError(
-          'Unable to read data from value: {0:s} with error: {1!s}'.format(
-              self._pyregf_value.name, exception))
+      raise errors.WinRegistryValueError((
+          f'Unable to read data from value: {self._pyregf_value.name:s} '
+          f'with error: {exception!s}'))
 
     return value_data

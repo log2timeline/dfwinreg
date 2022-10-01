@@ -58,8 +58,8 @@ class FindSpec(object):
       elif isinstance(key_path, list):
         self._key_path_segments = key_path
       else:
-        raise TypeError('Unsupported key path type: {0!s}.'.format(
-            type(key_path)))
+        key_path_type = type(key_path)
+        raise TypeError(f'Unsupported key path type: {key_path_type!s}.')
 
     elif key_path_glob is not None:
       # The regular expression from glob2regex contains escaped forward
@@ -82,8 +82,9 @@ class FindSpec(object):
           self._key_path_segments.append(key_path_regex)
 
       else:
-        raise TypeError('Unsupported key_path_glob type: {0!s}.'.format(
-            type(key_path_glob)))
+        key_path_glob_type = type(key_path_glob)
+        raise TypeError(
+            f'Unsupported key_path_glob type: {key_path_glob_type!s}.')
 
       self._is_regex = True
 
@@ -95,8 +96,9 @@ class FindSpec(object):
       elif isinstance(key_path_regex, list):
         self._key_path_segments = key_path_regex
       else:
-        raise TypeError('Unsupported key_path_regex type: {0!s}.'.format(
-            type(key_path_regex)))
+        key_path_regex_type = type(key_path_regex)
+        raise TypeError(
+            f'Unsupported key_path_regex type: {key_path_regex_type!s}.')
 
       self._is_regex = True
 
@@ -134,8 +136,7 @@ class FindSpec(object):
           flags = re.DOTALL | re.IGNORECASE | re.UNICODE
 
           try:
-            segment_name = r'^{0:s}$'.format(segment_name)
-            segment_name = re.compile(segment_name, flags=flags)
+            segment_name = re.compile(f'^{segment_name:s}$', flags=flags)
           except sre_constants.error:
             # TODO: set self._key_path_segments[search_depth - 1] to None ?
             return False
@@ -184,8 +185,7 @@ class FindSpec(object):
         flags = re.DOTALL | re.UNICODE | re.IGNORECASE
 
         try:
-          segment_name = r'^{0:s}$'.format(segment_name)
-          segment_name = re.compile(segment_name, flags=flags)
+          segment_name = re.compile(f'^{segment_name:s}$', flags=flags)
         except sre_constants.error:
           # TODO: set self._key_path_segments[segment_index] to None ?
           return False
