@@ -2,7 +2,7 @@
 """A searcher to find keys and values within a Windows Registry."""
 
 import re
-import sre_constants
+import sre_constants  # pylint: disable=deprecated-module
 
 from dfwinreg import decorators
 from dfwinreg import glob2regex
