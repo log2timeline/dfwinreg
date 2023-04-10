@@ -6,7 +6,7 @@ If ($Dependencies.Length -gt 0)
 {
 	$Dependencies = ${Dependencies} -split " "
 
-	$Output = Invoke-Expression -Command "git clone -b update4 https://github.com/joachimmetz/l2tdevtools.git ..\l2tdevtools 2>&1 | %{ '$_' }"
+	$Output = Invoke-Expression -Command "git clone https://github.com/log2timeline/l2tdevtools.git ..\l2tdevtools 2>&1 | %{ '$_' }"
 	Write-Host (${Output} | Out-String)
 
 	If ($env:APPVEYOR_REPO_BRANCH -eq "main")
