@@ -12,7 +12,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
   """Virtual Windows Registry key.
 
   Virtual Windows Registry key are keys that do not exist on-disk but do exist
-  at run-time, sucha a example HKEY_LOCAL_MACHINE\\System. The virtual key is
+  at run-time, such an example HKEY_LOCAL_MACHINE\\System. The virtual key is
   used to "mount" the SYSTEM Windows Registry file onto the key
   HKEY_LOCAL_MACHINE\\System.
   """
