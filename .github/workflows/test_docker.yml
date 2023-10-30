@@ -58,7 +58,7 @@ jobs:
       run: |
         add-apt-repository -y ppa:gift/dev
         apt-get update -q
-        apt-get install -y build-essential python3 python3-dev libcreg-python3 libregf-python3 python3-dfdatetime python3-distutils python3-dtfabric python3-setuptools python3-yaml python3-wheel
+        apt-get install -y build-essential python3 python3-dev libcreg-python3 libregf-python3 python3-dfdatetime python3-distutils python3-dtfabric python3-pip python3-setuptools python3-yaml python3-wheel
     - name: Run tests
       env:
         LANG: en_US.UTF-8
