@@ -25,7 +25,7 @@ dfwinreg (${VERSION}-1) unstable; urgency=low
 EOT
 
 # Regenerate the API documentation.
-tox -edocs
+tox -edocformatter,docs
 
 exit ${EXIT_SUCCESS};
 
