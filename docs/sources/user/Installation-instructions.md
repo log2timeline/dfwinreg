@@ -49,7 +49,7 @@ necessary packages for running dfWinReg. l2tbinaries provides the following
 branches:
 
 * main; branch intended for the "packaged release" of dfWinReg and dependencies;
-* staging; branch intended for testing pre-releases of ACStore;
+* staging; branch intended for testing pre-releases of dfWinReg;
 * dev; branch intended for the "development release" of dfWinReg;
 * testing; branch intended for testing newly created packages.
 
