@@ -55,15 +55,17 @@ class WinRegistry(object):
           '%UserProfile%\\NTUSER.DAT',
           ['\\AppEvents', '\\Console', '\\Control Panel', '\\Environment',
            '\\Keyboard Layout', '\\Software']),
+      # Windows Vista and later UsrClass.dat mapping
       WinRegistryFileMapping(
           'HKEY_CURRENT_USER\\Software\\Classes',
           '%UserProfile%\\AppData\\Local\\Microsoft\\Windows\\UsrClass.dat',
           ['\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion']),
+      # Windows 2000, XP and 2003 UsrClass.dat mapping
       WinRegistryFileMapping(
           'HKEY_CURRENT_USER\\Software\\Classes',
           ('%UserProfile%\\Local Settings\\Application Data\\Microsoft\\'
            'Windows\\UsrClass.dat'),
-          []),
+          ['\\Software\\Microsoft\\Windows\\CurrentVersion']),
       WinRegistryFileMapping(
           'HKEY_LOCAL_MACHINE\\SAM',
           '%SystemRoot%\\System32\\config\\SAM',
