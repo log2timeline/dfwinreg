@@ -81,16 +81,14 @@ class WinRegistry(object):
       WinRegistryFileMapping(
           'HKEY_LOCAL_MACHINE\\System',
           '%SystemRoot%\\System32\\config\\SYSTEM',
-          ['\\MountedDevices', '\\Select', '\\Setup']),
-  ]
+          ['\\MountedDevices', '\\Select', '\\Setup'])]
 
   _ROOT_KEY_ALIASES = {
       'HKCC': 'HKEY_CURRENT_CONFIG',
       'HKCR': 'HKEY_CLASSES_ROOT',
       'HKCU': 'HKEY_CURRENT_USER',
       'HKLM': 'HKEY_LOCAL_MACHINE',
-      'HKU': 'HKEY_USERS',
-  }
+      'HKU': 'HKEY_USERS'}
 
   _ROOT_SUB_KEYS = frozenset([
       'HKEY_CLASSES_ROOT',
@@ -99,15 +97,13 @@ class WinRegistry(object):
       'HKEY_DYN_DATA',
       'HKEY_LOCAL_MACHINE',
       'HKEY_PERFORMANCE_DATA',
-      'HKEY_USERS',
-  ])
+      'HKEY_USERS'])
 
   _LOCAL_MACHINE_SUB_KEYS = frozenset([
       'SAM',
       'Security',
       'Software',
-      'System',
-  ])
+      'System'])
 
   _SELECT_KEY_PATH = 'HKEY_LOCAL_MACHINE\\System\\Select'
 
@@ -220,28 +216,38 @@ class WinRegistry(object):
           a resolved root key alias.
 
     Returns:
-      tuple: consists:
-
-        str: upper case key path prefix
-        WinRegistryFile: corresponding Windows Registry file or None if not
-            available.
+      tuple[st, WinRegistryFile]: upper case key path prefix and corresponding
+          Windows Registry file or None if not available.
     """
-    key_path_prefix, registry_file = self._GetCachedFileByPath(key_path_upper)
-    if registry_file:
-      return key_path_prefix, registry_file
+    key_path_prefix, cached_registry_file = self._GetCachedFileByPath(
+        key_path_upper)
+
+    # NTUSER.DAT and UsrClass.dat have overlapping keys hence for key paths that
+    # start "HKEY_CURRENT_USER\\Software\\Classes" do not assume the Windows
+    # Registry file for "HKEY_CURRENT_USER" contains the classes key as well.
+
+    if cached_registry_file and (
+        key_path_prefix != 'HKEY_CURRENT_USER' or
+        not key_path_upper.startswith('HKEY_CURRENT_USER\\SOFTWARE\\CLASSES')):
+      return key_path_prefix, cached_registry_file
 
     key_path_prefix = ''
     candidate_mappings = self._GetCandidateFileMappingsByPath(key_path_upper)
     matching_mappings = []
 
     for mapping in candidate_mappings:
+      mapping_key_path_prefix = mapping.key_path_prefix.upper()
+      if mapping_key_path_prefix in self._registry_files:
+        # Skip the Windows Registry file if it is already cached.
+        continue
+
       try:
         registry_file = self._OpenFile(mapping.windows_path)
       except IOError:
         registry_file = None
 
-      if len(key_path_prefix) < len(mapping.key_path_prefix):
-        key_path_prefix = mapping.key_path_prefix.upper()
+      if len(key_path_prefix) < len(mapping_key_path_prefix):
+        key_path_prefix = mapping_key_path_prefix
 
       if not registry_file:
         continue
@@ -257,16 +263,27 @@ class WinRegistry(object):
       if match:
         matching_mappings.append((mapping, registry_file))
 
-    if not matching_mappings or len(matching_mappings) > 1:
-      for _, registry_file in matching_mappings:
-        registry_file.Close()
-      return key_path_prefix, None
+    if not matching_mappings:
+      return key_path_prefix, cached_registry_file
 
-    mapping, registry_file = matching_mappings[0]
-    key_path_prefix = mapping.key_path_prefix.upper()
-    self.MapFile(key_path_prefix, registry_file)
+    key_path_prefix = None
+    registry_file = None
 
-    return key_path_prefix, registry_file
+    while matching_mappings:
+      mapping, matching_registry_file = matching_mappings.pop(0)
+
+      if (not key_path_prefix or
+          len(mapping.key_path_prefix) > len(key_path_prefix)):
+        if registry_file:
+          registry_file.Close()
+
+        key_path_prefix = mapping.key_path_prefix
+        registry_file = matching_registry_file
+
+    key_path_prefix_upper = key_path_prefix.upper()
+    self.MapFile(key_path_prefix_upper, registry_file)
+
+    return key_path_prefix_upper, registry_file
 
   def _GetKeyByPathFromFile(self, key_path):
     """Retrieves the key for a specific path from file.
@@ -485,6 +502,7 @@ class WinRegistry(object):
 
     registry_key = self._GetKeyByPathFromFile(key_path)
     if not registry_key:
+      # TODO: handle NTUSER.DAT not having SOFTWARE\\CLASSES key.
       registry_key = self._GetVirtualKeyByPath(key_path)
 
     return registry_key
