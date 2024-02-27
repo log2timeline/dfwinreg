@@ -486,7 +486,29 @@ class RegistryTest(test_lib.BaseTestCase):
 
   # TODO: add GetRegistryFileMapping on UsrClass file test.
 
-  # TODO: add tests for GetRootKey
+  def testGetRootKey(self):
+    """Tests the GetRootKey function."""
+    test_path = self._GetTestFilePath(['SYSTEM'])
+    self._SkipIfPathNotExists(test_path)
+
+    win_registry = registry.WinRegistry(
+        registry_file_reader=TestREGFWinRegistryFileReader())
+    win_registry.OpenAndMapFile(test_path)
+
+    root_key = win_registry.GetRootKey()
+    self.assertIsNotNone(root_key)
+
+    expected_subkey_names = [
+        'HKEY_CLASSES_ROOT',
+        'HKEY_CURRENT_CONFIG',
+        'HKEY_CURRENT_USER',
+        'HKEY_DYN_DATA',
+        'HKEY_LOCAL_MACHINE',
+        'HKEY_PERFORMANCE_DATA',
+        'HKEY_USERS']
+
+    subkey_names = sorted([subkey.name for subkey in root_key.GetSubkeys()])
+    self.assertEqual(subkey_names, expected_subkey_names)
 
   def testMapFile(self):
     """Tests the MapFile function."""
