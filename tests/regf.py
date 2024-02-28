@@ -69,9 +69,9 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
+  # TODO: add tests for _CreateKey
   # TODO: add tests for _GetCurrentControlSetKeyPath
   # TODO: add tests for _GetKeyByPathFromFile
-  # TODO: add tests for _GetVirtualKeyByPath
   # TODO: add tests for AddVirtualKey
 
   def testOpenClose(self):
