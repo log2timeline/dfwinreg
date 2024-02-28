@@ -69,9 +69,10 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
-  # TODO: add tests for _GetCurrentControlSetKey
   # TODO: add tests for _GetCurrentControlSetKeyPath
   # TODO: add tests for _GetKeyByPathFromFile
+  # TODO: add tests for _GetVirtualKeyByPath
+  # TODO: add tests for AddVirtualKey
 
   def testOpenClose(self):
     """Tests the Open and Close functions."""
@@ -451,6 +452,9 @@ class VirtualREGFWinRegistryKeyTest(test_lib.BaseTestCase):
   """Tests for the virtual REGF Windows Registry key."""
 
   # pylint: disable=protected-access
+
+  # TODO: add tests for _GetVirtualSubKeyByName
+  # TODO: add tests for AddVirtualSubKey
 
   def testGetSubkeyByIndex(self):
     """Tests the GetSubkeyByIndex function."""
