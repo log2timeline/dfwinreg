@@ -283,6 +283,9 @@ class WinRegistry(object):
     key_path_prefix_upper = key_path_prefix.upper()
     self.MapFile(key_path_prefix_upper, registry_file)
 
+    # TODO: if HKEY_CURRENT_USER set 'HKEY_CURRENT_USER\\SOFTWARE\\CLASSES' as
+    #virtual key in the file.
+
     return key_path_prefix_upper, registry_file
 
   def _GetKeyByPathFromFile(self, key_path):
