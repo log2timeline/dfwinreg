@@ -3,6 +3,7 @@
 
 from dfwinreg import definitions
 from dfwinreg import key_paths
+from dfwinreg import regf
 from dfwinreg import virtual
 
 
@@ -110,6 +111,8 @@ class WinRegistry(object):
   _USER_PROFILE_LIST_KEY_PATH = (
       'HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\'
       'ProfileList')
+
+  _USER_SOFTWARE_CLASSES_KEY_PATH = 'HKEY_CURRENT_USER\\Software\\Classes'
 
   # TODO: add support for HKEY_CLASSES_ROOT
   # TODO: add support for HKEY_CURRENT_CONFIG
@@ -286,6 +289,14 @@ class WinRegistry(object):
     # TODO: if HKEY_CURRENT_USER set 'HKEY_CURRENT_USER\\SOFTWARE\\CLASSES' as
     # virtual key in the file.
 
+    if key_path_prefix_upper == 'HKEY_CURRENT_USER' and isinstance(
+        registry_file, regf.REGFWinRegistryFile):
+      registry_key = self.GetKeyByPath(self._USER_SOFTWARE_CLASSES_KEY_PATH)
+      if registry_key:
+        # pylint: disable=protected-access
+        pyregf_key = registry_key._pyregf_key
+        registry_file.AddVirtualKey('\\Software\\Classes', pyregf_key)
+
     return key_path_prefix_upper, registry_file
 
   def _GetKeyByPathFromFile(self, key_path):
@@ -332,7 +343,7 @@ class WinRegistry(object):
         sub_registry_key = self.GetKeyByPath(sub_key_name)
         if not sub_registry_key:
           sub_registry_key = virtual.VirtualWinRegistryKey(
-              sub_key_name, key_path=sub_key_name, registry=self)
+              sub_key_name, registry=self, relative_key_path=sub_key_name)
 
           if sub_key_name == 'HKEY_LOCAL_MACHINE':
             local_machine_key = sub_registry_key
@@ -346,7 +357,7 @@ class WinRegistry(object):
           sub_registry_key = self.GetKeyByPath(sub_key_path)
           if not sub_registry_key:
             sub_registry_key = virtual.VirtualWinRegistryKey(
-                sub_key_name, key_path=sub_key_path, registry=self)
+                sub_key_name, registry=self, relative_key_path=sub_key_name)
 
           local_machine_key.AddSubkey(sub_key_name, sub_registry_key)
 
@@ -505,7 +516,6 @@ class WinRegistry(object):
 
     registry_key = self._GetKeyByPathFromFile(key_path)
     if not registry_key:
-      # TODO: handle NTUSER.DAT not having SOFTWARE\\CLASSES key.
       registry_key = self._GetVirtualKeyByPath(key_path)
 
     return registry_key

@@ -54,10 +54,13 @@ class CREGWinRegistryFile(interface.WinRegistryFile):
       creg_key = self._creg_file.get_key_by_path(relative_key_path)
     except IOError:
       creg_key = None
+
     if not creg_key:
       return None
 
-    return CREGWinRegistryKey(creg_key, key_path=key_path)
+    return CREGWinRegistryKey(
+        creg_key, key_path_prefix=self._key_path_prefix,
+        relative_key_path=relative_key_path)
 
   def GetRootKey(self):
     """Retrieves the root key.
@@ -69,7 +72,9 @@ class CREGWinRegistryFile(interface.WinRegistryFile):
     if not creg_key:
       return None
 
-    return CREGWinRegistryKey(creg_key, key_path=self._key_path_prefix)
+    return CREGWinRegistryKey(
+        creg_key, key_path_prefix=self._key_path_prefix,
+        relative_key_path='')
 
   def Open(self, file_object):
     """Opens the Windows Registry file using a file-like object.
@@ -88,14 +93,20 @@ class CREGWinRegistryFile(interface.WinRegistryFile):
 class CREGWinRegistryKey(interface.WinRegistryKey):
   """Implementation of a Windows Registry key using pycreg."""
 
-  def __init__(self, pycreg_key, key_path=''):
-    """Initializes a Windows Registry key object.
+  def __init__(
+      self, pycreg_key, key_helper=None, key_path_prefix='',
+      relative_key_path=''):
+    """Initializes a Windows Registry key.
 
     Args:
       pycreg_key (pycreg.key): pycreg key object.
-      key_path (Optional[str]): Windows Registry key path.
+      key_helper (Optional[WinRegistryKeyHelper]): Windows Registry key helper.
+      key_path_prefix (Optional[str]): Windows Registry key path prefix.
+      relative_key_path (Optional[str]): relative Windows Registry key path.
     """
-    super(CREGWinRegistryKey, self).__init__(key_path=key_path)
+    super(CREGWinRegistryKey, self).__init__(
+        key_helper=key_helper, key_path_prefix=key_path_prefix,
+        relative_key_path=relative_key_path)
     self._pycreg_key = pycreg_key
 
   @property
@@ -144,8 +155,12 @@ class CREGWinRegistryKey(interface.WinRegistryKey):
       raise IndexError('Index out of bounds.')
 
     pycreg_key = self._pycreg_key.get_sub_key(index)
-    key_path = key_paths.JoinKeyPath([self._key_path, pycreg_key.name])
-    return CREGWinRegistryKey(pycreg_key, key_path=key_path)
+    relative_key_path = key_paths.JoinKeyPath([
+        self._relative_key_path, pycreg_key.name])
+    return CREGWinRegistryKey(
+        pycreg_key, key_helper=self._key_helper,
+        key_path_prefix=self._key_path_prefix,
+        relative_key_path=relative_key_path)
 
   def GetSubkeyByName(self, name):
     """Retrieves a subkey by name.
@@ -160,8 +175,12 @@ class CREGWinRegistryKey(interface.WinRegistryKey):
     if not pycreg_key:
       return None
 
-    key_path = key_paths.JoinKeyPath([self._key_path, pycreg_key.name])
-    return CREGWinRegistryKey(pycreg_key, key_path=key_path)
+    relative_key_path = key_paths.JoinKeyPath([
+        self._relative_key_path, pycreg_key.name])
+    return CREGWinRegistryKey(
+        pycreg_key, key_helper=self._key_helper,
+        key_path_prefix=self._key_path_prefix,
+        relative_key_path=relative_key_path)
 
   def GetSubkeyByPath(self, key_path):
     """Retrieves a subkey by path.
@@ -176,8 +195,12 @@ class CREGWinRegistryKey(interface.WinRegistryKey):
     if not pycreg_key:
       return None
 
-    key_path = key_paths.JoinKeyPath([self._key_path, key_path])
-    return CREGWinRegistryKey(pycreg_key, key_path=key_path)
+    relative_key_path = key_paths.JoinKeyPath([
+        self._relative_key_path, key_path])
+    return CREGWinRegistryKey(
+        pycreg_key, key_helper=self._key_helper,
+        key_path_prefix=self._key_path_prefix,
+        relative_key_path=relative_key_path)
 
   def GetSubkeys(self):
     """Retrieves all subkeys within the key.
@@ -186,8 +209,12 @@ class CREGWinRegistryKey(interface.WinRegistryKey):
       WinRegistryKey: Windows Registry subkey.
     """
     for pycreg_key in self._pycreg_key.sub_keys:
-      key_path = key_paths.JoinKeyPath([self._key_path, pycreg_key.name])
-      yield CREGWinRegistryKey(pycreg_key, key_path=key_path)
+      relative_key_path = key_paths.JoinKeyPath([
+          self._relative_key_path, pycreg_key.name])
+      yield CREGWinRegistryKey(
+          pycreg_key, key_helper=self._key_helper,
+          key_path_prefix=self._key_path_prefix,
+          relative_key_path=relative_key_path)
 
   def GetValueByName(self, name):
     """Retrieves a value by name.

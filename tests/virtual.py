@@ -63,7 +63,7 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
       VirtualWinRegistryKey: virtual Windows Registry key.
     """
     registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', key_path='HKEY_LOCAL_MACHINE')
+        'HKEY_LOCAL_MACHINE', relative_key_path='HKEY_LOCAL_MACHINE')
 
     sub_registry_key = virtual.VirtualWinRegistryKey('System')
     registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
@@ -149,23 +149,25 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
   def testGetKeyFromRegistry(self):
     """Tests the _GetKeyFromRegistry function."""
     registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', key_path='')
+        'HKEY_LOCAL_MACHINE', relative_key_path='HKEY_LOCAL_MACHINE')
     registry_key._GetKeyFromRegistry()
 
     test_win_registry = TestWinRegistry()
     registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', key_path='', registry=test_win_registry)
+        'HKEY_LOCAL_MACHINE', relative_key_path='HKEY_LOCAL_MACHINE',
+        registry=test_win_registry)
     registry_key._GetKeyFromRegistry()
 
     test_win_registry = ErrorWinRegistry()
     registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', key_path='', registry=test_win_registry)
+        'HKEY_LOCAL_MACHINE', relative_key_path='HKEY_LOCAL_MACHINE',
+        registry=test_win_registry)
     registry_key._GetKeyFromRegistry()
 
   def testJoinKeyPath(self):
     """Tests the _JoinKeyPath function."""
     registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', key_path='')
+        'HKEY_LOCAL_MACHINE', relative_key_path='HKEY_LOCAL_MACHINE')
 
     expected_path = 'HKEY_LOCAL_MACHINE\\Software'
     path = registry_key._JoinKeyPath(['HKEY_LOCAL_MACHINE', 'Software'])
@@ -174,10 +176,10 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
   def testAddSubkey(self):
     """Tests the AddSubkey function."""
     registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', key_path='')
+        'HKEY_LOCAL_MACHINE', relative_key_path='HKEY_LOCAL_MACHINE')
 
     sub_registry_key = virtual.VirtualWinRegistryKey(
-        'System', key_path='HKEY_LOCAL_MACHINE')
+        'System', relative_key_path='HKEY_LOCAL_MACHINE')
 
     registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
 

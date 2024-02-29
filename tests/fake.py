@@ -143,6 +143,8 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
 
   # pylint: disable=protected-access
 
+  _KEY_PATH_PREFIX = 'HKEY_CURRENT_USER\\Software'
+
   def _CreateTestKey(self):
     """Creates a fake Windows Registry key for testing.
 
@@ -150,8 +152,8 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
       FakeWinRegistryKey: fake Windows Registry key.
     """
     registry_key = fake.FakeWinRegistryKey(
-        'Software', key_path='HKEY_CURRENT_USER\\Software',
-        last_written_time=0)
+        'Software', key_path_prefix=self._KEY_PATH_PREFIX,
+        last_written_time=0, relative_key_path='')
 
     sub_registry_key = fake.FakeWinRegistryKey(
         'Microsoft', last_written_time=0)
@@ -188,8 +190,8 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
   def testBuildKeyHierarchy(self):
     """Tests the BuildKeyHierarchy function."""
     test_key = fake.FakeWinRegistryKey(
-        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft',
-        last_written_time=0)
+        'Microsoft', key_path_prefix=self._KEY_PATH_PREFIX,
+        last_written_time=0, relative_key_path='Microsoft')
 
     test_value = fake.FakeWinRegistryValue('')
 
@@ -198,15 +200,15 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
 
     # Test with subkeys and values.
     registry_key = fake.FakeWinRegistryKey(
-        'Software', key_path='HKEY_CURRENT_USER\\Software',
-        last_written_time=0,
+        'Software', key_path_prefix=self._KEY_PATH_PREFIX,
+        last_written_time=0, relative_key_path='',
         subkeys=[test_key], values=[test_value])
     self.assertIsNotNone(registry_key)
 
     # Test with duplicate subkeys and values.
     registry_key = fake.FakeWinRegistryKey(
-        'Software', key_path='HKEY_CURRENT_USER\\Software',
-        last_written_time=0,
+        'Software', key_path_prefix=self._KEY_PATH_PREFIX,
+        last_written_time=0, relative_key_path='',
         subkeys=[test_key, test_key],
         values=[test_value, test_value])
     self.assertIsNotNone(registry_key)
@@ -214,12 +216,12 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
   def testAddSubkey(self):
     """Tests the AddSubkey function."""
     registry_key = fake.FakeWinRegistryKey(
-        'Software', key_path='HKEY_CURRENT_USER\\Software',
-        last_written_time=0)
+        'Software', key_path_prefix=self._KEY_PATH_PREFIX,
+        last_written_time=0, relative_key_path='')
 
     sub_registry_key = fake.FakeWinRegistryKey(
-        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft',
-        last_written_time=0)
+        'Microsoft', key_path_prefix=self._KEY_PATH_PREFIX,
+        last_written_time=0, relative_key_path='Microsoft')
 
     registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
 
@@ -229,8 +231,8 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
   def testAddValue(self):
     """Tests the AddValue function."""
     registry_key = fake.FakeWinRegistryKey(
-        'Software', key_path='HKEY_CURRENT_USER\\Software',
-        last_written_time=0)
+        'Software', key_path_prefix=self._KEY_PATH_PREFIX,
+        last_written_time=0, relative_key_path='')
 
     registry_value = fake.FakeWinRegistryValue('')
 
