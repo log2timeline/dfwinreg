@@ -284,7 +284,7 @@ class WinRegistry(object):
     self.MapFile(key_path_prefix_upper, registry_file)
 
     # TODO: if HKEY_CURRENT_USER set 'HKEY_CURRENT_USER\\SOFTWARE\\CLASSES' as
-    #virtual key in the file.
+    # virtual key in the file.
 
     return key_path_prefix_upper, registry_file
 
