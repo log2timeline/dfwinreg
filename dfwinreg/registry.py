@@ -286,16 +286,6 @@ class WinRegistry(object):
     key_path_prefix_upper = key_path_prefix.upper()
     self.MapFile(key_path_prefix_upper, registry_file)
 
-    # If HKEY_CURRENT_USER set HKEY_CURRENT_USER\\Software\\Classes as a virtual
-    # key in the file.
-    if key_path_prefix_upper == 'HKEY_CURRENT_USER' and isinstance(
-        registry_file, regf.REGFWinRegistryFile):
-      registry_key = self.GetKeyByPath(self._USER_SOFTWARE_CLASSES_KEY_PATH)
-      if registry_key and isinstance(registry_key, regf.REGFWinRegistryKey):
-        # pylint: disable=protected-access
-        pyregf_key = registry_key._pyregf_key
-        registry_file.AddVirtualKey('\\Software\\Classes', pyregf_key)
-
     return key_path_prefix_upper, registry_file
 
   def _GetKeyByPathFromFile(self, key_path):
@@ -583,8 +573,26 @@ class WinRegistry(object):
       key_path_prefix (str): key path prefix.
       registry_file (WinRegistryFile): Windows Registry file.
     """
-    self._registry_files[key_path_prefix.upper()] = registry_file
+    key_path_prefix_upper = key_path_prefix.upper()
+
+    self._registry_files[key_path_prefix_upper] = registry_file
     registry_file.SetKeyPathPrefix(key_path_prefix)
+
+    # If HKEY_CURRENT_USER set HKEY_CURRENT_USER\\Software\\Classes as a virtual
+    # key in the file.
+    if key_path_prefix_upper == 'HKEY_CURRENT_USER' and isinstance(
+        registry_file, regf.REGFWinRegistryFile):
+      registry_key = self.GetKeyByPath(self._USER_SOFTWARE_CLASSES_KEY_PATH)
+      if registry_key and isinstance(registry_key, regf.REGFWinRegistryKey):
+        # pylint: disable=protected-access
+        pyregf_key = registry_key._pyregf_key
+        registry_file.AddVirtualKey('\\Software\\Classes', pyregf_key)
+
+    # If HKEY_LOCAL_MACHINE\\System set HKEY_LOCAL_MACHINE\\System\\
+    # CurrentControlSet as a virtual key in the file.
+    elif key_path_prefix_upper == 'HKEY_LOCAL_MACHINE\\SYSTEM' and isinstance(
+        registry_file, regf.REGFWinRegistryFile):
+      registry_file.AddCurrentControlSetKey()
 
   def MapUserFile(self, profile_path, registry_file):
     """Maps the user Windows Registry file to a specific profile path.

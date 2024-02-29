@@ -269,11 +269,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
 
     win_registry = registry.WinRegistry(
         registry_file_reader=test_registry.TestREGFWinRegistryFileReader())
-
-    registry_file = win_registry._OpenFile(test_path)
-
-    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
-    win_registry.MapFile(key_path_prefix, registry_file)
+    win_registry.OpenAndMapFile(test_path)
 
     searcher = registry_searcher.WinRegistrySearcher(win_registry)
 
@@ -326,17 +322,12 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
 
     # Test without find specifications.
     win_registry = registry.WinRegistry(
-        registry_file_reader=test_registry.TestREGFWinRegistryFileReader(
-            emulate_virtual_keys=False))
-
-    registry_file = win_registry._OpenFile(test_path)
-
-    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
-    win_registry.MapFile(key_path_prefix, registry_file)
+        registry_file_reader=test_registry.TestREGFWinRegistryFileReader())
+    win_registry.OpenAndMapFile(test_path)
 
     searcher = registry_searcher.WinRegistrySearcher(win_registry)
     key_paths = list(searcher.Find())
-    self.assertEqual(len(key_paths), 21512)
+    self.assertEqual(len(key_paths), 31353)
 
   def testGetKeyByPath(self):
     """Tests the GetKeyByPath function."""
@@ -345,11 +336,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
 
     win_registry = registry.WinRegistry(
         registry_file_reader=test_registry.TestREGFWinRegistryFileReader())
-
-    registry_file = win_registry._OpenFile(test_path)
-
-    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
-    win_registry.MapFile(key_path_prefix, registry_file)
+    win_registry.OpenAndMapFile(test_path)
 
     searcher = registry_searcher.WinRegistrySearcher(win_registry)
 
@@ -368,11 +355,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
 
     win_registry = registry.WinRegistry(
         registry_file_reader=test_registry.TestREGFWinRegistryFileReader())
-
-    registry_file = win_registry._OpenFile(test_path)
-
-    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
-    win_registry.MapFile(key_path_prefix, registry_file)
+    win_registry.OpenAndMapFile(test_path)
 
     searcher = registry_searcher.WinRegistrySearcher(win_registry)
 

@@ -16,7 +16,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
   """Implementation of a Windows Registry file using pyregf."""
 
   def __init__(
-      self, ascii_codepage='cp1252', emulate_virtual_keys=True,
+      self, ascii_codepage='cp1252', emulate_virtual_keys=False,
       key_path_prefix=''):
     """Initializes the Windows Registry file.
 
@@ -34,12 +34,11 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     self._regf_file = pyregf.file()
     self._regf_file.set_ascii_codepage(ascii_codepage)
 
-  def _GetCurrentControlSetKeyPath(self):
-    """Retrieves the key path of the current control set key.
+  def _GetCurrentControlSetKey(self):
+    """Retrieves the current control set key.
 
     Returns:
-      str: key path of the current control set Windows Registry key or None
-          if not available.
+      pyregf.key: current control key or None if not available.
     """
     select_key = self._GetKeyByPathFromFile('\\Select')
     if not select_key:
@@ -63,7 +62,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     if not control_set or control_set <= 0 or control_set > 999:
       return None
 
-    return f'\\ControlSet{control_set:03d}'
+    return self._GetKeyByPathFromFile(f'\\ControlSet{control_set:03d}')
 
   def _GetKeyByPathFromFile(self, relative_key_path):
     """Retrieves the key for a specific path form the Windows Registry file.
@@ -72,12 +71,23 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
       relative_key_path (str): Windows Registry key path relative to the file.
 
     Returns:
-      pyregf.key: Registry key or None if not available.
+      pyregf.key: Windows Registry key or None if not available.
     """
     try:
       return self._regf_file.get_key_by_path(relative_key_path)
     except IOError:
       return None
+
+  def AddCurrentControlSetKey(self):
+    """Adds a virtual current control set key.
+
+    Raises:
+      ValueError: if the virtual key already exists.
+    """
+    pyregf_key = self._GetCurrentControlSetKey()
+    if pyregf_key:
+      self._key_helper.AddVirtualKey('\\CurrentControlSet', pyregf_key)
+      self._emulate_virtual_keys = True
 
   def AddVirtualKey(self, relative_key_path, pyregf_key):
     """Adds a virtual key.
@@ -90,6 +100,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
       ValueError: if the virtual key already exists.
     """
     self._key_helper.AddVirtualKey(relative_key_path, pyregf_key)
+    self._emulate_virtual_keys = True
 
   def Close(self):
     """Closes the Windows Registry file."""
@@ -103,7 +114,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
       key_path (str): Windows Registry key path.
 
     Returns:
-      WinRegistryKey: Registry key or None if not available.
+      WinRegistryKey: Windows Registry key or None if not available.
     """
     key_path_upper = key_path.upper()
     if key_path_upper.startswith(self._key_path_prefix_upper):
@@ -150,13 +161,6 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     """
     self._file_object = file_object
     self._regf_file.open_file_object(self._file_object)
-
-    if self._emulate_virtual_keys:
-      key_path = self._GetCurrentControlSetKeyPath()
-      if key_path:
-        pyregf_key = self._GetKeyByPathFromFile(key_path)
-        if pyregf_key:
-          self.AddVirtualKey('\\CurrentControlSet', pyregf_key)
 
     return True
 

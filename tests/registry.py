@@ -31,8 +31,8 @@ class TestWinRegistry(registry.WinRegistry):
     """
     if key_path == 'HKEY_LOCAL_MACHINE\\System\\Select':
       registry_key = fake.FakeWinRegistryKey(
-          'Select', key_path='HKEY_LOCAL_MACHINE\\System',
-          last_written_time=0)
+          'Select', key_path_prefix='HKEY_LOCAL_MACHINE\\System',
+          last_written_time=0, relative_key_path='')
 
       registry_value = fake.FakeWinRegistryValue(
           'Current', data=b'DATA', data_type=definitions.REG_BINARY)
@@ -78,15 +78,9 @@ class TestWinRegistryKeyPathPrefixMismatch(registry.WinRegistry):
 class TestREGFWinRegistryFileReader(interface.WinRegistryFileReader):
   """Windows Registry file reader that reads a single test file."""
 
-  def __init__(self, emulate_virtual_keys=True):
-    """Initializes a file Windows Registry file reader.
-
-    Args:
-      emulate_virtual_keys (Optional[bool]): True if virtual keys should be
-          emulated.
-    """
+  def __init__(self):
+    """Initializes a file Windows Registry file reader."""
     super(TestREGFWinRegistryFileReader, self).__init__()
-    self._emulate_virtual_keys = emulate_virtual_keys
     self._file_objects = []
 
   def __del__(self):
@@ -108,9 +102,7 @@ class TestREGFWinRegistryFileReader(interface.WinRegistryFileReader):
     if not os.path.exists(path):
       return None
 
-    registry_file = regf.REGFWinRegistryFile(
-        ascii_codepage=ascii_codepage,
-        emulate_virtual_keys=self._emulate_virtual_keys)
+    registry_file = regf.REGFWinRegistryFile(ascii_codepage=ascii_codepage)
 
     file_object = open(path, 'rb')  # pylint: disable=consider-using-with
 

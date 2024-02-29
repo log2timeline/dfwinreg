@@ -113,6 +113,7 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
 
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
+      registry_file.AddCurrentControlSetKey()
 
       try:
         registry_key = registry_file.GetRootKey()
@@ -148,6 +149,7 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
 
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
+      registry_file.AddCurrentControlSetKey()
 
       try:
         key_path = '\\'
@@ -465,6 +467,7 @@ class VirtualREGFWinRegistryKeyTest(test_lib.BaseTestCase):
 
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
+      registry_file.AddCurrentControlSetKey()
 
       try:
         key_path = '\\'
@@ -502,6 +505,7 @@ class VirtualREGFWinRegistryKeyTest(test_lib.BaseTestCase):
 
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
+      registry_file.AddCurrentControlSetKey()
 
       try:
         key_path = '\\'
@@ -542,6 +546,7 @@ class VirtualREGFWinRegistryKeyTest(test_lib.BaseTestCase):
 
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
+      registry_file.AddCurrentControlSetKey()
 
       try:
         key_path = '\\'
@@ -588,6 +593,7 @@ class VirtualREGFWinRegistryKeyTest(test_lib.BaseTestCase):
 
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
+      registry_file.AddCurrentControlSetKey()
 
       try:
         key_path = '\\'

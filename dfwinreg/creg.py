@@ -39,7 +39,7 @@ class CREGWinRegistryFile(interface.WinRegistryFile):
       key_path (str): Windows Registry key path.
 
     Returns:
-      WinRegistryKey: Registry key or None if not available.
+      WinRegistryKey: Windows Registry key or None if not available.
     """
     key_path_upper = key_path.upper()
     if key_path_upper.startswith(self._key_path_prefix_upper):
