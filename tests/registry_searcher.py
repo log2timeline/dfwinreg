@@ -66,7 +66,8 @@ class FindSpecTest(test_lib.BaseTestCase):
         key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
 
     registry_key = fake.FakeWinRegistryKey(
-        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
+        'Microsoft', key_path_prefix='HKEY_CURRENT_USER\\Software',
+        relative_key_path='Microsoft')
 
     result = find_spec._CheckKeyPath(registry_key, 3)
     self.assertTrue(result)
@@ -90,7 +91,8 @@ class FindSpecTest(test_lib.BaseTestCase):
         key_path_regex=['HKEY_CURRENT_USER', 'Software', 'Microsoft'])
 
     registry_key = fake.FakeWinRegistryKey(
-        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
+        'Microsoft', key_path_prefix='HKEY_CURRENT_USER\\Software',
+        relative_key_path='Microsoft')
 
     result = find_spec._CheckKeyPath(registry_key, 3)
     self.assertTrue(result)
@@ -105,7 +107,8 @@ class FindSpecTest(test_lib.BaseTestCase):
         key_path_regex=['HKEY_CURRENT_USER', 'Software', 'Mi(rosoft'])
 
     registry_key = fake.FakeWinRegistryKey(
-        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
+        'Microsoft', key_path_prefix='HKEY_CURRENT_USER\\Software',
+        relative_key_path='Microsoft')
 
     result = find_spec._CheckKeyPath(registry_key, 3)
     self.assertFalse(result)
@@ -160,7 +163,8 @@ class FindSpecTest(test_lib.BaseTestCase):
   def testCompareKeyPath(self):
     """Test the CompareKeyPath function."""
     registry_key = fake.FakeWinRegistryKey(
-        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
+        'Microsoft', key_path_prefix='HKEY_CURRENT_USER\\Software',
+        relative_key_path='Microsoft')
 
     find_spec = registry_searcher.FindSpec(
         key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
@@ -177,7 +181,8 @@ class FindSpecTest(test_lib.BaseTestCase):
   def testCompareNameWithKeyPathSegment(self):
     """Test the CompareNameWithKeyPathSegment function."""
     registry_key = fake.FakeWinRegistryKey(
-        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
+        'Microsoft', key_path_prefix='HKEY_CURRENT_USER\\Software',
+        relative_key_path='Microsoft')
 
     find_spec = registry_searcher.FindSpec(
         key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
@@ -227,7 +232,8 @@ class FindSpecTest(test_lib.BaseTestCase):
         key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
 
     registry_key = fake.FakeWinRegistryKey(
-        'Microsoft', key_path='HKEY_CURRENT_USER\\Software\\Microsoft')
+        'Microsoft', key_path_prefix='HKEY_CURRENT_USER\\Software',
+        relative_key_path='Microsoft')
 
     result = find_spec.Matches(registry_key, 3)
     self.assertEqual(result, (True, True))
@@ -263,11 +269,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
 
     win_registry = registry.WinRegistry(
         registry_file_reader=test_registry.TestREGFWinRegistryFileReader())
-
-    registry_file = win_registry._OpenFile(test_path)
-
-    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
-    win_registry.MapFile(key_path_prefix, registry_file)
+    win_registry.OpenAndMapFile(test_path)
 
     searcher = registry_searcher.WinRegistrySearcher(win_registry)
 
@@ -294,8 +296,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
 
     # Test with key path regular expression.
     find_spec = registry_searcher.FindSpec(
-        key_path_regex=[
-            'HKEY_LOCAL_MACHINE', 'System', 'ControlSet001', '.*'])
+        key_path_regex=['HKEY_LOCAL_MACHINE', 'System', 'ControlSet001', '.*'])
 
     expected_key_paths = [
         'HKEY_LOCAL_MACHINE\\System\\ControlSet001\\Control',
@@ -321,17 +322,12 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
 
     # Test without find specifications.
     win_registry = registry.WinRegistry(
-        registry_file_reader=test_registry.TestREGFWinRegistryFileReader(
-            emulate_virtual_keys=False))
-
-    registry_file = win_registry._OpenFile(test_path)
-
-    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
-    win_registry.MapFile(key_path_prefix, registry_file)
+        registry_file_reader=test_registry.TestREGFWinRegistryFileReader())
+    win_registry.OpenAndMapFile(test_path)
 
     searcher = registry_searcher.WinRegistrySearcher(win_registry)
     key_paths = list(searcher.Find())
-    self.assertEqual(len(key_paths), 21512)
+    self.assertEqual(len(key_paths), 31353)
 
   def testGetKeyByPath(self):
     """Tests the GetKeyByPath function."""
@@ -340,11 +336,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
 
     win_registry = registry.WinRegistry(
         registry_file_reader=test_registry.TestREGFWinRegistryFileReader())
-
-    registry_file = win_registry._OpenFile(test_path)
-
-    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
-    win_registry.MapFile(key_path_prefix, registry_file)
+    win_registry.OpenAndMapFile(test_path)
 
     searcher = registry_searcher.WinRegistrySearcher(win_registry)
 
@@ -363,11 +355,7 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
 
     win_registry = registry.WinRegistry(
         registry_file_reader=test_registry.TestREGFWinRegistryFileReader())
-
-    registry_file = win_registry._OpenFile(test_path)
-
-    key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
-    win_registry.MapFile(key_path_prefix, registry_file)
+    win_registry.OpenAndMapFile(test_path)
 
     searcher = registry_searcher.WinRegistrySearcher(win_registry)
 

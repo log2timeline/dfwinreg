@@ -152,7 +152,7 @@ class FindSpec(object):
         self._key_path_segments[search_depth - 1] = segment_name
 
     if search_depth > 0:
-      key_name = registry_key.path.split('\\')[-1]
+      key_name = registry_key.path.rsplit('\\', maxsplit=1)[-1]
       if self._is_regex:
         # pylint: disable=no-member
         if not segment_name.match(key_name):
@@ -278,7 +278,7 @@ class FindSpec(object):
           that of the find specification, False if not or if the find
           specification has no key path defined.
     """
-    key_name = registry_key.path.split('\\')[-1]
+    key_name = registry_key.path.rsplit('\\', maxsplit=1)[-1]
     return self._CompareWithKeyPathSegment(key_name, segment_index)
 
   def HasKeyPath(self):

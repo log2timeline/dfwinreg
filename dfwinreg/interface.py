@@ -101,14 +101,18 @@ class WinRegistryFileReader(object):
 class WinRegistryKey(object):
   """Windows Registry key interface."""
 
-  def __init__(self, key_path=''):
+  def __init__(self, key_helper=None, key_path_prefix='', relative_key_path=''):
     """Initializes a Windows Registry key.
 
     Args:
-      key_path (Optional[str]): Windows Registry key path.
+      key_helper (Optional[WinRegistryKeyHelper]): Windows Registry key helper.
+      key_path_prefix (Optional[str]): Windows Registry key path prefix.
+      relative_key_path (Optional[str]): relative Windows Registry key path.
     """
     super(WinRegistryKey, self).__init__()
-    self._key_path = key_paths.JoinKeyPath([key_path])
+    self._key_helper = key_helper
+    self._key_path_prefix = key_path_prefix
+    self._relative_key_path = relative_key_path
 
   @property
   @abc.abstractmethod
@@ -143,7 +147,8 @@ class WinRegistryKey(object):
   @property
   def path(self):
     """str: Windows Registry key path."""
-    return self._key_path
+    return key_paths.JoinKeyPath([
+        self._key_path_prefix, self._relative_key_path])
 
   @abc.abstractmethod
   def GetSubkeyByIndex(self, index):
@@ -218,6 +223,10 @@ class WinRegistryKey(object):
     for subkey in self.GetSubkeys():
       for key in subkey.RecurseKeys():
         yield key
+
+
+class WinRegistryKeyHelper(object):
+  """Windows Registry key helper."""
 
 
 class WinRegistryValue(object):

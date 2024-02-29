@@ -118,24 +118,29 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
   """Fake implementation of a Windows Registry key."""
 
   def __init__(
-      self, name, class_name=None, key_path='', last_written_time=None,
-      offset=None, subkeys=None, values=None):
+      self, name, class_name=None, key_helper=None, key_path_prefix='',
+      last_written_time=None, offset=None, relative_key_path='', subkeys=None,
+      values=None):
     """Initializes a Windows Registry key.
 
     Subkeys and values with duplicate names are silently ignored.
 
     Args:
       name (str): name of the Windows Registry key.
-      key_path (Optional[str]): Windows Registry key path.
       class_name (Optional[str]): class name of the Windows Registry key.
+      key_helper (Optional[WinRegistryKeyHelper]): Windows Registry key helper.
+      key_path_prefix (Optional[str]): Windows Registry key path prefix.
       last_written_time (Optional[int]): last written time, formatted as
           a FILETIME timestamp.
       offset (Optional[int]): offset of the key within the Windows Registry
           file.
+      relative_key_path (Optional[str]): relative Windows Registry key path.
       subkeys (Optional[list[FakeWinRegistryKey]]): list of subkeys.
       values (Optional[list[FakeWinRegistryValue]]): list of values.
     """
-    super(FakeWinRegistryKey, self).__init__(key_path=key_path)
+    super(FakeWinRegistryKey, self).__init__(
+        key_helper=key_helper, key_path_prefix=key_path_prefix,
+        relative_key_path=relative_key_path)
     self._class_name = class_name
     self._last_written_time = last_written_time
     self._name = name
@@ -192,9 +197,12 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
           continue
         self._subkeys[name] = registry_key
 
+        relative_key_path = key_paths.JoinKeyPath([
+            self._relative_key_path, registry_key.name])
+
         # pylint: disable=protected-access
-        registry_key._key_path = key_paths.JoinKeyPath([
-            self._key_path, registry_key.name])
+        registry_key._key_path_prefix = self._key_path_prefix
+        registry_key._relative_key_path = relative_key_path
 
     if values:
       for registry_value in values:
@@ -219,8 +227,11 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
 
     self._subkeys[name_upper] = registry_key
 
-    key_path = key_paths.JoinKeyPath([self._key_path, name])
-    registry_key._key_path = key_path  # pylint: disable=protected-access
+    relative_key_path = key_paths.JoinKeyPath([self._relative_key_path, name])
+
+    # pylint: disable=protected-access
+    registry_key._key_path_prefix = self._key_path_prefix
+    registry_key._relative_key_path = relative_key_path
 
   def AddValue(self, registry_value):
     """Adds a value.

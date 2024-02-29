@@ -16,7 +16,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
   """Implementation of a Windows Registry file using pyregf."""
 
   def __init__(
-      self, ascii_codepage='cp1252', emulate_virtual_keys=True,
+      self, ascii_codepage='cp1252', emulate_virtual_keys=False,
       key_path_prefix=''):
     """Initializes the Windows Registry file.
 
@@ -29,43 +29,16 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     super(REGFWinRegistryFile, self).__init__(
         ascii_codepage=ascii_codepage, key_path_prefix=key_path_prefix)
     self._emulate_virtual_keys = emulate_virtual_keys
+    self._key_helper = REGFWinRegistryKeyHelper()
     self._file_object = None
     self._regf_file = pyregf.file()
     self._regf_file.set_ascii_codepage(ascii_codepage)
-    self._virtual_keys_by_path = {}
-    self._virtual_subkeys_by_parent = {}
 
-  def _CreateKey(self, key_path, relative_key_path, pyregf_key):
-    """Creates a Windows Registry key.
-
-    Args:
-      key_path (str): Windows Registry key path.
-      relative_key_path (str): Windows Registry key path relative to the file.
-      pyregf_key (pyregf.key): pyregf key object.
+  def _GetCurrentControlSetKey(self):
+    """Retrieves the current control set key.
 
     Returns:
-      WinRegistryKey: patched Windows Registry key.
-    """
-    virtual_subkeys = self._virtual_subkeys_by_parent.get(
-        relative_key_path, None)
-    if not virtual_subkeys:
-      return REGFWinRegistryKey(pyregf_key, key_path=key_path)
-
-    name = relative_key_path.rsplit('\\', maxsplit=1)[-1]
-    registry_key = VirtualREGFWinRegistryKey(
-        name, pyregf_key, key_path=key_path)
-
-    for name, pyregf_subkey in virtual_subkeys or []:
-      registry_key.AddVirtualSubKey(name, pyregf_subkey)
-
-    return registry_key
-
-  def _GetCurrentControlSetKeyPath(self):
-    """Retrieves the key path of the current control set key.
-
-    Returns:
-      str: key path of the current control set Windows Registry key or None
-          if not available.
+      pyregf.key: current control key or None if not available.
     """
     select_key = self._GetKeyByPathFromFile('\\Select')
     if not select_key:
@@ -89,7 +62,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     if not control_set or control_set <= 0 or control_set > 999:
       return None
 
-    return f'\\ControlSet{control_set:03d}'
+    return self._GetKeyByPathFromFile(f'\\ControlSet{control_set:03d}')
 
   def _GetKeyByPathFromFile(self, relative_key_path):
     """Retrieves the key for a specific path form the Windows Registry file.
@@ -98,12 +71,23 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
       relative_key_path (str): Windows Registry key path relative to the file.
 
     Returns:
-      pyregf.key: Registry key or None if not available.
+      pyregf.key: Windows Registry key or None if not available.
     """
     try:
       return self._regf_file.get_key_by_path(relative_key_path)
     except IOError:
       return None
+
+  def AddCurrentControlSetKey(self):
+    """Adds a virtual current control set key.
+
+    Raises:
+      ValueError: if the virtual key already exists.
+    """
+    pyregf_key = self._GetCurrentControlSetKey()
+    if pyregf_key:
+      self._key_helper.AddVirtualKey('\\CurrentControlSet', pyregf_key)
+      self._emulate_virtual_keys = True
 
   def AddVirtualKey(self, relative_key_path, pyregf_key):
     """Adds a virtual key.
@@ -115,17 +99,8 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     Raises:
       ValueError: if the virtual key already exists.
     """
-    lookup_key_path = relative_key_path.upper()
-    if lookup_key_path in self._virtual_keys_by_path:
-      raise ValueError(f'Key: {relative_key_path:s} already set')
-
-    self._virtual_keys_by_path[lookup_key_path] = (
-        relative_key_path, pyregf_key)
-
-    parent_key_path, name = relative_key_path.rsplit('\\', maxsplit=1)
-    if parent_key_path not in self._virtual_subkeys_by_parent:
-      self._virtual_subkeys_by_parent[parent_key_path] = []
-    self._virtual_subkeys_by_parent[parent_key_path].append((name, pyregf_key))
+    self._key_helper.AddVirtualKey(relative_key_path, pyregf_key)
+    self._emulate_virtual_keys = True
 
   def Close(self):
     """Closes the Windows Registry file."""
@@ -139,14 +114,14 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
       key_path (str): Windows Registry key path.
 
     Returns:
-      WinRegistryKey: Registry key or None if not available.
+      WinRegistryKey: Windows Registry key or None if not available.
     """
     key_path_upper = key_path.upper()
     if key_path_upper.startswith(self._key_path_prefix_upper):
       relative_key_path = key_path[self._key_path_prefix_length:]
     elif key_path.startswith(definitions.KEY_PATH_SEPARATOR):
       relative_key_path = key_path
-      key_path = ''.join([self._key_path_prefix, key_path])
+      key_path = ''.join([self._key_path_prefix, relative_key_path])
     else:
       return None
 
@@ -157,35 +132,14 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
       return self.GetRootKey()
 
     if self._emulate_virtual_keys:
-      relative_key_path_upper = relative_key_path.upper()
-
-      lookup_key_path = None
-      relative_sub_key_path = None
-      for virtual_key_path in self._virtual_keys_by_path:
-        # Note that the virtual key path starts with a key path segment
-        # separator # but relative key path does not.
-        if relative_key_path_upper.startswith(virtual_key_path[1:]):
-          lookup_key_path = virtual_key_path
-          relative_sub_key_path = relative_key_path[len(virtual_key_path[1:]):]
-          break
-
-      if lookup_key_path:
-        virtual_key_path, pyregf_key = self._virtual_keys_by_path.get(
-            lookup_key_path, None)
-        _, name = virtual_key_path.rsplit('\\', maxsplit=1)
-        virtual_key_path = ''.join([self._key_path_prefix, virtual_key_path])
-        registry_key = VirtualREGFWinRegistryKey(
-            name, pyregf_key, key_path=virtual_key_path)
-        if not relative_sub_key_path:
-          return registry_key
-
-        return registry_key.GetSubkeyByPath(relative_sub_key_path)
+      registry_key = self._key_helper.GetKeyByPath(
+          self._key_path_prefix, relative_key_path)
+      if registry_key:
+        return registry_key
 
     pyregf_key = self._GetKeyByPathFromFile(relative_key_path)
-    if pyregf_key:
-      return self._CreateKey(key_path, relative_key_path, pyregf_key)
-
-    return None
+    return self._key_helper.CreateKey(
+        self._key_path_prefix, relative_key_path, pyregf_key)
 
   def GetRootKey(self):
     """Retrieves the root key.
@@ -194,10 +148,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
       WinRegistryKey: Windows Registry root key or None if not available.
     """
     pyregf_key = self._regf_file.get_root_key()
-    if not pyregf_key:
-      return None
-
-    return self._CreateKey(self._key_path_prefix, '', pyregf_key)
+    return self._key_helper.CreateKey(self._key_path_prefix, '', pyregf_key)
 
   def Open(self, file_object):
     """Opens the Windows Registry file using a file-like object.
@@ -211,27 +162,26 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     self._file_object = file_object
     self._regf_file.open_file_object(self._file_object)
 
-    if self._emulate_virtual_keys:
-      key_path = self._GetCurrentControlSetKeyPath()
-      if key_path:
-        pyregf_key = self._GetKeyByPathFromFile(key_path)
-        if pyregf_key:
-          self.AddVirtualKey('\\CurrentControlSet', pyregf_key)
-
     return True
 
 
 class REGFWinRegistryKey(interface.WinRegistryKey):
   """Implementation of a Windows Registry key using pyregf."""
 
-  def __init__(self, pyregf_key, key_path=''):
+  def __init__(
+      self, pyregf_key, key_helper=None, key_path_prefix='',
+      relative_key_path=''):
     """Initializes a Windows Registry key.
 
     Args:
       pyregf_key (pyregf.key): pyregf key object.
-      key_path (Optional[str]): Windows Registry key path.
+      key_helper (Optional[WinRegistryKeyHelper]): Windows Registry key helper.
+      key_path_prefix (Optional[str]): Windows Registry key path prefix.
+      relative_key_path (Optional[str]): relative Windows Registry key path.
     """
-    super(REGFWinRegistryKey, self).__init__(key_path=key_path)
+    super(REGFWinRegistryKey, self).__init__(
+        key_helper=key_helper, key_path_prefix=key_path_prefix,
+        relative_key_path=relative_key_path)
     self._pyregf_key = pyregf_key
 
   @property
@@ -284,8 +234,10 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
       raise IndexError('Index out of bounds.')
 
     pyregf_key = self._pyregf_key.get_sub_key(index)
-    key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
-    return REGFWinRegistryKey(pyregf_key, key_path=key_path)
+    relative_key_path = key_paths.JoinKeyPath([
+        self._relative_key_path, pyregf_key.name])
+    return self._key_helper.CreateKey(
+        self._key_path_prefix, relative_key_path, pyregf_key)
 
   def GetSubkeyByName(self, name):
     """Retrieves a subkey by name.
@@ -300,8 +252,10 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     if not pyregf_key:
       return None
 
-    key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
-    return REGFWinRegistryKey(pyregf_key, key_path=key_path)
+    relative_key_path = key_paths.JoinKeyPath([
+        self._relative_key_path, pyregf_key.name])
+    return self._key_helper.CreateKey(
+        self._key_path_prefix, relative_key_path, pyregf_key)
 
   def GetSubkeyByPath(self, key_path):
     """Retrieves a subkey by path.
@@ -316,8 +270,10 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
     if not pyregf_key:
       return None
 
-    key_path = key_paths.JoinKeyPath([self._key_path, key_path])
-    return REGFWinRegistryKey(pyregf_key, key_path=key_path)
+    relative_key_path = key_paths.JoinKeyPath([
+        self._relative_key_path, key_path])
+    return self._key_helper.CreateKey(
+        self._key_path_prefix, relative_key_path, pyregf_key)
 
   def GetSubkeys(self):
     """Retrieves all subkeys within the key.
@@ -326,8 +282,10 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
       WinRegistryKey: Windows Registry subkey.
     """
     for pyregf_key in self._pyregf_key.sub_keys:
-      key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
-      yield REGFWinRegistryKey(pyregf_key, key_path=key_path)
+      relative_key_path = key_paths.JoinKeyPath([
+          self._relative_key_path, pyregf_key.name])
+      yield self._key_helper.CreateKey(
+          self._key_path_prefix, relative_key_path, pyregf_key)
 
   def GetValues(self):
     """Retrieves all values within the key.
@@ -361,16 +319,21 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
   but do exist at run-time, like HKEY_LOCAL_MACHINE\\System\\CurrentControlSet.
   """
 
-  def __init__(self, name, pyregf_key, key_path=''):
+  def __init__(
+      self, name, pyregf_key, key_helper=None, key_path_prefix='',
+      relative_key_path=''):
     """Initializes a virtual Windows Registry key.
 
     Args:
       name (str): name of the Windows Registry key.
       pyregf_key (pyregf.key): pyregf key object.
-      key_path (Optional[str]): Windows Registry key path.
+      key_helper (Optional[WinRegistryKeyHelper]): Windows Registry key helper.
+      key_path_prefix (Optional[str]): Windows Registry key path prefix.
+      relative_key_path (Optional[str]): relative Windows Registry key path.
     """
     super(VirtualREGFWinRegistryKey, self).__init__(
-        pyregf_key, key_path=key_path)
+        pyregf_key, key_helper=key_helper, key_path_prefix=key_path_prefix,
+        relative_key_path=relative_key_path)
     self._name = name
     self._virtual_subkeys = []
     self._virtual_subkeys_by_name = {}
@@ -433,23 +396,21 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
     Raises:
       IndexError: if the index is out of bounds.
     """
-    if index < 0 or index >= self.number_of_subkeys:
+    if index >= self.number_of_subkeys:
       raise IndexError('Index out of bounds.')
 
-    if index < self._pyregf_key.number_of_sub_keys:
-      pyregf_key = self._pyregf_key.get_sub_key(index)
-      key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
-      subkey = REGFWinRegistryKey(pyregf_key, key_path=key_path)
-
-    else:
+    if index >= self._pyregf_key.number_of_sub_keys:
       index -= self._pyregf_key.number_of_sub_keys
 
       virtual_name, virtual_subkey = self._virtual_subkeys[index]
-      key_path = key_paths.JoinKeyPath([self._key_path, virtual_name])
-      subkey = VirtualREGFWinRegistryKey(
-          virtual_name, virtual_subkey, key_path=key_path)
+      relative_key_path = key_paths.JoinKeyPath([
+          self._relative_key_path, virtual_name])
+      return VirtualREGFWinRegistryKey(
+          virtual_name, virtual_subkey, key_helper=self._key_helper,
+          key_path_prefix=self._key_path_prefix,
+          relative_key_path=relative_key_path)
 
-    return subkey
+    return super(VirtualREGFWinRegistryKey, self).GetSubkeyByIndex(index)
 
   def GetSubkeyByName(self, name):
     """Retrieves a subkey by name.
@@ -462,16 +423,14 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
     """
     virtual_name, virtual_sub_key = self._GetVirtualSubKeyByName(name)
     if virtual_sub_key:
-      key_path = key_paths.JoinKeyPath([self._key_path, virtual_name])
+      relative_key_path = key_paths.JoinKeyPath([
+          self._relative_key_path, virtual_name])
       return VirtualREGFWinRegistryKey(
-          virtual_name, virtual_sub_key, key_path=key_path)
+          virtual_name, virtual_sub_key, key_helper=self._key_helper,
+          key_path_prefix=self._key_path_prefix,
+          relative_key_path=relative_key_path)
 
-    pyregf_key = self._pyregf_key.get_sub_key_by_name(name)
-    if not pyregf_key:
-      return None
-
-    key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
-    return REGFWinRegistryKey(pyregf_key, key_path=key_path)
+    return super(VirtualREGFWinRegistryKey, self).GetSubkeyByName(name)
 
   def GetSubkeyByPath(self, key_path):
     """Retrieves a subkey by path.
@@ -489,24 +448,26 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
 
     virtual_name, virtual_sub_key = self._GetVirtualSubKeyByName(
         key_path_segments[0])
-    if not virtual_sub_key:
-      pyregf_key = self._pyregf_key.get_sub_key_by_path(key_path)
-    else:
+    if virtual_sub_key:
       key_path_segments.pop(0)
 
       if not key_path_segments:
-        key_path = key_paths.JoinKeyPath([self._key_path, virtual_name])
+        relative_key_path = key_paths.JoinKeyPath([
+            self._relative_key_path, virtual_name])
         return VirtualREGFWinRegistryKey(
-            virtual_name, virtual_sub_key, key_path=key_path)
+            virtual_name, virtual_sub_key, key_helper=self._key_helper,
+            key_path_prefix=self._key_path_prefix,
+            relative_key_path=relative_key_path)
 
       sub_key_path = '\\'.join(key_path_segments)
       pyregf_key = virtual_sub_key.get_sub_key_by_path(sub_key_path)
 
-    if not pyregf_key:
-      return None
+      relative_key_path = key_paths.JoinKeyPath([
+          self._relative_key_path, key_path])
+      return self._key_helper.CreateKey(
+          self._key_path_prefix, relative_key_path, pyregf_key)
 
-    key_path = key_paths.JoinKeyPath([self._key_path, key_path])
-    return REGFWinRegistryKey(pyregf_key, key_path=key_path)
+    return super(VirtualREGFWinRegistryKey, self).GetSubkeyByPath(key_path)
 
   def GetSubkeys(self):
     """Retrieves all subkeys within the key.
@@ -514,14 +475,122 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
     Yields:
       WinRegistryKey: Windows Registry subkey.
     """
-    for pyregf_key in self._pyregf_key.sub_keys:
-      key_path = key_paths.JoinKeyPath([self._key_path, pyregf_key.name])
-      yield REGFWinRegistryKey(pyregf_key, key_path=key_path)
+    yield from super(VirtualREGFWinRegistryKey, self).GetSubkeys()
 
     for virtual_name, virtual_sub_key in self._virtual_subkeys:
-      key_path = key_paths.JoinKeyPath([self._key_path, virtual_name])
+      relative_key_path = key_paths.JoinKeyPath([
+          self._relative_key_path, virtual_name])
       yield VirtualREGFWinRegistryKey(
-          virtual_name, virtual_sub_key, key_path=key_path)
+          virtual_name, virtual_sub_key, key_helper=self._key_helper,
+          key_path_prefix=self._key_path_prefix,
+          relative_key_path=relative_key_path)
+
+
+class REGFWinRegistryKeyHelper(interface.WinRegistryKeyHelper):
+  """Windows Registry key helper."""
+
+  def __init__(self):
+    """Initializes the Windows Registry key helper."""
+    super(REGFWinRegistryKeyHelper, self).__init__()
+    self._virtual_keys_by_path = {}
+    self._virtual_subkeys_by_parent = {}
+
+  def AddVirtualKey(self, relative_key_path, pyregf_key):
+    """Adds a virtual key.
+
+    Args:
+      relative_key_path (str): Windows Registry key path relative to the file,
+          with a leading key path segment separator.
+      pyregf_key (pyregf.key): pyregf key object of the key.
+
+    Raises:
+      ValueError: if the virtual key already exists.
+    """
+    lookup_key_path = relative_key_path.upper()
+    if lookup_key_path in self._virtual_keys_by_path:
+      raise ValueError(f'Key: {relative_key_path:s} already set')
+
+    self._virtual_keys_by_path[lookup_key_path] = (
+        relative_key_path, pyregf_key)
+
+    parent_key_path, name = relative_key_path.rsplit('\\', maxsplit=1)
+
+    lookup_key_path = parent_key_path.upper()
+    if lookup_key_path not in self._virtual_subkeys_by_parent:
+      self._virtual_subkeys_by_parent[lookup_key_path] = []
+    self._virtual_subkeys_by_parent[lookup_key_path].append((name, pyregf_key))
+
+  def CreateKey(self, key_path_prefix, relative_key_path, pyregf_key):
+    """Creates a Windows Registry key.
+
+    Args:
+      key_path_prefix (str): Windows Registry key path prefix.
+      relative_key_path (str): Windows Registry key path relative to the file,
+          with a leading key path segment separator.
+      pyregf_key (pyregf.key): pyregf key object.
+
+    Returns:
+      WinRegistryKey: Windows Registry key or None if pyregf key object is not
+          set.
+    """
+    if not pyregf_key:
+      return None
+
+    lookup_key_path = relative_key_path.upper()
+    virtual_subkeys = self._virtual_subkeys_by_parent.get(lookup_key_path, None)
+
+    if not virtual_subkeys:
+      return REGFWinRegistryKey(
+          pyregf_key, key_helper=self, key_path_prefix=key_path_prefix,
+          relative_key_path=relative_key_path)
+
+    name = relative_key_path.rsplit('\\', maxsplit=1)[-1]
+    registry_key = VirtualREGFWinRegistryKey(
+        name, pyregf_key, key_helper=self, key_path_prefix=key_path_prefix,
+        relative_key_path=relative_key_path)
+
+    for name, pyregf_subkey in virtual_subkeys or []:
+      registry_key.AddVirtualSubKey(name, pyregf_subkey)
+
+    return registry_key
+
+  def GetKeyByPath(self, key_path_prefix, relative_key_path):
+    """Retrieves a key.
+
+    Args:
+      key_path_prefix (str): Windows Registry key path prefix.
+      relative_key_path (str): Windows Registry key path relative to the file,
+          without a leading key path segment separator.
+
+    Returns:
+      WinRegistryKey: Windows Registry key or None if not found.
+    """
+    lookup_key_path = None
+    relative_sub_key_path = None
+
+    # TODO: use scan tree of path segments for faster lookup.
+    relative_key_path_upper = relative_key_path.upper()
+    for virtual_key_path in self._virtual_keys_by_path:
+      # Note that the virtual key path starts with a key path segment
+      # separator # but relative key path does not.
+      if relative_key_path_upper.startswith(virtual_key_path[1:]):
+        lookup_key_path = virtual_key_path
+        relative_sub_key_path = relative_key_path[len(virtual_key_path[1:]):]
+        break
+
+    if not lookup_key_path:
+      return None
+
+    virtual_key_path, pyregf_key = self._virtual_keys_by_path.get(
+        lookup_key_path, None)
+    _, name = virtual_key_path.rsplit('\\', maxsplit=1)
+    registry_key = VirtualREGFWinRegistryKey(
+        name, pyregf_key, key_helper=self, key_path_prefix=key_path_prefix,
+        relative_key_path=virtual_key_path[1:])
+    if not relative_sub_key_path:
+      return registry_key
+
+    return registry_key.GetSubkeyByPath(relative_sub_key_path)
 
 
 class REGFWinRegistryValue(interface.WinRegistryValue):
