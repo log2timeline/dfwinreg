@@ -286,13 +286,12 @@ class WinRegistry(object):
     key_path_prefix_upper = key_path_prefix.upper()
     self.MapFile(key_path_prefix_upper, registry_file)
 
-    # TODO: if HKEY_CURRENT_USER set 'HKEY_CURRENT_USER\\SOFTWARE\\CLASSES' as
-    # virtual key in the file.
-
+    # If HKEY_CURRENT_USER set HKEY_CURRENT_USER\\Software\\Classes as a virtual
+    # key in the file.
     if key_path_prefix_upper == 'HKEY_CURRENT_USER' and isinstance(
         registry_file, regf.REGFWinRegistryFile):
       registry_key = self.GetKeyByPath(self._USER_SOFTWARE_CLASSES_KEY_PATH)
-      if registry_key:
+      if registry_key and isinstance(registry_key, regf.REGFWinRegistryKey):
         # pylint: disable=protected-access
         pyregf_key = registry_key._pyregf_key
         registry_file.AddVirtualKey('\\Software\\Classes', pyregf_key)
