@@ -16,19 +16,16 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
   """Implementation of a Windows Registry file using pyregf."""
 
   def __init__(
-      self, ascii_codepage='cp1252', emulate_virtual_keys=False,
-      key_path_prefix=''):
+      self, ascii_codepage='cp1252', key_path_prefix=''):
     """Initializes the Windows Registry file.
 
     Args:
       ascii_codepage (Optional[str]): ASCII string codepage.
-      emulate_virtual_keys (Optional[bool]): True if virtual keys should be
-          emulated.
       key_path_prefix (Optional[str]): Windows Registry key path prefix.
     """
     super(REGFWinRegistryFile, self).__init__(
         ascii_codepage=ascii_codepage, key_path_prefix=key_path_prefix)
-    self._emulate_virtual_keys = emulate_virtual_keys
+    self._emulate_virtual_keys = False
     self._key_helper = REGFWinRegistryKeyHelper()
     self._file_object = None
     self._regf_file = pyregf.file()
