@@ -112,7 +112,7 @@ class WinRegistry(object):
       'HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\'
       'ProfileList')
 
-  _USER_SOFTWARE_CLASSES_KEY_PATH = 'HKEY_CURRENT_USER\\Software\\Classes'
+  _USER_SOFTWARE_CLASSES_KEY_PATH = 'HKEY_CURRENT_USER\\SOFTWARE\\CLASSES'
 
   # TODO: add support for HKEY_CLASSES_ROOT
   # TODO: add support for HKEY_CURRENT_CONFIG
@@ -582,11 +582,16 @@ class WinRegistry(object):
     # key in the file.
     if key_path_prefix_upper == 'HKEY_CURRENT_USER' and isinstance(
         registry_file, regf.REGFWinRegistryFile):
-      registry_key = self.GetKeyByPath(self._USER_SOFTWARE_CLASSES_KEY_PATH)
-      if registry_key and isinstance(registry_key, regf.REGFWinRegistryKey):
-        # pylint: disable=protected-access
-        pyregf_key = registry_key._pyregf_key
-        registry_file.AddVirtualKey('\\Software\\Classes', pyregf_key)
+      key_path_prefix_upper, usrclass_registry_file = self._GetFileByPath(
+          self._USER_SOFTWARE_CLASSES_KEY_PATH)
+      if (key_path_prefix_upper == self._USER_SOFTWARE_CLASSES_KEY_PATH and
+          usrclass_registry_file is not None):
+        registry_key = usrclass_registry_file.GetKeyByPath(
+            '\\Software\\Classes')
+        if registry_key and isinstance(registry_key, regf.REGFWinRegistryKey):
+          # pylint: disable=protected-access
+          pyregf_key = registry_key._pyregf_key
+          registry_file.AddVirtualKey('\\Software\\Classes', pyregf_key)
 
     # If HKEY_LOCAL_MACHINE\\System set HKEY_LOCAL_MACHINE\\System\\
     # CurrentControlSet as a virtual key in the file.
