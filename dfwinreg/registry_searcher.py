@@ -385,9 +385,8 @@ class WinRegistrySearcher(object):
     if sub_find_specs:
       segment_index += 1
       for sub_registry_key in registry_key.GetSubkeys():
-        for matching_key_path in self._FindInKey(
-            sub_registry_key, sub_find_specs, segment_index):
-          yield matching_key_path
+        yield from self._FindInKey(
+            sub_registry_key, sub_find_specs, segment_index)
 
   def Find(self, find_specs=None):
     """Searches for matching keys within the Windows Registry.
@@ -404,8 +403,7 @@ class WinRegistrySearcher(object):
 
     root_registry_key = self._win_registry.GetRootKey()
     for sub_registry_key in root_registry_key.GetSubkeys():
-      for matching_path in self._FindInKey(sub_registry_key, find_specs, 0):
-        yield matching_path
+      yield from self._FindInKey(sub_registry_key, find_specs, 0)
 
   def GetKeyByPath(self, key_path):
     """Retrieves a Windows Registry key for a path specification.

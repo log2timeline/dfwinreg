@@ -65,8 +65,7 @@ class WinRegistryFile(object):
     """
     root_key = self.GetRootKey()
     if root_key:
-      for registry_key in root_key.RecurseKeys():
-        yield registry_key
+      yield from root_key.RecurseKeys()
 
   def SetKeyPathPrefix(self, key_path_prefix):
     """Sets the Window Registry key path prefix.
@@ -221,8 +220,7 @@ class WinRegistryKey(object):
     """
     yield self
     for subkey in self.GetSubkeys():
-      for key in subkey.RecurseKeys():
-        yield key
+      yield from subkey.RecurseKeys()
 
 
 class WinRegistryKeyHelper(object):
