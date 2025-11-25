@@ -1,5 +1,0 @@
-PyYAML >= 3.10
-dfdatetime >= 20160814
-dtfabric >= 20170524
-libcreg-python >= 20210502
-libregf-python >= 20201002
