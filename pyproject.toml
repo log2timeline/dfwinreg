@@ -1,3 +1,41 @@
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "dfwinreg"
+version = "20251125"
+description = "Digital Forensics Windows Registry (dfWinReg)"
+maintainers = [
+    { name = "Log2Timeline maintainers", email = "log2timeline-maintainers@googlegroups.com" },
+]
+license = "Apache-2.0"
+license-files = ["ACKNOWLEDGEMENTS", "AUTHORS", "LICENSE"]
+readme = "README.md"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "PyYAML >= 3.10",
+    "dfdatetime >= 20160814",
+    "dtfabric >= 20170524",
+    "libcreg-python >= 20210502",
+    "libregf-python >= 20201002",
+]
+
+[project.urls]
+Documentation = "https://dfwinreg.readthedocs.io/en/latest"
+Homepage = "https://github.com/log2timeline/dfwinreg"
+Repository = "https://github.com/log2timeline/dfwinreg"
+
+[tool.setuptools.package-data]
+dfwinreg = [
+    "*.yaml",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dfwinreg"]
+exclude = ["docs", "tests", "tests.*", "utils"]
