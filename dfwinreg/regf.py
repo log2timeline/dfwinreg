@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Windows NT Registry (REGF) objects implementation using pyregf."""
 
 from dfdatetime import filetime as dfdatetime_filetime

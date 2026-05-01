@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Virtual Windows Registry key implementation."""
 
 from dfwinreg import definitions

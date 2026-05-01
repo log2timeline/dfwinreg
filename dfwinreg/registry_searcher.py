@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """A searcher to find keys and values within a Windows Registry."""
 
 import re
