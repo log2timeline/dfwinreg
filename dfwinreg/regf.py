@@ -22,7 +22,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
       ascii_codepage (Optional[str]): ASCII string codepage.
       key_path_prefix (Optional[str]): Windows Registry key path prefix.
     """
-    super(REGFWinRegistryFile, self).__init__(
+    super().__init__(
         ascii_codepage=ascii_codepage, key_path_prefix=key_path_prefix)
     self._emulate_virtual_keys = False
     self._key_helper = REGFWinRegistryKeyHelper()
@@ -175,7 +175,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
       key_path_prefix (Optional[str]): Windows Registry key path prefix.
       relative_key_path (Optional[str]): relative Windows Registry key path.
     """
-    super(REGFWinRegistryKey, self).__init__(
+    super().__init__(
         key_helper=key_helper, key_path_prefix=key_path_prefix,
         relative_key_path=relative_key_path)
     self._pyregf_key = pyregf_key
@@ -327,7 +327,7 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
       key_path_prefix (Optional[str]): Windows Registry key path prefix.
       relative_key_path (Optional[str]): relative Windows Registry key path.
     """
-    super(VirtualREGFWinRegistryKey, self).__init__(
+    super().__init__(
         pyregf_key, key_helper=key_helper, key_path_prefix=key_path_prefix,
         relative_key_path=relative_key_path)
     self._name = name
@@ -406,7 +406,7 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
           key_path_prefix=self._key_path_prefix,
           relative_key_path=relative_key_path)
 
-    return super(VirtualREGFWinRegistryKey, self).GetSubkeyByIndex(index)
+    return super().GetSubkeyByIndex(index)
 
   def GetSubkeyByName(self, name):
     """Retrieves a subkey by name.
@@ -426,7 +426,7 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
           key_path_prefix=self._key_path_prefix,
           relative_key_path=relative_key_path)
 
-    return super(VirtualREGFWinRegistryKey, self).GetSubkeyByName(name)
+    return super().GetSubkeyByName(name)
 
   def GetSubkeyByPath(self, key_path):
     """Retrieves a subkey by path.
@@ -463,7 +463,7 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
       return self._key_helper.CreateKey(
           self._key_path_prefix, relative_key_path, pyregf_key)
 
-    return super(VirtualREGFWinRegistryKey, self).GetSubkeyByPath(key_path)
+    return super().GetSubkeyByPath(key_path)
 
   def GetSubkeys(self):
     """Retrieves all subkeys within the key.
@@ -471,7 +471,7 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
     Yields:
       WinRegistryKey: Windows Registry subkey.
     """
-    yield from super(VirtualREGFWinRegistryKey, self).GetSubkeys()
+    yield from super().GetSubkeys()
 
     for virtual_name, virtual_sub_key in self._virtual_subkeys:
       relative_key_path = key_paths.JoinKeyPath([
@@ -487,7 +487,7 @@ class REGFWinRegistryKeyHelper(interface.WinRegistryKeyHelper):
 
   def __init__(self):
     """Initializes the Windows Registry key helper."""
-    super(REGFWinRegistryKeyHelper, self).__init__()
+    super().__init__()
     self._virtual_keys_by_path = {}
     self._virtual_subkeys_by_parent = {}
 
@@ -601,7 +601,7 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
     Args:
       pyregf_value (pyregf.value): pyregf value object.
     """
-    super(REGFWinRegistryValue, self).__init__()
+    super().__init__()
     self._pyregf_value = pyregf_value
 
   # Pylint 1.7.x seems to be get confused about properties.

@@ -9,12 +9,12 @@ from dfwinreg import creg
 from tests import test_lib
 
 
-class FakePyCREGKey(object):
+class FakePyCREGKey:
   """Fake pycreg key for testing."""
 
   def __init__(self):
     """Initializes a fake pycreg key."""
-    super(FakePyCREGKey, self).__init__()
+    super().__init__()
     self.number_of_sub_keys = 1
 
   # pylint: disable=invalid-name,redundant-returns-doc,unused-argument
@@ -36,7 +36,7 @@ class FakePyCREGKey(object):
     return None
 
 
-class FakePyCREGValue(object):
+class FakePyCREGValue:
   """Fake pycreg value for testing.
 
   Attributes:
@@ -51,7 +51,7 @@ class FakePyCREGValue(object):
       name (Optional[str]): name of the value.
       value_type (Optional[str]): value type.
     """
-    super(FakePyCREGValue, self).__init__()
+    super().__init__()
     self.name = name
     self.type = value_type
 

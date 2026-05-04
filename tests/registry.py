@@ -48,7 +48,7 @@ class TestWinRegistry(registry.WinRegistry):
 
       return registry_key
 
-    return super(TestWinRegistry, self).GetKeyByPath(key_path)
+    return super().GetKeyByPath(key_path)
 
 
 class TestWinRegistryKeyPathPrefixMismatch(registry.WinRegistry):
@@ -68,9 +68,7 @@ class TestWinRegistryKeyPathPrefixMismatch(registry.WinRegistry):
         WinRegistryFile: corresponding Windows Registry file or None if not
             available.
     """
-    _, registry_file = super(
-        TestWinRegistryKeyPathPrefixMismatch, self)._GetFileByPath(
-            key_path_upper)
+    _, registry_file = super()._GetFileByPath(key_path_upper)
     return 'BOGUS', registry_file
 
 
@@ -79,7 +77,7 @@ class TestREGFWinRegistryFileReader(interface.WinRegistryFileReader):
 
   def __init__(self):
     """Initializes a file Windows Registry file reader."""
-    super(TestREGFWinRegistryFileReader, self).__init__()
+    super().__init__()
     self._file_objects = []
 
   def __del__(self):
@@ -153,8 +151,7 @@ class TestREGFWinRegistryFileReaderMapped(TestREGFWinRegistryFileReader):
     if test_file_path is None:
       return None
 
-    return super(TestREGFWinRegistryFileReaderMapped, self).Open(
-        test_file_path, ascii_codepage=ascii_codepage)
+    return super().Open(test_file_path, ascii_codepage=ascii_codepage)
 
 
 class RegistryTest(test_lib.BaseTestCase):

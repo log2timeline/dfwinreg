@@ -27,7 +27,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
       registry (Optional[WinRegistry]): Windows Registry.
       relative_key_path (Optional[str]): relative Windows Registry key path.
     """
-    super(VirtualWinRegistryKey, self).__init__(
+    super().__init__(
         key_helper=key_helper, key_path_prefix=key_path_prefix,
         relative_key_path=relative_key_path)
     self._name = name

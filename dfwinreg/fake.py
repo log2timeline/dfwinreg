@@ -24,7 +24,7 @@ class FakeWinRegistryFile(interface.WinRegistryFile):
       ascii_codepage (str): ASCII string codepage.
       key_path_prefix (str): Windows Registry key path prefix.
     """
-    super(FakeWinRegistryFile, self).__init__(
+    super().__init__(
         ascii_codepage=ascii_codepage, key_path_prefix=key_path_prefix)
     self._root_key = None
 
@@ -137,7 +137,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
       subkeys (Optional[list[FakeWinRegistryKey]]): list of subkeys.
       values (Optional[list[FakeWinRegistryValue]]): list of values.
     """
-    super(FakeWinRegistryKey, self).__init__(
+    super().__init__(
         key_helper=key_helper, key_path_prefix=key_path_prefix,
         relative_key_path=relative_key_path)
     self._class_name = class_name
@@ -348,7 +348,7 @@ class FakeWinRegistryValue(interface.WinRegistryValue):
       offset (Optional[int]): offset of the value within the Windows Registry
           file.
     """
-    super(FakeWinRegistryValue, self).__init__()
+    super().__init__()
     self._data = data
     self._data_type = data_type
     self._data_size = len(data)

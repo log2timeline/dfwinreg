@@ -9,12 +9,12 @@ from dfwinreg import regf
 from tests import test_lib
 
 
-class FakePyREGFKey(object):
+class FakePyREGFKey:
   """Fake pyregf key for testing."""
 
   def __init__(self):
     """Initializes a fake pyregf key."""
-    super(FakePyREGFKey, self).__init__()
+    super().__init__()
     self.number_of_sub_keys = 1
 
   # pylint: disable=invalid-name,redundant-returns-doc,unused-argument
@@ -36,7 +36,7 @@ class FakePyREGFKey(object):
     return None
 
 
-class FakePyREGFValue(object):
+class FakePyREGFValue:
   """Fake pyregf value for testing.
 
   Attributes:
@@ -51,7 +51,7 @@ class FakePyREGFValue(object):
       name (Optional[str]): name of the value.
       value_type (Optional[str]): value type.
     """
-    super(FakePyREGFValue, self).__init__()
+    super().__init__()
     self.name = name
     self.type = value_type
 
