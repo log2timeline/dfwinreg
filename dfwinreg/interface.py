@@ -6,7 +6,7 @@ from dfwinreg import definitions
 from dfwinreg import key_paths
 
 
-class WinRegistryFile(object):
+class WinRegistryFile:
   """Windows Registry file interface."""
 
   def __init__(self, ascii_codepage='cp1252', key_path_prefix=''):
@@ -16,7 +16,7 @@ class WinRegistryFile(object):
       ascii_codepage (Optional[str]): ASCII string codepage.
       key_path_prefix (Optional[str]): Windows Registry key path prefix.
     """
-    super(WinRegistryFile, self).__init__()
+    super().__init__()
     self._ascii_codepage = ascii_codepage
     self._key_path_prefix = key_path_prefix
     self._key_path_prefix_length = len(key_path_prefix)
@@ -77,7 +77,7 @@ class WinRegistryFile(object):
     self._key_path_prefix_upper = key_path_prefix.upper()
 
 
-class WinRegistryFileReader(object):
+class WinRegistryFileReader:
   """Windows Registry file reader interface."""
 
   @abc.abstractmethod
@@ -96,7 +96,7 @@ class WinRegistryFileReader(object):
     """
 
 
-class WinRegistryKey(object):
+class WinRegistryKey:
   """Windows Registry key interface."""
 
   def __init__(self, key_helper=None, key_path_prefix='', relative_key_path=''):
@@ -107,7 +107,7 @@ class WinRegistryKey(object):
       key_path_prefix (Optional[str]): Windows Registry key path prefix.
       relative_key_path (Optional[str]): relative Windows Registry key path.
     """
-    super(WinRegistryKey, self).__init__()
+    super().__init__()
     self._key_helper = key_helper
     self._key_path_prefix = key_path_prefix
     self._relative_key_path = relative_key_path
@@ -222,11 +222,11 @@ class WinRegistryKey(object):
       yield from subkey.RecurseKeys()
 
 
-class WinRegistryKeyHelper(object):
+class WinRegistryKeyHelper:
   """Windows Registry key helper."""
 
 
-class WinRegistryValue(object):
+class WinRegistryValue:
   """Windows Registry value interface."""
 
   _DATA_TYPE_STRINGS = {

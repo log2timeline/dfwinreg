@@ -10,7 +10,7 @@ from tests import registry as test_registry
 from tests import test_lib
 
 
-class TestWinRegistry(object):
+class TestWinRegistry:
   """Windows Registry for testing."""
 
   # pylint: disable=redundant-returns-doc,unused-argument
@@ -30,7 +30,7 @@ class TestWinRegistry(object):
     return None
 
 
-class ErrorWinRegistry(object):
+class ErrorWinRegistry:
   """Windows Registry for testing that fails."""
 
   # pylint: disable=redundant-returns-doc,unused-argument

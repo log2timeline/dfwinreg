@@ -6,7 +6,7 @@ from dfwinreg import regf
 from dfwinreg import virtual
 
 
-class WinRegistryFileMapping(object):
+class WinRegistryFileMapping:
   """Windows Registry file mapping.
 
   Attributes:
@@ -26,13 +26,13 @@ class WinRegistryFileMapping(object):
       unique_key_paths (list[str]): key paths unique to the Windows Registry
           file.
     """
-    super(WinRegistryFileMapping, self).__init__()
+    super().__init__()
     self.key_path_prefix = key_path_prefix
     self.unique_key_paths = unique_key_paths
     self.windows_path = windows_path
 
 
-class WinRegistry(object):
+class WinRegistry:
   """Windows Registry."""
 
   _REGISTRY_FILE_MAPPINGS = [
@@ -129,7 +129,7 @@ class WinRegistry(object):
       registry_file_reader (Optional[WinRegistryFileReader]): Windows Registry
           file reader.
     """
-    super(WinRegistry, self).__init__()
+    super().__init__()
     self._ascii_codepage = ascii_codepage
     self._registry_file_reader = registry_file_reader
     self._registry_files = {}

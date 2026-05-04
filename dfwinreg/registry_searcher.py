@@ -12,7 +12,7 @@ from dfwinreg import glob2regex
 from dfwinreg import key_paths
 
 
-class FindSpec(object):
+class FindSpec:
   """Find specification."""
 
   def __init__(
@@ -50,7 +50,7 @@ class FindSpec(object):
           'The key_path, key_path_glob and key_path_regex arguments cannot '
           'be used at same time.'))
 
-    super(FindSpec, self).__init__()
+    super().__init__()
     self._is_regex = False
     self._key_path_segments = None
     self._number_of_key_path_segments = 0
@@ -332,7 +332,7 @@ class FindSpec(object):
     return True, key_path_match
 
 
-class WinRegistrySearcher(object):
+class WinRegistrySearcher:
   """Searcher for key and values within a Windows Registry."""
 
   def __init__(self, win_registry):
@@ -347,7 +347,7 @@ class WinRegistrySearcher(object):
     if not win_registry:
       raise ValueError('Missing Windows Registry value.')
 
-    super(WinRegistrySearcher, self).__init__()
+    super().__init__()
     self._win_registry = win_registry
 
   def _FindInKey(self, registry_key, find_specs, segment_index):

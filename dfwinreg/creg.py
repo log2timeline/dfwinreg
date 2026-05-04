@@ -20,7 +20,7 @@ class CREGWinRegistryFile(interface.WinRegistryFile):
       ascii_codepage (Optional[str]): ASCII string codepage.
       key_path_prefix (Optional[str]): Windows Registry key path prefix.
     """
-    super(CREGWinRegistryFile, self).__init__(
+    super().__init__(
         ascii_codepage=ascii_codepage, key_path_prefix=key_path_prefix)
     self._file_object = None
     self._creg_file = pycreg.file()
@@ -103,7 +103,7 @@ class CREGWinRegistryKey(interface.WinRegistryKey):
       key_path_prefix (Optional[str]): Windows Registry key path prefix.
       relative_key_path (Optional[str]): relative Windows Registry key path.
     """
-    super(CREGWinRegistryKey, self).__init__(
+    super().__init__(
         key_helper=key_helper, key_path_prefix=key_path_prefix,
         relative_key_path=relative_key_path)
     self._pycreg_key = pycreg_key
@@ -255,7 +255,7 @@ class CREGWinRegistryValue(interface.WinRegistryValue):
     Args:
       pycreg_value (pycreg.value): pycreg value object.
     """
-    super(CREGWinRegistryValue, self).__init__()
+    super().__init__()
     self._pycreg_value = pycreg_value
 
   # Pylint 1.7.x seems to be get confused about properties.
