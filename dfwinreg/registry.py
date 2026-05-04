@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Classes for Windows Registry access."""
 
 from dfwinreg import definitions

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Key path functions."""
 
 from dfwinreg import definitions

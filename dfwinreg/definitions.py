@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """The Windows Registry definitions."""
 
 KEY_PATH_SEPARATOR = '\\'

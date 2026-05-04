@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Windows 9x/Me Registry (CREG) objects implementation using pycreg."""
 
 from dfdatetime import semantic_time as dfdatetime_semantic_time

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Fake Windows Registry objects implementation."""
 
 import collections
