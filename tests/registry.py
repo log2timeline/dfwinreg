@@ -106,7 +106,7 @@ class TestREGFWinRegistryFileReader(interface.WinRegistryFileReader):
     try:
       # If open is successful Registry file will manage the file object.
       registry_file.Open(file_object)
-    except IOError:
+    except OSError:
       file_object.close()
       file_object = None
       registry_file = None
@@ -147,7 +147,7 @@ class TestREGFWinRegistryFileReaderMapped(TestREGFWinRegistryFileReader):
       SkipTest: if the Windows Registry file does not exist and the test
           should be skipped.
     """
-    test_file_path = self._MAPPED_PATHS.get(path, None)
+    test_file_path = self._MAPPED_PATHS.get(path)
     if test_file_path is None:
       return None
 

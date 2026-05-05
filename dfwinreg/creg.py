@@ -51,7 +51,7 @@ class CREGWinRegistryFile(interface.WinRegistryFile):
 
     try:
       creg_key = self._creg_file.get_key_by_path(relative_key_path)
-    except IOError:
+    except OSError:
       creg_key = None
 
     if not creg_key:
@@ -269,7 +269,7 @@ class CREGWinRegistryValue(interface.WinRegistryValue):
     """
     try:
       return self._pycreg_value.data
-    except IOError as exception:
+    except OSError as exception:
       raise errors.WinRegistryValueError((
           f'Unable to read data from value: {self._pycreg_value.name:s} '
           f'with error: {exception!s}'))
@@ -311,7 +311,7 @@ class CREGWinRegistryValue(interface.WinRegistryValue):
       else:
         value_data = self._pycreg_value.data
 
-    except (IOError, OverflowError) as exception:
+    except (OSError, OverflowError) as exception:
       raise errors.WinRegistryValueError((
           f'Unable to read data from value: {self._pycreg_value.name:s} '
           f'with error: {exception!s}'))

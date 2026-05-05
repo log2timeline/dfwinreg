@@ -195,7 +195,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
     if not self._registry_key and self._registry:
       self._GetKeyFromRegistry()
 
-    index = self._subkeys_by_name.get(name.upper(), None)
+    index = self._subkeys_by_name.get(name.upper())
     if index is None:
       return None
 

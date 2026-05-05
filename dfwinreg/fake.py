@@ -275,7 +275,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     Returns:
       WinRegistryKey: Windows Registry subkey or None if not found.
     """
-    return self._subkeys.get(name.upper(), None)
+    return self._subkeys.get(name.upper())
 
   def GetSubkeyByPath(self, key_path):
     """Retrieves a subkey by path.
@@ -311,7 +311,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
     Returns:
       WinRegistryValue: Windows Registry value or None if not found.
     """
-    return self._values.get(name.upper(), None)
+    return self._values.get(name.upper())
 
   def GetValues(self):
     """Retrieves all values within the key.

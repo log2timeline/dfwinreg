@@ -71,7 +71,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     """
     try:
       return self._regf_file.get_key_by_path(relative_key_path)
-    except IOError:
+    except OSError:
       return None
 
   def AddCurrentControlSetKey(self):
@@ -357,7 +357,7 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
       tuple[str, pyregf.key]: name and pyregf key object of the virtual subkey.
     """
     lookup_name = name.upper()
-    subkey_index = self._virtual_subkeys_by_name.get(lookup_name, None)
+    subkey_index = self._virtual_subkeys_by_name.get(lookup_name)
     if subkey_index is None:
       return None, None
 
@@ -533,7 +533,7 @@ class REGFWinRegistryKeyHelper(interface.WinRegistryKeyHelper):
       return None
 
     lookup_key_path = relative_key_path.upper()
-    virtual_subkeys = self._virtual_subkeys_by_parent.get(lookup_key_path, None)
+    virtual_subkeys = self._virtual_subkeys_by_parent.get(lookup_key_path)
 
     if not virtual_subkeys:
       return REGFWinRegistryKey(
@@ -615,7 +615,7 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
     """
     try:
       return self._pyregf_value.data
-    except IOError as exception:
+    except OSError as exception:
       raise errors.WinRegistryValueError((
           f'Unable to read data from value: {self._pyregf_value.name:s} '
           f'with error: {exception!s}'))
@@ -657,7 +657,7 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
       else:
         value_data = self._pyregf_value.data
 
-    except (IOError, OverflowError) as exception:
+    except (OSError, OverflowError) as exception:
       raise errors.WinRegistryValueError((
           f'Unable to read data from value: {self._pyregf_value.name:s} '
           f'with error: {exception!s}'))
