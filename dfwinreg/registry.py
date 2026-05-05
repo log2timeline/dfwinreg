@@ -188,7 +188,7 @@ class WinRegistry:
       WinRegistryFile: corresponding Windows Registry file or None if not
           available.
     """
-    return self._user_registry_files.get(profile_path_upper, None)
+    return self._user_registry_files.get(profile_path_upper)
 
   def _GetCandidateFileMappingsByPath(self, key_path_upper):
     """Retrieves candidate Windows Registry file mappings for a specific path.
@@ -245,7 +245,7 @@ class WinRegistry:
 
       try:
         registry_file = self._OpenFile(mapping.windows_path)
-      except IOError:
+      except OSError:
         registry_file = None
 
       if len(key_path_prefix) < len(mapping_key_path_prefix):
@@ -366,7 +366,7 @@ class WinRegistry:
     if not registry_file:
       try:
         registry_file = self._OpenFile(path)
-      except IOError:
+      except OSError:
         registry_file = None
 
     return registry_file

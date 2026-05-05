@@ -60,7 +60,7 @@ class FakePyREGFValue:
   @property
   def data(self):
     """bytes: value data."""
-    raise IOError('raised for testing purposes.')
+    raise OSError('raised for testing purposes.')
 
 
 class REGFWinRegistryFileTest(test_lib.BaseTestCase):
