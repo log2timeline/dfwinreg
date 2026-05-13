@@ -8,6 +8,6 @@ recursive-include dfwinreg *.yaml
 recursive-exclude dfwinreg *.pyc
 # Do not include the test data otherwise the sdist will be too large for PyPI.
 recursive-exclude test_data *
-# The test scripts are not required in a binary distribution package they 
+# The test scripts are not required in a binary distribution package they
 # are considered source distribution files and excluded by find_package().
 recursive-include tests *.py
