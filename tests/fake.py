@@ -343,13 +343,6 @@ class FakeWinRegistryValueTest(test_lib.BaseTestCase):
     value_data = registry_value.GetDataAsObject()
     self.assertEqual(value_data, 'ValueData')
 
-    data = '\xed\x44'
-    registry_value = fake.FakeWinRegistryValue(
-        'MRU', data=data, data_type=definitions.REG_SZ)
-
-    with self.assertRaises(errors.WinRegistryValueError):
-      registry_value.GetDataAsObject()
-
     registry_value = fake.FakeWinRegistryValue(
         'Count', data=b'\x11\x22\x33\x44', data_type=definitions.REG_DWORD)
 
@@ -398,19 +391,28 @@ class FakeWinRegistryValueTest(test_lib.BaseTestCase):
     value_data = registry_value.GetDataAsObject()
     self.assertEqual(value_data, expected_value_data)
 
-    data = '\xed\x44'
+    # Test REG_SZ with unsupported data type.
     registry_value = fake.FakeWinRegistryValue(
-        'MRU', data=data, data_type=definitions.REG_MULTI_SZ)
+        'MRU', data='\xed\x44', data_type=definitions.REG_SZ)
 
     with self.assertRaises(errors.WinRegistryValueError):
       registry_value.GetDataAsObject()
 
+    # Test REG_MULTI_SZ with unsupported data type.
+    registry_value = fake.FakeWinRegistryValue(
+        'MRU', data='\xed\x44', data_type=definitions.REG_MULTI_SZ)
+
+    with self.assertRaises(errors.WinRegistryValueError):
+      registry_value.GetDataAsObject()
+
+    # Test REG_SZ with unsupported data type.
     registry_value = fake.FakeWinRegistryValue(
         'MRU', data=('bogus', 0), data_type=definitions.REG_SZ)
 
     with self.assertRaises(errors.WinRegistryValueError):
       registry_value.GetDataAsObject()
 
+    # Test REG_MULTI_SZ with unsupported data type.
     registry_value = fake.FakeWinRegistryValue(
         'MRU', data=('bogus', 0), data_type=definitions.REG_MULTI_SZ)
 

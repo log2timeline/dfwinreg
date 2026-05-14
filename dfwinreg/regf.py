@@ -127,6 +127,9 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
     if not relative_key_path:
       return self.GetRootKey()
 
+    if relative_key_path and relative_key_path[0] == '\\':
+      return None
+
     if self._emulate_virtual_keys:
       registry_key = self._key_helper.GetKeyByPath(
           self._key_path_prefix, relative_key_path)
