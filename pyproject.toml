@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dfwinreg"
-version = "20260507"
+version = "20260513"
 description = "Digital Forensics Windows Registry (dfWinReg)"
 maintainers = [
     { name = "Log2Timeline maintainers", email = "log2timeline-maintainers@googlegroups.com" },

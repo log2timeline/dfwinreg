@@ -71,7 +71,52 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
   # TODO: add tests for _CreateKey
   # TODO: add tests for _GetCurrentControlSetKeyPath
   # TODO: add tests for _GetKeyByPathFromFile
-  # TODO: add tests for AddVirtualKey
+
+  def testAddCurrentControlSetKey(self):
+    """Tests the AddCurrentControlSetKey function."""
+    test_path = self._GetTestFilePath(['SYSTEM'])
+    self._SkipIfPathNotExists(test_path)
+
+    registry_file = regf.REGFWinRegistryFile()
+
+    with open(test_path, 'rb') as file_object:
+      registry_file.Open(file_object)
+
+      try:
+        self.assertFalse(registry_file._emulate_virtual_keys)
+        registry_file.AddCurrentControlSetKey()
+        self.assertTrue(registry_file._emulate_virtual_keys)
+
+        registry_key = registry_file.GetKeyByPath('\\CurrentControlSet')
+        self.assertIsNotNone(registry_key)
+
+      finally:
+        registry_file.Close()
+
+  def testAddVirtualKey(self):
+    """Tests the AddVirtualKey function."""
+    test_path = self._GetTestFilePath(['SYSTEM'])
+    self._SkipIfPathNotExists(test_path)
+
+    registry_file = regf.REGFWinRegistryFile()
+
+    with open(test_path, 'rb') as file_object:
+      registry_file.Open(file_object)
+      registry_file.AddCurrentControlSetKey()
+
+      try:
+        registry_key = registry_file.GetKeyByPath('\\')
+        self.assertIsNotNone(registry_key)
+        self.assertIsInstance(registry_key, regf.VirtualREGFWinRegistryKey)
+
+        pyregf_key = registry_file._regf_file.get_root_key()
+        registry_file.AddVirtualKey('\\VirtualKey', pyregf_key)
+
+        with self.assertRaises(ValueError):
+          registry_file.AddVirtualKey('\\VirtualKey', pyregf_key)
+
+      finally:
+        registry_file.Close()
 
   def testOpenClose(self):
     """Tests the Open and Close functions."""
@@ -144,44 +189,51 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
     test_path = self._GetTestFilePath(['SYSTEM'])
     self._SkipIfPathNotExists(test_path)
 
-    registry_file = regf.REGFWinRegistryFile()
+    registry_file = regf.REGFWinRegistryFile(
+        key_path_prefix='HKEY_LOCAL_MACHINE\\System')
 
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
       registry_file.AddCurrentControlSetKey()
 
       try:
-        key_path = '\\'
-        registry_key = registry_file.GetKeyByPath(key_path)
+        registry_key = registry_file.GetKeyByPath('\\')
         self.assertIsNotNone(registry_key)
         self.assertEqual(registry_key.name, '')
-        self.assertEqual(registry_key.path, key_path)
+        self.assertEqual(registry_key.path, 'HKEY_LOCAL_MACHINE\\System')
 
-        key_path = '\\ControlSet001'
+        registry_key = registry_file.GetKeyByPath('\\\\')
+        self.assertIsNone(registry_key)
+
+        key_path = 'HKEY_LOCAL_MACHINE\\System\\ControlSet001'
         registry_key = registry_file.GetKeyByPath(key_path)
         self.assertIsNotNone(registry_key)
         self.assertEqual(registry_key.name, 'ControlSet001')
         self.assertEqual(registry_key.path, key_path)
+
+        registry_key = registry_file.GetKeyByPath('\\ControlSet001')
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.name, 'ControlSet001')
+        self.assertEqual(
+            registry_key.path, 'HKEY_LOCAL_MACHINE\\System\\ControlSet001')
 
         registry_key = registry_file.GetKeyByPath('ControlSet001')
-        self.assertIsNotNone(registry_key)
-        self.assertEqual(registry_key.name, 'ControlSet001')
-        self.assertEqual(registry_key.path, key_path)
+        self.assertIsNone(registry_key)
 
-        key_path = '\\CurrentControlSet'
-        registry_key = registry_file.GetKeyByPath(key_path)
+        registry_key = registry_file.GetKeyByPath('\\CurrentControlSet')
         self.assertIsNotNone(registry_key)
         self.assertEqual(registry_key.name, 'CurrentControlSet')
-        self.assertEqual(registry_key.path, key_path)
+        self.assertEqual(
+            registry_key.path, 'HKEY_LOCAL_MACHINE\\System\\CurrentControlSet')
 
-        key_path = '\\CurrentControlSet\\Enum'
-        registry_key = registry_file.GetKeyByPath(key_path)
+        registry_key = registry_file.GetKeyByPath('\\CurrentControlSet\\Enum')
         self.assertIsNotNone(registry_key)
         self.assertEqual(registry_key.name, 'Enum')
-        self.assertEqual(registry_key.path, key_path)
+        self.assertEqual(
+            registry_key.path,
+            'HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Enum')
 
-        key_path = '\\Bogus'
-        registry_key = registry_file.GetKeyByPath(key_path)
+        registry_key = registry_file.GetKeyByPath('\\Bogus')
         self.assertIsNone(registry_key)
 
       finally:

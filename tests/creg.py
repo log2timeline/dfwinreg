@@ -63,8 +63,32 @@ class FakePyCREGValue:
     raise OSError('raised for testing purposes.')
 
 
+class FakePyCREGFile:
+  """Fake pycreg file for testing."""
+
+  # pylint: disable=invalid-name,redundant-returns-doc
+
+  def get_key_by_path(self, key_path):
+    """Retrieves a key by path.
+
+    Returns:
+      pycreg.key: key.
+    """
+    raise OSError('raised for testing purposes.')
+
+  def get_root_key(self):
+    """Retrieves the root key.
+
+    Returns:
+      pycreg.key: root key.
+    """
+    return None
+
+
 class CREGWinRegistryFileTest(test_lib.BaseTestCase):
   """Tests for the CREG Windows Registry file."""
+
+  # pylint: disable=protected-access
 
   def testOpenClose(self):
     """Tests the Open and Close functions."""
@@ -76,6 +100,50 @@ class CREGWinRegistryFileTest(test_lib.BaseTestCase):
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
       registry_file.Close()
+
+  def testGetKeyByPath(self):
+    """Tests the GetKeyByPath function."""
+    test_path = self._GetTestFilePath(['USER.DAT'])
+    self._SkipIfPathNotExists(test_path)
+
+    registry_file = creg.CREGWinRegistryFile(
+        key_path_prefix='HKEY_CURRENT_USER')
+
+    with open(test_path, 'rb') as file_object:
+      registry_file.Open(file_object)
+
+      try:
+        registry_key = registry_file.GetKeyByPath('\\')
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.path, 'HKEY_CURRENT_USER')
+
+        registry_key = registry_file.GetKeyByPath('\\\\')
+        self.assertIsNone(registry_key)
+
+        key_path = 'HKEY_CURRENT_USER\\Software'
+        registry_key = registry_file.GetKeyByPath(key_path)
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.path, key_path)
+
+        registry_key = registry_file.GetKeyByPath('\\Software')
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.path, 'HKEY_CURRENT_USER\\Software')
+
+        registry_key = registry_file.GetKeyByPath('Software')
+        self.assertIsNone(registry_key)
+
+        registry_key = registry_file.GetKeyByPath('\\Bogus')
+        self.assertIsNone(registry_key)
+
+      finally:
+        registry_file.Close()
+
+    # Test file that fails to retrieve key by path.
+    registry_file = creg.CREGWinRegistryFile()
+    registry_file._creg_file = FakePyCREGFile()
+
+    registry_key = registry_file.GetKeyByPath('\\Software')
+    self.assertIsNone(registry_key)
 
   def testGetRootKey(self):
     """Tests the GetRootKey function."""
@@ -95,37 +163,12 @@ class CREGWinRegistryFileTest(test_lib.BaseTestCase):
       finally:
         registry_file.Close()
 
-  def testGetKeyByPath(self):
-    """Tests the GetKeyByPath function."""
-    test_path = self._GetTestFilePath(['USER.DAT'])
-    self._SkipIfPathNotExists(test_path)
-
+    # Test file without a root key.
     registry_file = creg.CREGWinRegistryFile()
+    registry_file._creg_file = FakePyCREGFile()
 
-    with open(test_path, 'rb') as file_object:
-      registry_file.Open(file_object)
-
-      try:
-        key_path = '\\'
-        registry_key = registry_file.GetKeyByPath(key_path)
-        self.assertIsNotNone(registry_key)
-        self.assertEqual(registry_key.path, key_path)
-
-        key_path = '\\Software'
-        registry_key = registry_file.GetKeyByPath(key_path)
-        self.assertIsNotNone(registry_key)
-        self.assertEqual(registry_key.path, key_path)
-
-        key_path = '\\Bogus'
-        registry_key = registry_file.GetKeyByPath(key_path)
-        self.assertIsNone(registry_key)
-
-        key_path = 'Bogus'
-        registry_key = registry_file.GetKeyByPath(key_path)
-        self.assertIsNone(registry_key)
-
-      finally:
-        registry_file.Close()
+    registry_key = registry_file.GetRootKey()
+    self.assertIsNone(registry_key)
 
   def testRecurseKeys(self):
     """Tests the RecurseKeys function."""
@@ -156,21 +199,23 @@ class CREGWinRegistryKeyTest(test_lib.BaseTestCase):
     test_path = self._GetTestFilePath(['USER.DAT'])
     self._SkipIfPathNotExists(test_path)
 
-    registry_file = creg.CREGWinRegistryFile()
+    registry_file = creg.CREGWinRegistryFile(
+        key_path_prefix='HKEY_CURRENT_USER')
 
     with open(test_path, 'rb') as file_object:
       registry_file.Open(file_object)
 
       try:
-        key_path = '\\Software'
+        key_path = 'HKEY_CURRENT_USER\\Software'
         registry_key = registry_file.GetKeyByPath(key_path)
         self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.path, key_path)
+
         self.assertIsNone(registry_key.class_name)
         self.assertEqual(registry_key.name, 'Software')
         self.assertEqual(registry_key.number_of_subkeys, 1)
         self.assertEqual(registry_key.number_of_values, 0)
         self.assertEqual(registry_key.offset, 27948)
-        self.assertEqual(registry_key.path, key_path)
 
         self.assertIsNotNone(registry_key.last_written_time)
 
@@ -182,6 +227,19 @@ class CREGWinRegistryKeyTest(test_lib.BaseTestCase):
 
         date_time_string = registry_key.last_written_time.CopyToDateTimeString()
         self.assertEqual(date_time_string, 'Not set')
+
+        key_path = '\\Software'
+        registry_key = registry_file.GetKeyByPath(key_path)
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.path, 'HKEY_CURRENT_USER\\Software')
+
+        key_path = '\\Bogus'
+        registry_key = registry_file.GetKeyByPath(key_path)
+        self.assertIsNone(registry_key)
+
+        key_path = 'Bogus'
+        registry_key = registry_file.GetKeyByPath(key_path)
+        self.assertIsNone(registry_key)
 
       finally:
         registry_file.Close()
