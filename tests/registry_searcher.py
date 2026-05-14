@@ -129,6 +129,13 @@ class FindSpecTest(test_lib.BaseTestCase):
     result = find_spec._CompareWithKeyPathSegment('Microsoft', 2)
     self.assertFalse(result)
 
+    # Test with invalid find specification.
+    find_spec = registry_searcher.FindSpec(
+        key_path_regex=['HKEY_CURRENT_USER', 'Software', 'Mi(rosoft'])
+
+    result = find_spec._CompareWithKeyPathSegment('Microsoft', 2)
+    self.assertFalse(result)
+
   def testAtLastKeyPathSegment(self):
     """Test the AtLastKeyPathSegment function."""
     find_spec = registry_searcher.FindSpec()

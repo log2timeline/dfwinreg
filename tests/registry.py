@@ -270,6 +270,16 @@ class RegistryTest(test_lib.BaseTestCase):
     with self.assertRaises(RuntimeError):
       win_registry._GetUsersVirtualKey('.DEFAULT')
 
+    # Test with user_profile_list_key not set.
+    win_registry = registry.WinRegistry(
+        registry_file_reader=TestREGFWinRegistryFileReader())
+    win_registry.OpenAndMapFile(ntuser_test_path)
+
+    win_registry._registry_files['HKEY_LOCAL_MACHINE\\SOFTWARE'] = None
+
+    registry_key = win_registry._GetUsersVirtualKey('\\S-1-5-18')
+    self.assertIsNone(registry_key)
+
   def testGetFileByPath(self):
     """Tests the _GetFileByPath function."""
     test_path = self._GetTestFilePath(['SYSTEM'])
