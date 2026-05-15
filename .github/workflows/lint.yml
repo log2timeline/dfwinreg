@@ -63,6 +63,6 @@ jobs:
     - name: Install tox
       run: |
         python -m pip install tox
-    - name: Build and test Python module
+    - name: Run linter
       run: |
         tox -e yamllint
