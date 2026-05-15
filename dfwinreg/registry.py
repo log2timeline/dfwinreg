@@ -7,624 +7,668 @@ from dfwinreg import virtual
 
 
 class WinRegistryFileMapping:
-  """Windows Registry file mapping.
+    """Windows Registry file mapping.
 
-  Attributes:
-    key_path_prefix (str): Windows Registry key path prefix.
-    unique_key_paths (list[str]): key paths unique to the Windows Registry file.
-    windows_path (str): Windows path to the Windows Registry file, such as:
-        C:\\Windows\\System32\\config\\SYSTEM
-  """
-
-  def __init__(self, key_path_prefix, windows_path, unique_key_paths):
-    """Initializes the Windows Registry file mapping.
-
-    Args:
+    Attributes:
       key_path_prefix (str): Windows Registry key path prefix.
+      unique_key_paths (list[str]): key paths unique to the Windows Registry file.
       windows_path (str): Windows path to the Windows Registry file, such as:
           C:\\Windows\\System32\\config\\SYSTEM
-      unique_key_paths (list[str]): key paths unique to the Windows Registry
-          file.
     """
-    super().__init__()
-    self.key_path_prefix = key_path_prefix
-    self.unique_key_paths = unique_key_paths
-    self.windows_path = windows_path
+
+    def __init__(self, key_path_prefix, windows_path, unique_key_paths):
+        """Initializes the Windows Registry file mapping.
+
+        Args:
+          key_path_prefix (str): Windows Registry key path prefix.
+          windows_path (str): Windows path to the Windows Registry file, such as:
+              C:\\Windows\\System32\\config\\SYSTEM
+          unique_key_paths (list[str]): key paths unique to the Windows Registry
+              file.
+        """
+        super().__init__()
+        self.key_path_prefix = key_path_prefix
+        self.unique_key_paths = unique_key_paths
+        self.windows_path = windows_path
 
 
 class WinRegistry:
-  """Windows Registry."""
+    """Windows Registry."""
 
-  _REGISTRY_FILE_MAPPINGS = [
-      # TODO: Windows 3.1
-      # Windows 9x/Me
-      WinRegistryFileMapping(
-          'HKEY_LOCAL_MACHINE',
-          '%SystemRoot%\\SYSTEM.DAT',
-          ['\\Config', '\\Enum', '\\Hardware', '\\Network', '\\Software',
-           '\\System']),
-      WinRegistryFileMapping(
-          'HKEY_USERS',
-          '%SystemRoot%\\USER.DAT',
-          ['\\.DEFAULT\\AppEvents', '\\.DEFAULT\\Control Panel',
-           '\\.DEFAULT\\Keyboard Layout', '\\.DEFAULT\\Network',
-           '\\.DEFAULT\\Software']),
-      # Windows NT
-      WinRegistryFileMapping(
-          'HKEY_CURRENT_USER',
-          '%UserProfile%\\NTUSER.DAT',
-          ['\\AppEvents', '\\Console', '\\Control Panel', '\\Environment',
-           '\\Keyboard Layout', '\\Software']),
-      # Windows Vista and later UsrClass.dat mapping
-      WinRegistryFileMapping(
-          'HKEY_CURRENT_USER\\Software\\Classes',
-          '%UserProfile%\\AppData\\Local\\Microsoft\\Windows\\UsrClass.dat',
-          ['\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion']),
-      # Windows 2000, XP and 2003 UsrClass.dat mapping
-      WinRegistryFileMapping(
-          'HKEY_CURRENT_USER\\Software\\Classes',
-          ('%UserProfile%\\Local Settings\\Application Data\\Microsoft\\'
-           'Windows\\UsrClass.dat'),
-          ['\\Software\\Microsoft\\Windows\\CurrentVersion']),
-      WinRegistryFileMapping(
-          'HKEY_LOCAL_MACHINE\\SAM',
-          '%SystemRoot%\\System32\\config\\SAM',
-          ['\\SAM\\Domains\\Account\\Users']),
-      WinRegistryFileMapping(
-          'HKEY_LOCAL_MACHINE\\Security',
-          '%SystemRoot%\\System32\\config\\SECURITY',
-          ['\\Policy\\PolAdtEv']),
-      WinRegistryFileMapping(
-          'HKEY_LOCAL_MACHINE\\Software',
-          '%SystemRoot%\\System32\\config\\SOFTWARE',
-          ['\\Microsoft\\Windows\\CurrentVersion\\App Paths']),
-      WinRegistryFileMapping(
-          'HKEY_LOCAL_MACHINE\\System',
-          '%SystemRoot%\\System32\\config\\SYSTEM',
-          ['\\MountedDevices', '\\Select', '\\Setup'])]
+    _REGISTRY_FILE_MAPPINGS = [
+        # TODO: Windows 3.1
+        # Windows 9x/Me
+        WinRegistryFileMapping(
+            "HKEY_LOCAL_MACHINE",
+            "%SystemRoot%\\SYSTEM.DAT",
+            ["\\Config", "\\Enum", "\\Hardware", "\\Network", "\\Software", "\\System"],
+        ),
+        WinRegistryFileMapping(
+            "HKEY_USERS",
+            "%SystemRoot%\\USER.DAT",
+            [
+                "\\.DEFAULT\\AppEvents",
+                "\\.DEFAULT\\Control Panel",
+                "\\.DEFAULT\\Keyboard Layout",
+                "\\.DEFAULT\\Network",
+                "\\.DEFAULT\\Software",
+            ],
+        ),
+        # Windows NT
+        WinRegistryFileMapping(
+            "HKEY_CURRENT_USER",
+            "%UserProfile%\\NTUSER.DAT",
+            [
+                "\\AppEvents",
+                "\\Console",
+                "\\Control Panel",
+                "\\Environment",
+                "\\Keyboard Layout",
+                "\\Software",
+            ],
+        ),
+        # Windows Vista and later UsrClass.dat mapping
+        WinRegistryFileMapping(
+            "HKEY_CURRENT_USER\\Software\\Classes",
+            "%UserProfile%\\AppData\\Local\\Microsoft\\Windows\\UsrClass.dat",
+            ["\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion"],
+        ),
+        # Windows 2000, XP and 2003 UsrClass.dat mapping
+        WinRegistryFileMapping(
+            "HKEY_CURRENT_USER\\Software\\Classes",
+            (
+                "%UserProfile%\\Local Settings\\Application Data\\Microsoft\\"
+                "Windows\\UsrClass.dat"
+            ),
+            ["\\Software\\Microsoft\\Windows\\CurrentVersion"],
+        ),
+        WinRegistryFileMapping(
+            "HKEY_LOCAL_MACHINE\\SAM",
+            "%SystemRoot%\\System32\\config\\SAM",
+            ["\\SAM\\Domains\\Account\\Users"],
+        ),
+        WinRegistryFileMapping(
+            "HKEY_LOCAL_MACHINE\\Security",
+            "%SystemRoot%\\System32\\config\\SECURITY",
+            ["\\Policy\\PolAdtEv"],
+        ),
+        WinRegistryFileMapping(
+            "HKEY_LOCAL_MACHINE\\Software",
+            "%SystemRoot%\\System32\\config\\SOFTWARE",
+            ["\\Microsoft\\Windows\\CurrentVersion\\App Paths"],
+        ),
+        WinRegistryFileMapping(
+            "HKEY_LOCAL_MACHINE\\System",
+            "%SystemRoot%\\System32\\config\\SYSTEM",
+            ["\\MountedDevices", "\\Select", "\\Setup"],
+        ),
+    ]
 
-  _ROOT_KEY_ALIASES = {
-      'HKCC': 'HKEY_CURRENT_CONFIG',
-      'HKCR': 'HKEY_CLASSES_ROOT',
-      'HKCU': 'HKEY_CURRENT_USER',
-      'HKLM': 'HKEY_LOCAL_MACHINE',
-      'HKU': 'HKEY_USERS'}
+    _ROOT_KEY_ALIASES = {
+        "HKCC": "HKEY_CURRENT_CONFIG",
+        "HKCR": "HKEY_CLASSES_ROOT",
+        "HKCU": "HKEY_CURRENT_USER",
+        "HKLM": "HKEY_LOCAL_MACHINE",
+        "HKU": "HKEY_USERS",
+    }
 
-  _ROOT_SUB_KEYS = frozenset([
-      'HKEY_CLASSES_ROOT',
-      'HKEY_CURRENT_CONFIG',
-      'HKEY_CURRENT_USER',
-      'HKEY_DYN_DATA',
-      'HKEY_LOCAL_MACHINE',
-      'HKEY_PERFORMANCE_DATA',
-      'HKEY_USERS'])
+    _ROOT_SUB_KEYS = frozenset(
+        [
+            "HKEY_CLASSES_ROOT",
+            "HKEY_CURRENT_CONFIG",
+            "HKEY_CURRENT_USER",
+            "HKEY_DYN_DATA",
+            "HKEY_LOCAL_MACHINE",
+            "HKEY_PERFORMANCE_DATA",
+            "HKEY_USERS",
+        ]
+    )
 
-  _LOCAL_MACHINE_SUB_KEYS = frozenset([
-      'SAM',
-      'Security',
-      'Software',
-      'System'])
+    _LOCAL_MACHINE_SUB_KEYS = frozenset(["SAM", "Security", "Software", "System"])
 
-  _SELECT_KEY_PATH = 'HKEY_LOCAL_MACHINE\\System\\Select'
+    _SELECT_KEY_PATH = "HKEY_LOCAL_MACHINE\\System\\Select"
 
-  _USER_PROFILE_LIST_KEY_PATH = (
-      'HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\'
-      'ProfileList')
+    _USER_PROFILE_LIST_KEY_PATH = (
+        "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\"
+        "ProfileList"
+    )
 
-  _USER_SOFTWARE_CLASSES_KEY_PATH = 'HKEY_CURRENT_USER\\SOFTWARE\\CLASSES'
+    _USER_SOFTWARE_CLASSES_KEY_PATH = "HKEY_CURRENT_USER\\SOFTWARE\\CLASSES"
 
-  # TODO: add support for HKEY_CLASSES_ROOT
-  # TODO: add support for HKEY_CURRENT_CONFIG
-  # TODO: add support for HKEY_CURRENT_USER
-  # TODO: add support for HKEY_DYN_DATA
+    # TODO: add support for HKEY_CLASSES_ROOT
+    # TODO: add support for HKEY_CURRENT_CONFIG
+    # TODO: add support for HKEY_CURRENT_USER
+    # TODO: add support for HKEY_DYN_DATA
 
-  _VIRTUAL_KEYS = [
-      ('HKEY_USERS', '_GetUsersVirtualKey')]
+    _VIRTUAL_KEYS = [("HKEY_USERS", "_GetUsersVirtualKey")]
 
-  def __init__(self, ascii_codepage='cp1252', registry_file_reader=None):
-    """Initializes the Windows Registry.
+    def __init__(self, ascii_codepage="cp1252", registry_file_reader=None):
+        """Initializes the Windows Registry.
 
-    Args:
-      ascii_codepage (Optional[str]): ASCII string codepage.
-      registry_file_reader (Optional[WinRegistryFileReader]): Windows Registry
-          file reader.
-    """
-    super().__init__()
-    self._ascii_codepage = ascii_codepage
-    self._registry_file_reader = registry_file_reader
-    self._registry_files = {}
-    self._root_key = None
-    self._user_registry_files = {}
+        Args:
+          ascii_codepage (Optional[str]): ASCII string codepage.
+          registry_file_reader (Optional[WinRegistryFileReader]): Windows Registry
+              file reader.
+        """
+        super().__init__()
+        self._ascii_codepage = ascii_codepage
+        self._registry_file_reader = registry_file_reader
+        self._registry_files = {}
+        self._root_key = None
+        self._user_registry_files = {}
 
-  def __del__(self):
-    """Cleans up the Windows Registry object."""
-    for key_path_prefix_upper, registry_file in self._registry_files.items():
-      self._registry_files[key_path_prefix_upper] = None
-      if registry_file:
-        registry_file.Close()
+    def __del__(self):
+        """Cleans up the Windows Registry object."""
+        for key_path_prefix_upper, registry_file in self._registry_files.items():
+            self._registry_files[key_path_prefix_upper] = None
+            if registry_file:
+                registry_file.Close()
 
-    for profile_path_upper, registry_file in self._user_registry_files.items():
-      self._user_registry_files[profile_path_upper] = None
-      if registry_file:
-        registry_file.Close()
+        for profile_path_upper, registry_file in self._user_registry_files.items():
+            self._user_registry_files[profile_path_upper] = None
+            if registry_file:
+                registry_file.Close()
 
-  def _GetCachedFileByPath(self, key_path_upper):
-    """Retrieves a cached Windows Registry file for a key path.
+    def _GetCachedFileByPath(self, key_path_upper):
+        """Retrieves a cached Windows Registry file for a key path.
 
-    Args:
-      key_path_upper (str): Windows Registry key path, in upper case with
-          a resolved root key alias.
+        Args:
+          key_path_upper (str): Windows Registry key path, in upper case with
+              a resolved root key alias.
 
-    Returns:
-      tuple: consist:
+        Returns:
+          tuple: consist:
 
-        str: key path prefix
-        WinRegistryFile: corresponding Windows Registry file or None if not
-            available.
-    """
-    longest_key_path_prefix_upper = ''
-    longest_key_path_prefix_length = len(longest_key_path_prefix_upper)
-    for key_path_prefix_upper in self._registry_files:
-      if key_path_upper.startswith(key_path_prefix_upper):
-        key_path_prefix_length = len(key_path_prefix_upper)
-        if key_path_prefix_length > longest_key_path_prefix_length:
-          longest_key_path_prefix_upper = key_path_prefix_upper
-          longest_key_path_prefix_length = key_path_prefix_length
+            str: key path prefix
+            WinRegistryFile: corresponding Windows Registry file or None if not
+                available.
+        """
+        longest_key_path_prefix_upper = ""
+        longest_key_path_prefix_length = len(longest_key_path_prefix_upper)
+        for key_path_prefix_upper in self._registry_files:
+            if key_path_upper.startswith(key_path_prefix_upper):
+                key_path_prefix_length = len(key_path_prefix_upper)
+                if key_path_prefix_length > longest_key_path_prefix_length:
+                    longest_key_path_prefix_upper = key_path_prefix_upper
+                    longest_key_path_prefix_length = key_path_prefix_length
 
-    if not longest_key_path_prefix_upper:
-      return None, None
+        if not longest_key_path_prefix_upper:
+            return None, None
 
-    registry_file = self._registry_files.get(
-        longest_key_path_prefix_upper, None)
-    return longest_key_path_prefix_upper, registry_file
+        registry_file = self._registry_files.get(longest_key_path_prefix_upper, None)
+        return longest_key_path_prefix_upper, registry_file
 
-  def _GetCachedUserFileByPath(self, profile_path_upper):
-    """Retrieves a cached user Windows Registry file for a profile path.
+    def _GetCachedUserFileByPath(self, profile_path_upper):
+        """Retrieves a cached user Windows Registry file for a profile path.
 
-    Args:
-      profile_path_upper (str): user profile path, in upper case.
+        Args:
+          profile_path_upper (str): user profile path, in upper case.
 
-    Returns:
-      WinRegistryFile: corresponding Windows Registry file or None if not
-          available.
-    """
-    return self._user_registry_files.get(profile_path_upper)
+        Returns:
+          WinRegistryFile: corresponding Windows Registry file or None if not
+              available.
+        """
+        return self._user_registry_files.get(profile_path_upper)
 
-  def _GetCandidateFileMappingsByPath(self, key_path_upper):
-    """Retrieves candidate Windows Registry file mappings for a specific path.
+    def _GetCandidateFileMappingsByPath(self, key_path_upper):
+        """Retrieves candidate Windows Registry file mappings for a specific path.
 
-    Args:
-      key_path_upper (str): Windows Registry key path, in upper case with
-          a resolved root key alias.
+        Args:
+          key_path_upper (str): Windows Registry key path, in upper case with
+              a resolved root key alias.
 
-    Returns:
-      list[WinRegistryFileMapping]: candidate Windows Registry file mappings.
-    """
-    if key_path_upper[-1] == '\\':
-      key_path_upper = key_path_upper[:-1]
+        Returns:
+          list[WinRegistryFileMapping]: candidate Windows Registry file mappings.
+        """
+        if key_path_upper[-1] == "\\":
+            key_path_upper = key_path_upper[:-1]
 
-    candidate_mappings = []
-    for mapping in self._REGISTRY_FILE_MAPPINGS:
-      if key_path_upper.startswith(mapping.key_path_prefix.upper()):
-        candidate_mappings.append(mapping)
+        candidate_mappings = []
+        for mapping in self._REGISTRY_FILE_MAPPINGS:
+            if key_path_upper.startswith(mapping.key_path_prefix.upper()):
+                candidate_mappings.append(mapping)
 
-    return candidate_mappings
+        return candidate_mappings
 
-  def _GetFileByPath(self, key_path_upper):
-    """Retrieves a Windows Registry file for a specific path.
+    def _GetFileByPath(self, key_path_upper):
+        """Retrieves a Windows Registry file for a specific path.
 
-    Args:
-      key_path_upper (str): Windows Registry key path, in upper case with
-          a resolved root key alias.
+        Args:
+          key_path_upper (str): Windows Registry key path, in upper case with
+              a resolved root key alias.
 
-    Returns:
-      tuple[st, WinRegistryFile]: upper case key path prefix and corresponding
-          Windows Registry file or None if not available.
-    """
-    key_path_prefix, cached_registry_file = self._GetCachedFileByPath(
-        key_path_upper)
+        Returns:
+          tuple[st, WinRegistryFile]: upper case key path prefix and corresponding
+              Windows Registry file or None if not available.
+        """
+        key_path_prefix, cached_registry_file = self._GetCachedFileByPath(
+            key_path_upper
+        )
 
-    # NTUSER.DAT and UsrClass.dat have overlapping keys hence for key paths that
-    # start "HKEY_CURRENT_USER\\Software\\Classes" do not assume the Windows
-    # Registry file for "HKEY_CURRENT_USER" contains the classes key as well.
+        # NTUSER.DAT and UsrClass.dat have overlapping keys hence for key paths that
+        # start "HKEY_CURRENT_USER\\Software\\Classes" do not assume the Windows
+        # Registry file for "HKEY_CURRENT_USER" contains the classes key as well.
 
-    if cached_registry_file and (
-        key_path_prefix != 'HKEY_CURRENT_USER' or
-        not key_path_upper.startswith('HKEY_CURRENT_USER\\SOFTWARE\\CLASSES')):
-      return key_path_prefix, cached_registry_file
+        if cached_registry_file and (
+            key_path_prefix != "HKEY_CURRENT_USER"
+            or not key_path_upper.startswith("HKEY_CURRENT_USER\\SOFTWARE\\CLASSES")
+        ):
+            return key_path_prefix, cached_registry_file
 
-    key_path_prefix = ''
-    candidate_mappings = self._GetCandidateFileMappingsByPath(key_path_upper)
-    matching_mappings = []
+        key_path_prefix = ""
+        candidate_mappings = self._GetCandidateFileMappingsByPath(key_path_upper)
+        matching_mappings = []
 
-    for mapping in candidate_mappings:
-      mapping_key_path_prefix = mapping.key_path_prefix.upper()
-      if mapping_key_path_prefix in self._registry_files:
-        # Skip the Windows Registry file if it is already cached.
-        continue
+        for mapping in candidate_mappings:
+            mapping_key_path_prefix = mapping.key_path_prefix.upper()
+            if mapping_key_path_prefix in self._registry_files:
+                # Skip the Windows Registry file if it is already cached.
+                continue
 
-      try:
-        registry_file = self._OpenFile(mapping.windows_path)
-      except OSError:
+            try:
+                registry_file = self._OpenFile(mapping.windows_path)
+            except OSError:
+                registry_file = None
+
+            if len(key_path_prefix) < len(mapping_key_path_prefix):
+                key_path_prefix = mapping_key_path_prefix
+
+            if not registry_file:
+                continue
+
+            match = True
+            if mapping.unique_key_paths:
+                # If all unique key paths are found consider the file to match.
+                for unique_key_path in mapping.unique_key_paths:
+                    registry_key = registry_file.GetKeyByPath(unique_key_path)
+                    if not registry_key:
+                        match = False
+
+            if match:
+                matching_mappings.append((mapping, registry_file))
+
+        if not matching_mappings:
+            return key_path_prefix, cached_registry_file
+
+        key_path_prefix = None
         registry_file = None
 
-      if len(key_path_prefix) < len(mapping_key_path_prefix):
-        key_path_prefix = mapping_key_path_prefix
+        while matching_mappings:
+            mapping, matching_registry_file = matching_mappings.pop(0)
 
-      if not registry_file:
-        continue
+            if not key_path_prefix or len(mapping.key_path_prefix) > len(
+                key_path_prefix
+            ):
+                if registry_file:
+                    registry_file.Close()
 
-      match = True
-      if mapping.unique_key_paths:
-        # If all unique key paths are found consider the file to match.
-        for unique_key_path in mapping.unique_key_paths:
-          registry_key = registry_file.GetKeyByPath(unique_key_path)
-          if not registry_key:
-            match = False
+                key_path_prefix = mapping.key_path_prefix
+                registry_file = matching_registry_file
 
-      if match:
-        matching_mappings.append((mapping, registry_file))
+        key_path_prefix_upper = key_path_prefix.upper()
+        self.MapFile(key_path_prefix_upper, registry_file)
 
-    if not matching_mappings:
-      return key_path_prefix, cached_registry_file
+        return key_path_prefix_upper, registry_file
 
-    key_path_prefix = None
-    registry_file = None
+    def _GetKeyByPathFromFile(self, key_path):
+        """Retrieves the key for a specific path from file.
 
-    while matching_mappings:
-      mapping, matching_registry_file = matching_mappings.pop(0)
+        Args:
+          key_path (str): Windows Registry key path.
 
-      if (not key_path_prefix or
-          len(mapping.key_path_prefix) > len(key_path_prefix)):
-        if registry_file:
-          registry_file.Close()
+        Returns:
+          WinRegistryKey: Windows Registry key or None if not available.
 
-        key_path_prefix = mapping.key_path_prefix
-        registry_file = matching_registry_file
+        Raises:
+          RuntimeError: if the key path prefix does not match the key path.
+        """
+        key_path_upper = key_path.upper()
 
-    key_path_prefix_upper = key_path_prefix.upper()
-    self.MapFile(key_path_prefix_upper, registry_file)
-
-    return key_path_prefix_upper, registry_file
-
-  def _GetKeyByPathFromFile(self, key_path):
-    """Retrieves the key for a specific path from file.
-
-    Args:
-      key_path (str): Windows Registry key path.
-
-    Returns:
-      WinRegistryKey: Windows Registry key or None if not available.
-
-    Raises:
-      RuntimeError: if the key path prefix does not match the key path.
-    """
-    key_path_upper = key_path.upper()
-
-    key_path_prefix_upper, registry_file = self._GetFileByPath(key_path_upper)
-    if not registry_file:
-      return None
-
-    if not key_path_upper.startswith(key_path_prefix_upper):
-      raise RuntimeError('Key path prefix mismatch.')
-
-    key_path_suffix = key_path[len(key_path_prefix_upper):]
-    relative_key_path = key_path_suffix or definitions.KEY_PATH_SEPARATOR
-
-    return registry_file.GetKeyByPath(relative_key_path)
-
-  def _GetRootVirtualKey(self):
-    """Retrieves the root key.
-
-    Returns:
-      VirtualWinRegistryKey: Windows Registry root key.
-
-    Raises:
-      RuntimeError: if there are multiple matching mappings and
-          the correct mapping cannot be resolved.
-    """
-    if not self._root_key:
-      self._root_key = virtual.VirtualWinRegistryKey('')
-
-      local_machine_key = None
-      for sub_key_name in self._ROOT_SUB_KEYS:
-        sub_registry_key = self.GetKeyByPath(sub_key_name)
-        if not sub_registry_key:
-          sub_registry_key = virtual.VirtualWinRegistryKey(
-              sub_key_name, registry=self, relative_key_path=sub_key_name)
-
-          if sub_key_name == 'HKEY_LOCAL_MACHINE':
-            local_machine_key = sub_registry_key
-
-        self._root_key.AddSubkey(sub_key_name, sub_registry_key)
-
-      if local_machine_key:
-        for sub_key_name in self._LOCAL_MACHINE_SUB_KEYS:
-          sub_key_path = definitions.KEY_PATH_SEPARATOR.join([
-              'HKEY_LOCAL_MACHINE', sub_key_name])
-          sub_registry_key = self.GetKeyByPath(sub_key_path)
-          if not sub_registry_key:
-            sub_registry_key = virtual.VirtualWinRegistryKey(
-                sub_key_name, registry=self, relative_key_path=sub_key_name)
-
-          local_machine_key.AddSubkey(sub_key_name, sub_registry_key)
-
-    return self._root_key
-
-  def _GetUserFileByPath(self, path):
-    """Retrieves an user Windows Registry file for a specific path.
-
-    Args:
-      path (str): path of the user Windows Registry file.
-
-    Returns:
-      WinRegistryFile: corresponding Windows Registry file or None if not
-          available.
-    """
-    path_upper = path.upper()
-    registry_file = self._GetCachedUserFileByPath(path_upper)
-    if not registry_file:
-      try:
-        registry_file = self._OpenFile(path)
-      except OSError:
-        registry_file = None
-
-    return registry_file
-
-  def _GetUsersVirtualKey(self, key_path_suffix):
-    """Virtual key callback to determine the users sub keys.
-
-    Args:
-      key_path_suffix (str): users Windows Registry key path suffix with
-          leading path separator.
-
-    Returns:
-      WinRegistryKey: the users Windows Registry key or None if not available.
-
-    Raises:
-      RuntimeError: if the key path suffix is not supported.
-    """
-    if key_path_suffix[0] != definitions.KEY_PATH_SEPARATOR:
-      raise RuntimeError(f'Unsupported key path suffix: {key_path_suffix:s}')
-
-    user_key_name, _, key_path_suffix = key_path_suffix[1:].partition(
-        definitions.KEY_PATH_SEPARATOR)
-    user_key_name = user_key_name.upper()
-
-    # HKEY_USERS\.DEFAULT is an alias for HKEY_USERS\S-1-5-18 which is
-    # the Local System account.
-    if user_key_name == '.DEFAULT':
-      search_key_name = 'S-1-5-18'
-    else:
-      search_key_name = user_key_name
-
-    if search_key_name.endswith('_CLASSES'):
-      search_key_name = search_key_name[:-8]
-
-    user_profile_list_key = self.GetKeyByPath(self._USER_PROFILE_LIST_KEY_PATH)
-    if not user_profile_list_key:
-      return None
-
-    for user_profile_key in user_profile_list_key.GetSubkeys():
-      if search_key_name == user_profile_key.name:
-        profile_path_value = user_profile_key.GetValueByName('ProfileImagePath')
-        if not profile_path_value:
-          break
-
-        profile_path = profile_path_value.GetDataAsObject()
-        if not profile_path:
-          break
-
-        # HKEY_USERS\%SID%_CLASSES maps to UsrClass.dat
-        if user_key_name.endswith('_CLASSES'):
-          profile_path = definitions.KEY_PATH_SEPARATOR.join([
-              profile_path, 'AppData', 'Local', 'Microsoft', 'Windows',
-              'UsrClass.dat'])
-        else:
-          profile_path = definitions.KEY_PATH_SEPARATOR.join([
-              profile_path, 'NTUSER.DAT'])
-
-        registry_file = self._GetUserFileByPath(profile_path)
+        key_path_prefix_upper, registry_file = self._GetFileByPath(key_path_upper)
         if not registry_file:
-          break
+            return None
 
-        key_path_prefix = definitions.KEY_PATH_SEPARATOR.join([
-            'HKEY_USERS', user_key_name])
-        key_path = definitions.KEY_PATH_SEPARATOR.join([
-            key_path_prefix, key_path_suffix])
+        if not key_path_upper.startswith(key_path_prefix_upper):
+            raise RuntimeError("Key path prefix mismatch.")
 
-        registry_file.SetKeyPathPrefix(key_path_prefix)
-        return registry_file.GetKeyByPath(key_path)
+        key_path_suffix = key_path[len(key_path_prefix_upper) :]
+        relative_key_path = key_path_suffix or definitions.KEY_PATH_SEPARATOR
 
-    return None
+        return registry_file.GetKeyByPath(relative_key_path)
 
-  def _GetVirtualKeyByPath(self, key_path):
-    """Retrieves the virtual key for a specific path.
+    def _GetRootVirtualKey(self):
+        """Retrieves the root key.
 
-    Args:
-      key_path (str): Windows Registry key path.
+        Returns:
+          VirtualWinRegistryKey: Windows Registry root key.
 
-    Returns:
-      VirtualWinRegistryKey: virtual Windows Registry key or None if not
-          available.
-    """
-    key_path_upper = key_path.upper()
+        Raises:
+          RuntimeError: if there are multiple matching mappings and
+              the correct mapping cannot be resolved.
+        """
+        if not self._root_key:
+            self._root_key = virtual.VirtualWinRegistryKey("")
 
-    for virtual_key_path, virtual_key_callback in self._VIRTUAL_KEYS:
-      virtual_key_path_upper = virtual_key_path.upper()
-      if key_path_upper.startswith(virtual_key_path_upper):
-        key_path_suffix = key_path[len(virtual_key_path):]
+            local_machine_key = None
+            for sub_key_name in self._ROOT_SUB_KEYS:
+                sub_registry_key = self.GetKeyByPath(sub_key_name)
+                if not sub_registry_key:
+                    sub_registry_key = virtual.VirtualWinRegistryKey(
+                        sub_key_name, registry=self, relative_key_path=sub_key_name
+                    )
 
-        callback_function = getattr(self, virtual_key_callback)
-        virtual_key = callback_function(key_path_suffix)
-        if virtual_key:
-          return virtual_key
+                    if sub_key_name == "HKEY_LOCAL_MACHINE":
+                        local_machine_key = sub_registry_key
 
-    return None
+                self._root_key.AddSubkey(sub_key_name, sub_registry_key)
 
-  def _OpenFile(self, path):
-    """Opens a Windows Registry file.
+            if local_machine_key:
+                for sub_key_name in self._LOCAL_MACHINE_SUB_KEYS:
+                    sub_key_path = definitions.KEY_PATH_SEPARATOR.join(
+                        ["HKEY_LOCAL_MACHINE", sub_key_name]
+                    )
+                    sub_registry_key = self.GetKeyByPath(sub_key_path)
+                    if not sub_registry_key:
+                        sub_registry_key = virtual.VirtualWinRegistryKey(
+                            sub_key_name, registry=self, relative_key_path=sub_key_name
+                        )
 
-    Args:
-      path (str): path of the Windows Registry file.
+                    local_machine_key.AddSubkey(sub_key_name, sub_registry_key)
 
-    Returns:
-      WinRegistryFile: Windows Registry file or None if not available.
-    """
-    if not self._registry_file_reader:
-      return None
+        return self._root_key
 
-    return self._registry_file_reader.Open(
-        path, ascii_codepage=self._ascii_codepage)
+    def _GetUserFileByPath(self, path):
+        """Retrieves an user Windows Registry file for a specific path.
 
-  def GetKeyByPath(self, key_path):
-    """Retrieves the key for a specific path.
+        Args:
+          path (str): path of the user Windows Registry file.
 
-    Args:
-      key_path (str): Windows Registry key path.
+        Returns:
+          WinRegistryFile: corresponding Windows Registry file or None if not
+              available.
+        """
+        path_upper = path.upper()
+        registry_file = self._GetCachedUserFileByPath(path_upper)
+        if not registry_file:
+            try:
+                registry_file = self._OpenFile(path)
+            except OSError:
+                registry_file = None
 
-    Returns:
-      WinRegistryKey: Windows Registry key or None if not available.
+        return registry_file
 
-    Raises:
-      RuntimeError: if the root key is not supported or the key path prefix
-          does not match the key path.
-    """
-    root_key_path, _, key_path = key_path.partition(
-        definitions.KEY_PATH_SEPARATOR)
+    def _GetUsersVirtualKey(self, key_path_suffix):
+        """Virtual key callback to determine the users sub keys.
 
-    # Resolve a root key alias.
-    root_key_path = root_key_path.upper()
-    root_key_path = self._ROOT_KEY_ALIASES.get(root_key_path, root_key_path)
+        Args:
+          key_path_suffix (str): users Windows Registry key path suffix with
+              leading path separator.
 
-    if root_key_path not in self._ROOT_SUB_KEYS:
-      raise RuntimeError(f'Unsupported root subkey: {root_key_path:s}')
+        Returns:
+          WinRegistryKey: the users Windows Registry key or None if not available.
 
-    key_path = definitions.KEY_PATH_SEPARATOR.join([root_key_path, key_path])
+        Raises:
+          RuntimeError: if the key path suffix is not supported.
+        """
+        if key_path_suffix[0] != definitions.KEY_PATH_SEPARATOR:
+            raise RuntimeError(f"Unsupported key path suffix: {key_path_suffix:s}")
 
-    registry_key = self._GetKeyByPathFromFile(key_path)
-    if not registry_key:
-      registry_key = self._GetVirtualKeyByPath(key_path)
+        user_key_name, _, key_path_suffix = key_path_suffix[1:].partition(
+            definitions.KEY_PATH_SEPARATOR
+        )
+        user_key_name = user_key_name.upper()
 
-    return registry_key
+        # HKEY_USERS\.DEFAULT is an alias for HKEY_USERS\S-1-5-18 which is
+        # the Local System account.
+        if user_key_name == ".DEFAULT":
+            search_key_name = "S-1-5-18"
+        else:
+            search_key_name = user_key_name
 
-  def GetRegistryFileMapping(self, registry_file):
-    """Determines the Registry file mapping based on the content of the file.
+        if search_key_name.endswith("_CLASSES"):
+            search_key_name = search_key_name[:-8]
 
-    Args:
-      registry_file (WinRegistyFile): Windows Registry file.
+        user_profile_list_key = self.GetKeyByPath(self._USER_PROFILE_LIST_KEY_PATH)
+        if not user_profile_list_key:
+            return None
 
-    Returns:
-      str: key path prefix or an empty string.
+        for user_profile_key in user_profile_list_key.GetSubkeys():
+            if search_key_name == user_profile_key.name:
+                profile_path_value = user_profile_key.GetValueByName("ProfileImagePath")
+                if not profile_path_value:
+                    break
 
-    Raises:
-      RuntimeError: if there are multiple matching mappings and
-          the correct mapping cannot be resolved.
-    """
-    if not registry_file:
-      return ''
+                profile_path = profile_path_value.GetDataAsObject()
+                if not profile_path:
+                    break
 
-    candidate_mappings = []
-    for mapping in self._REGISTRY_FILE_MAPPINGS:
-      if not mapping.unique_key_paths:
-        continue
+                # HKEY_USERS\%SID%_CLASSES maps to UsrClass.dat
+                if user_key_name.endswith("_CLASSES"):
+                    profile_path = definitions.KEY_PATH_SEPARATOR.join(
+                        [
+                            profile_path,
+                            "AppData",
+                            "Local",
+                            "Microsoft",
+                            "Windows",
+                            "UsrClass.dat",
+                        ]
+                    )
+                else:
+                    profile_path = definitions.KEY_PATH_SEPARATOR.join(
+                        [profile_path, "NTUSER.DAT"]
+                    )
 
-      # If all unique key paths are found consider the file to match.
-      match = True
-      for key_path in mapping.unique_key_paths:
-        registry_key = registry_file.GetKeyByPath(key_path)
+                registry_file = self._GetUserFileByPath(profile_path)
+                if not registry_file:
+                    break
+
+                key_path_prefix = definitions.KEY_PATH_SEPARATOR.join(
+                    ["HKEY_USERS", user_key_name]
+                )
+                key_path = definitions.KEY_PATH_SEPARATOR.join(
+                    [key_path_prefix, key_path_suffix]
+                )
+
+                registry_file.SetKeyPathPrefix(key_path_prefix)
+                return registry_file.GetKeyByPath(key_path)
+
+        return None
+
+    def _GetVirtualKeyByPath(self, key_path):
+        """Retrieves the virtual key for a specific path.
+
+        Args:
+          key_path (str): Windows Registry key path.
+
+        Returns:
+          VirtualWinRegistryKey: virtual Windows Registry key or None if not
+              available.
+        """
+        key_path_upper = key_path.upper()
+
+        for virtual_key_path, virtual_key_callback in self._VIRTUAL_KEYS:
+            virtual_key_path_upper = virtual_key_path.upper()
+            if key_path_upper.startswith(virtual_key_path_upper):
+                key_path_suffix = key_path[len(virtual_key_path) :]
+
+                callback_function = getattr(self, virtual_key_callback)
+                virtual_key = callback_function(key_path_suffix)
+                if virtual_key:
+                    return virtual_key
+
+        return None
+
+    def _OpenFile(self, path):
+        """Opens a Windows Registry file.
+
+        Args:
+          path (str): path of the Windows Registry file.
+
+        Returns:
+          WinRegistryFile: Windows Registry file or None if not available.
+        """
+        if not self._registry_file_reader:
+            return None
+
+        return self._registry_file_reader.Open(
+            path, ascii_codepage=self._ascii_codepage
+        )
+
+    def GetKeyByPath(self, key_path):
+        """Retrieves the key for a specific path.
+
+        Args:
+          key_path (str): Windows Registry key path.
+
+        Returns:
+          WinRegistryKey: Windows Registry key or None if not available.
+
+        Raises:
+          RuntimeError: if the root key is not supported or the key path prefix
+              does not match the key path.
+        """
+        root_key_path, _, key_path = key_path.partition(definitions.KEY_PATH_SEPARATOR)
+
+        # Resolve a root key alias.
+        root_key_path = root_key_path.upper()
+        root_key_path = self._ROOT_KEY_ALIASES.get(root_key_path, root_key_path)
+
+        if root_key_path not in self._ROOT_SUB_KEYS:
+            raise RuntimeError(f"Unsupported root subkey: {root_key_path:s}")
+
+        key_path = definitions.KEY_PATH_SEPARATOR.join([root_key_path, key_path])
+
+        registry_key = self._GetKeyByPathFromFile(key_path)
         if not registry_key:
-          match = False
+            registry_key = self._GetVirtualKeyByPath(key_path)
 
-      if match:
-        candidate_mappings.append(mapping)
+        return registry_key
 
-    if not candidate_mappings:
-      return ''
+    def GetRegistryFileMapping(self, registry_file):
+        """Determines the Registry file mapping based on the content of the file.
 
-    if len(candidate_mappings) == 1:
-      return candidate_mappings[0].key_path_prefix
+        Args:
+          registry_file (WinRegistyFile): Windows Registry file.
 
-    key_path_prefixes = frozenset([
-        mapping.key_path_prefix for mapping in candidate_mappings])
+        Returns:
+          str: key path prefix or an empty string.
 
-    expected_key_path_prefixes = frozenset([
-        'HKEY_CURRENT_USER',
-        'HKEY_CURRENT_USER\\Software\\Classes'])
+        Raises:
+          RuntimeError: if there are multiple matching mappings and
+              the correct mapping cannot be resolved.
+        """
+        if not registry_file:
+            return ""
 
-    if key_path_prefixes == expected_key_path_prefixes:
-      return 'HKEY_CURRENT_USER'
+        candidate_mappings = []
+        for mapping in self._REGISTRY_FILE_MAPPINGS:
+            if not mapping.unique_key_paths:
+                continue
 
-    raise RuntimeError('Unable to resolve Windows Registry file mapping.')
+            # If all unique key paths are found consider the file to match.
+            match = True
+            for key_path in mapping.unique_key_paths:
+                registry_key = registry_file.GetKeyByPath(key_path)
+                if not registry_key:
+                    match = False
 
-  def GetRootKey(self):
-    """Retrieves the Windows Registry root key.
+            if match:
+                candidate_mappings.append(mapping)
 
-    Returns:
-      VirtualWinRegistryKey: Windows Registry root key.
-    """
-    return self._GetRootVirtualKey()
+        if not candidate_mappings:
+            return ""
 
-  def MapFile(self, key_path_prefix, registry_file):
-    """Maps the Windows Registry file to a specific key path prefix.
+        if len(candidate_mappings) == 1:
+            return candidate_mappings[0].key_path_prefix
 
-    Args:
-      key_path_prefix (str): key path prefix.
-      registry_file (WinRegistryFile): Windows Registry file.
-    """
-    key_path_prefix_upper = key_path_prefix.upper()
+        key_path_prefixes = frozenset(
+            [mapping.key_path_prefix for mapping in candidate_mappings]
+        )
 
-    self._registry_files[key_path_prefix_upper] = registry_file
-    registry_file.SetKeyPathPrefix(key_path_prefix)
+        expected_key_path_prefixes = frozenset(
+            ["HKEY_CURRENT_USER", "HKEY_CURRENT_USER\\Software\\Classes"]
+        )
 
-    # If HKEY_CURRENT_USER set HKEY_CURRENT_USER\\Software\\Classes as a virtual
-    # key in the file.
-    if key_path_prefix_upper == 'HKEY_CURRENT_USER' and isinstance(
-        registry_file, regf.REGFWinRegistryFile):
-      key_path_prefix_upper, usrclass_registry_file = self._GetFileByPath(
-          self._USER_SOFTWARE_CLASSES_KEY_PATH)
-      if (key_path_prefix_upper == self._USER_SOFTWARE_CLASSES_KEY_PATH and
-          usrclass_registry_file is not None):
-        registry_key = usrclass_registry_file.GetKeyByPath(
-            '\\Software\\Classes')
-        if registry_key and isinstance(registry_key, regf.REGFWinRegistryKey):
-          # pylint: disable=protected-access
-          pyregf_key = registry_key._pyregf_key
-          registry_file.AddVirtualKey('\\Software\\Classes', pyregf_key)
+        if key_path_prefixes == expected_key_path_prefixes:
+            return "HKEY_CURRENT_USER"
 
-    # If HKEY_LOCAL_MACHINE\\System set HKEY_LOCAL_MACHINE\\System\\
-    # CurrentControlSet as a virtual key in the file.
-    elif key_path_prefix_upper == 'HKEY_LOCAL_MACHINE\\SYSTEM' and isinstance(
-        registry_file, regf.REGFWinRegistryFile):
-      registry_file.AddCurrentControlSetKey()
+        raise RuntimeError("Unable to resolve Windows Registry file mapping.")
 
-  def MapUserFile(self, profile_path, registry_file):
-    """Maps the user Windows Registry file to a specific profile path.
+    def GetRootKey(self):
+        """Retrieves the Windows Registry root key.
 
-    Args:
-      profile_path (str): profile path.
-      registry_file (WinRegistryFile): user Windows Registry file.
-    """
-    self._user_registry_files[profile_path.upper()] = registry_file
+        Returns:
+          VirtualWinRegistryKey: Windows Registry root key.
+        """
+        return self._GetRootVirtualKey()
 
-  def OpenAndMapFile(self, path):
-    """Opens Windows Registry file and maps it to its key path prefix.
+    def MapFile(self, key_path_prefix, registry_file):
+        """Maps the Windows Registry file to a specific key path prefix.
 
-    Args:
-      path (str): path of the Windows Registry file.
-    """
-    registry_file = self._OpenFile(path)
-    key_path_prefix = self.GetRegistryFileMapping(registry_file)
-    self.MapFile(key_path_prefix, registry_file)
+        Args:
+          key_path_prefix (str): key path prefix.
+          registry_file (WinRegistryFile): Windows Registry file.
+        """
+        key_path_prefix_upper = key_path_prefix.upper()
 
-  def SplitKeyPath(self, key_path):
-    """Splits the key path into path segments.
+        self._registry_files[key_path_prefix_upper] = registry_file
+        registry_file.SetKeyPathPrefix(key_path_prefix)
 
-    Args:
-      key_path (str): key path.
+        # If HKEY_CURRENT_USER set HKEY_CURRENT_USER\\Software\\Classes as a virtual
+        # key in the file.
+        if key_path_prefix_upper == "HKEY_CURRENT_USER" and isinstance(
+            registry_file, regf.REGFWinRegistryFile
+        ):
+            key_path_prefix_upper, usrclass_registry_file = self._GetFileByPath(
+                self._USER_SOFTWARE_CLASSES_KEY_PATH
+            )
+            if (
+                key_path_prefix_upper == self._USER_SOFTWARE_CLASSES_KEY_PATH
+                and usrclass_registry_file is not None
+            ):
+                registry_key = usrclass_registry_file.GetKeyByPath(
+                    "\\Software\\Classes"
+                )
+                if registry_key and isinstance(registry_key, regf.REGFWinRegistryKey):
+                    # pylint: disable=protected-access
+                    pyregf_key = registry_key._pyregf_key
+                    registry_file.AddVirtualKey("\\Software\\Classes", pyregf_key)
 
-    Returns:
-      list[str]: key path segments without the root path segment, which is an
-          empty string.
-    """
-    return key_paths.SplitKeyPath(key_path)
+        # If HKEY_LOCAL_MACHINE\\System set HKEY_LOCAL_MACHINE\\System\\
+        # CurrentControlSet as a virtual key in the file.
+        elif key_path_prefix_upper == "HKEY_LOCAL_MACHINE\\SYSTEM" and isinstance(
+            registry_file, regf.REGFWinRegistryFile
+        ):
+            registry_file.AddCurrentControlSetKey()
+
+    def MapUserFile(self, profile_path, registry_file):
+        """Maps the user Windows Registry file to a specific profile path.
+
+        Args:
+          profile_path (str): profile path.
+          registry_file (WinRegistryFile): user Windows Registry file.
+        """
+        self._user_registry_files[profile_path.upper()] = registry_file
+
+    def OpenAndMapFile(self, path):
+        """Opens Windows Registry file and maps it to its key path prefix.
+
+        Args:
+          path (str): path of the Windows Registry file.
+        """
+        registry_file = self._OpenFile(path)
+        key_path_prefix = self.GetRegistryFileMapping(registry_file)
+        self.MapFile(key_path_prefix, registry_file)
+
+    def SplitKeyPath(self, key_path):
+        """Splits the key path into path segments.
+
+        Args:
+          key_path (str): key path.
+
+        Returns:
+          list[str]: key path segments without the root path segment, which is an
+              empty string.
+        """
+        return key_paths.SplitKeyPath(key_path)
