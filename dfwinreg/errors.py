@@ -2,8 +2,8 @@
 
 
 class Error(Exception):
-  """Base error class."""
+    """Base error class."""
 
 
 class WinRegistryValueError(Error):
-  """Raised when a Windows Registry value cannot be read."""
+    """Raised when a Windows Registry value cannot be read."""

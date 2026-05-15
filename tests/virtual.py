@@ -11,393 +11,402 @@ from tests import test_lib
 
 
 class TestWinRegistry:
-  """Windows Registry for testing."""
+    """Windows Registry for testing."""
 
-  # pylint: disable=redundant-returns-doc,unused-argument
+    # pylint: disable=redundant-returns-doc,unused-argument
 
-  def GetKeyByPath(self, key_path):
-    """Retrieves the key for a specific path.
+    def GetKeyByPath(self, key_path):
+        """Retrieves the key for a specific path.
 
-    Args:
-      key_path (str): Windows Registry key path.
+        Args:
+          key_path (str): Windows Registry key path.
 
-    Returns:
-      WinRegistryKey: Windows Registry key or None if not available.
+        Returns:
+          WinRegistryKey: Windows Registry key or None if not available.
 
-    Raises:
-      RuntimeError: if the root key is not supported.
-    """
-    if key_path != '\\VirtualKey':
-      return None
+        Raises:
+          RuntimeError: if the root key is not supported.
+        """
+        if key_path != "\\VirtualKey":
+            return None
 
-    return virtual.VirtualWinRegistryKey(
-        'VirtualKey', relative_key_path=key_path)
+        return virtual.VirtualWinRegistryKey("VirtualKey", relative_key_path=key_path)
 
 
 class ErrorWinRegistry:
-  """Windows Registry for testing that fails."""
+    """Windows Registry for testing that fails."""
 
-  # pylint: disable=redundant-returns-doc,unused-argument
+    # pylint: disable=redundant-returns-doc,unused-argument
 
-  def GetKeyByPath(self, key_path):
-    """Retrieves the key for a specific path.
+    def GetKeyByPath(self, key_path):
+        """Retrieves the key for a specific path.
 
-    Args:
-      key_path (str): Windows Registry key path.
+        Args:
+          key_path (str): Windows Registry key path.
 
-    Returns:
-      WinRegistryKey: Windows Registry key or None if not available.
+        Returns:
+          WinRegistryKey: Windows Registry key or None if not available.
 
-    Raises:
-      RuntimeError: if the root key is not supported.
-    """
-    raise RuntimeError('Not supported for testing')
+        Raises:
+          RuntimeError: if the root key is not supported.
+        """
+        raise RuntimeError("Not supported for testing")
 
 
 class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
-  """Tests for a virtual Windows Registry key."""
+    """Tests for a virtual Windows Registry key."""
 
-  # pylint: disable=protected-access
+    # pylint: disable=protected-access
 
-  def _CreateTestKey(self):
-    """Creates a virtual Windows Registry key.
+    def _CreateTestKey(self):
+        """Creates a virtual Windows Registry key.
 
-    Returns:
-      VirtualWinRegistryKey: virtual Windows Registry key.
-    """
-    registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', relative_key_path='HKEY_LOCAL_MACHINE')
+        Returns:
+          VirtualWinRegistryKey: virtual Windows Registry key.
+        """
+        registry_key = virtual.VirtualWinRegistryKey(
+            "HKEY_LOCAL_MACHINE", relative_key_path="HKEY_LOCAL_MACHINE"
+        )
 
-    sub_registry_key = virtual.VirtualWinRegistryKey('System')
-    registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
+        sub_registry_key = virtual.VirtualWinRegistryKey("System")
+        registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
 
-    sub_registry_key = virtual.VirtualWinRegistryKey('Software')
-    registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
+        sub_registry_key = virtual.VirtualWinRegistryKey("Software")
+        registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
 
-    test_registry_key = virtual.VirtualWinRegistryKey('Classes')
-    sub_registry_key.AddSubkey(test_registry_key.name, test_registry_key)
+        test_registry_key = virtual.VirtualWinRegistryKey("Classes")
+        sub_registry_key.AddSubkey(test_registry_key.name, test_registry_key)
 
-    return registry_key
+        return registry_key
 
-  def _CreateTestRegistryWithMappedFile(self):
-    """Creates a Windows Registry with a mapped file.
+    def _CreateTestRegistryWithMappedFile(self):
+        """Creates a Windows Registry with a mapped file.
 
-    Returns:
-      WinRegistry: Windows Registry.
-    """
-    test_path = self._GetTestFilePath(['SYSTEM'])
-    self._SkipIfPathNotExists(test_path)
+        Returns:
+          WinRegistry: Windows Registry.
+        """
+        test_path = self._GetTestFilePath(["SYSTEM"])
+        self._SkipIfPathNotExists(test_path)
 
-    win_registry = registry.WinRegistry(
-        registry_file_reader=test_registry.TestREGFWinRegistryFileReader())
-    win_registry.OpenAndMapFile(test_path)
+        win_registry = registry.WinRegistry(
+            registry_file_reader=test_registry.TestREGFWinRegistryFileReader()
+        )
+        win_registry.OpenAndMapFile(test_path)
 
-    return win_registry
+        return win_registry
 
-  def testClassName(self):
-    """Tests the class_name property."""
-    win_registry = self._CreateTestRegistryWithMappedFile()
+    def testClassName(self):
+        """Tests the class_name property."""
+        win_registry = self._CreateTestRegistryWithMappedFile()
 
-    mapped_key = win_registry.GetKeyByPath('HKEY_LOCAL_MACHINE\\System')
-    self.assertIsNotNone(mapped_key)
-    self.assertIsNone(mapped_key.class_name)
+        mapped_key = win_registry.GetKeyByPath("HKEY_LOCAL_MACHINE\\System")
+        self.assertIsNotNone(mapped_key)
+        self.assertIsNone(mapped_key.class_name)
 
-    win_registry = TestWinRegistry()
+        win_registry = TestWinRegistry()
 
-    virtual_key = win_registry.GetKeyByPath('\\VirtualKey')
-    self.assertIsNotNone(virtual_key)
-    self.assertIsNone(virtual_key.class_name)
+        virtual_key = win_registry.GetKeyByPath("\\VirtualKey")
+        self.assertIsNotNone(virtual_key)
+        self.assertIsNone(virtual_key.class_name)
 
-  def testLastWrittenTime(self):
-    """Tests the last_written_time property."""
-    win_registry = self._CreateTestRegistryWithMappedFile()
+    def testLastWrittenTime(self):
+        """Tests the last_written_time property."""
+        win_registry = self._CreateTestRegistryWithMappedFile()
 
-    mapped_key = win_registry.GetKeyByPath('HKEY_LOCAL_MACHINE\\System')
-    self.assertIsNotNone(mapped_key)
-    self.assertIsNotNone(mapped_key.last_written_time)
+        mapped_key = win_registry.GetKeyByPath("HKEY_LOCAL_MACHINE\\System")
+        self.assertIsNotNone(mapped_key)
+        self.assertIsNotNone(mapped_key.last_written_time)
 
-    timestamp = mapped_key.last_written_time.timestamp
-    self.assertEqual(timestamp, 131243722185199451)
+        timestamp = mapped_key.last_written_time.timestamp
+        self.assertEqual(timestamp, 131243722185199451)
 
-    win_registry = TestWinRegistry()
+        win_registry = TestWinRegistry()
 
-    virtual_key = win_registry.GetKeyByPath('\\VirtualKey')
-    self.assertIsNotNone(virtual_key)
-    self.assertIsNone(virtual_key.last_written_time)
+        virtual_key = win_registry.GetKeyByPath("\\VirtualKey")
+        self.assertIsNotNone(virtual_key)
+        self.assertIsNone(virtual_key.last_written_time)
 
-  def testName(self):
-    """Tests the name property."""
-    win_registry = self._CreateTestRegistryWithMappedFile()
+    def testName(self):
+        """Tests the name property."""
+        win_registry = self._CreateTestRegistryWithMappedFile()
 
-    mapped_key = win_registry.GetKeyByPath('HKEY_LOCAL_MACHINE\\System')
-    self.assertIsNotNone(mapped_key)
-    self.assertEqual(mapped_key.name, '')
+        mapped_key = win_registry.GetKeyByPath("HKEY_LOCAL_MACHINE\\System")
+        self.assertIsNotNone(mapped_key)
+        self.assertEqual(mapped_key.name, "")
 
-    win_registry = TestWinRegistry()
+        win_registry = TestWinRegistry()
 
-    virtual_key = win_registry.GetKeyByPath('\\VirtualKey')
-    self.assertIsNotNone(virtual_key)
-    self.assertEqual(virtual_key.name, 'VirtualKey')
+        virtual_key = win_registry.GetKeyByPath("\\VirtualKey")
+        self.assertIsNotNone(virtual_key)
+        self.assertEqual(virtual_key.name, "VirtualKey")
 
-  def testNumberOfSubkeys(self):
-    """Tests the number_of_subkeys property."""
-    win_registry = self._CreateTestRegistryWithMappedFile()
+    def testNumberOfSubkeys(self):
+        """Tests the number_of_subkeys property."""
+        win_registry = self._CreateTestRegistryWithMappedFile()
 
-    mapped_key = win_registry.GetKeyByPath('HKEY_LOCAL_MACHINE\\System')
-    self.assertIsNotNone(mapped_key)
-    self.assertEqual(mapped_key.number_of_subkeys, 9)
+        mapped_key = win_registry.GetKeyByPath("HKEY_LOCAL_MACHINE\\System")
+        self.assertIsNotNone(mapped_key)
+        self.assertEqual(mapped_key.number_of_subkeys, 9)
 
-    win_registry = TestWinRegistry()
+        win_registry = TestWinRegistry()
 
-    virtual_key = win_registry.GetKeyByPath('\\VirtualKey')
-    self.assertIsNotNone(virtual_key)
-    self.assertEqual(virtual_key.number_of_subkeys, 0)
+        virtual_key = win_registry.GetKeyByPath("\\VirtualKey")
+        self.assertIsNotNone(virtual_key)
+        self.assertEqual(virtual_key.number_of_subkeys, 0)
 
-  def testNumberOfValues(self):
-    """Tests the number_of_values property."""
-    win_registry = self._CreateTestRegistryWithMappedFile()
+    def testNumberOfValues(self):
+        """Tests the number_of_values property."""
+        win_registry = self._CreateTestRegistryWithMappedFile()
+
+        mapped_key = win_registry.GetKeyByPath("HKEY_LOCAL_MACHINE\\System")
+        self.assertIsNotNone(mapped_key)
+        self.assertEqual(mapped_key.number_of_values, 0)
+
+        win_registry = TestWinRegistry()
+
+        virtual_key = win_registry.GetKeyByPath("\\VirtualKey")
+        self.assertIsNotNone(virtual_key)
+        self.assertEqual(virtual_key.number_of_values, 0)
+
+    def testOffset(self):
+        """Tests the offset property."""
+        win_registry = self._CreateTestRegistryWithMappedFile()
+
+        mapped_key = win_registry.GetKeyByPath("HKEY_LOCAL_MACHINE\\System")
+        self.assertIsNotNone(mapped_key)
+        self.assertEqual(mapped_key.offset, 4132)
+
+        win_registry = TestWinRegistry()
 
-    mapped_key = win_registry.GetKeyByPath(
-        'HKEY_LOCAL_MACHINE\\System')
-    self.assertIsNotNone(mapped_key)
-    self.assertEqual(mapped_key.number_of_values, 0)
+        virtual_key = win_registry.GetKeyByPath("\\VirtualKey")
+        self.assertIsNotNone(virtual_key)
+        self.assertIsNone(virtual_key.offset)
 
-    win_registry = TestWinRegistry()
+    def testGetKeyFromRegistry(self):
+        """Tests the _GetKeyFromRegistry function."""
+        registry_key = virtual.VirtualWinRegistryKey(
+            "HKEY_LOCAL_MACHINE", relative_key_path="HKEY_LOCAL_MACHINE"
+        )
+        registry_key._GetKeyFromRegistry()
 
-    virtual_key = win_registry.GetKeyByPath('\\VirtualKey')
-    self.assertIsNotNone(virtual_key)
-    self.assertEqual(virtual_key.number_of_values, 0)
+        test_win_registry = TestWinRegistry()
+        registry_key = virtual.VirtualWinRegistryKey(
+            "HKEY_LOCAL_MACHINE",
+            relative_key_path="HKEY_LOCAL_MACHINE",
+            registry=test_win_registry,
+        )
+        registry_key._GetKeyFromRegistry()
 
-  def testOffset(self):
-    """Tests the offset property."""
-    win_registry = self._CreateTestRegistryWithMappedFile()
+    def testGetKeyFromRegistryWithErrorRegistry(self):
+        """Tests the _GetKeyFromRegistry function with a registry that fails."""
+        test_win_registry = ErrorWinRegistry()
+        registry_key = virtual.VirtualWinRegistryKey(
+            "HKEY_LOCAL_MACHINE",
+            relative_key_path="HKEY_LOCAL_MACHINE",
+            registry=test_win_registry,
+        )
+        registry_key._GetKeyFromRegistry()
 
-    mapped_key = win_registry.GetKeyByPath('HKEY_LOCAL_MACHINE\\System')
-    self.assertIsNotNone(mapped_key)
-    self.assertEqual(mapped_key.offset, 4132)
+    def testJoinKeyPath(self):
+        """Tests the _JoinKeyPath function."""
+        registry_key = virtual.VirtualWinRegistryKey(
+            "HKEY_LOCAL_MACHINE", relative_key_path="HKEY_LOCAL_MACHINE"
+        )
 
-    win_registry = TestWinRegistry()
+        expected_path = "HKEY_LOCAL_MACHINE\\Software"
+        path = registry_key._JoinKeyPath(["HKEY_LOCAL_MACHINE", "Software"])
+        self.assertEqual(path, expected_path)
 
-    virtual_key = win_registry.GetKeyByPath('\\VirtualKey')
-    self.assertIsNotNone(virtual_key)
-    self.assertIsNone(virtual_key.offset)
+    def testAddSubkey(self):
+        """Tests the AddSubkey function."""
+        registry_key = virtual.VirtualWinRegistryKey(
+            "HKEY_LOCAL_MACHINE", relative_key_path="HKEY_LOCAL_MACHINE"
+        )
 
-  def testGetKeyFromRegistry(self):
-    """Tests the _GetKeyFromRegistry function."""
-    registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', relative_key_path='HKEY_LOCAL_MACHINE')
-    registry_key._GetKeyFromRegistry()
+        sub_registry_key = virtual.VirtualWinRegistryKey(
+            "System", relative_key_path="HKEY_LOCAL_MACHINE"
+        )
 
-    test_win_registry = TestWinRegistry()
-    registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', relative_key_path='HKEY_LOCAL_MACHINE',
-        registry=test_win_registry)
-    registry_key._GetKeyFromRegistry()
+        registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
 
-  def testGetKeyFromRegistryWithErrorRegistry(self):
-    """Tests the _GetKeyFromRegistry function with a registry that fails."""
-    test_win_registry = ErrorWinRegistry()
-    registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', relative_key_path='HKEY_LOCAL_MACHINE',
-        registry=test_win_registry)
-    registry_key._GetKeyFromRegistry()
+        with self.assertRaises(KeyError):
+            registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
 
-  def testJoinKeyPath(self):
-    """Tests the _JoinKeyPath function."""
-    registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', relative_key_path='HKEY_LOCAL_MACHINE')
+    def testGetSubkeyByIndex(self):
+        """Tests the GetSubkeyByIndex function."""
+        registry_key = self._CreateTestKey()
 
-    expected_path = 'HKEY_LOCAL_MACHINE\\Software'
-    path = registry_key._JoinKeyPath(['HKEY_LOCAL_MACHINE', 'Software'])
-    self.assertEqual(path, expected_path)
+        sub_registry_key = registry_key.GetSubkeyByIndex(0)
+        self.assertIsNotNone(sub_registry_key)
 
-  def testAddSubkey(self):
-    """Tests the AddSubkey function."""
-    registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', relative_key_path='HKEY_LOCAL_MACHINE')
+        expected_key_path = "HKEY_LOCAL_MACHINE\\System"
+        self.assertEqual(sub_registry_key.path, expected_key_path)
 
-    sub_registry_key = virtual.VirtualWinRegistryKey(
-        'System', relative_key_path='HKEY_LOCAL_MACHINE')
+        with self.assertRaises(IndexError):
+            registry_key.GetSubkeyByIndex(-1)
 
-    registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
+        win_registry = TestWinRegistry()
+        virtual_key = win_registry.GetKeyByPath("\\VirtualKey")
 
-    with self.assertRaises(KeyError):
-      registry_key.AddSubkey(sub_registry_key.name, sub_registry_key)
+        with self.assertRaises(IndexError):
+            virtual_key.GetSubkeyByIndex(0)
 
-  def testGetSubkeyByIndex(self):
-    """Tests the GetSubkeyByIndex function."""
-    registry_key = self._CreateTestKey()
+    def testGetSubkeyByIndexWithMappedRegistry(self):
+        """Tests the GetSubkeyByIndex function with a mapped registry."""
+        win_registry = self._CreateTestRegistryWithMappedFile()
 
-    sub_registry_key = registry_key.GetSubkeyByIndex(0)
-    self.assertIsNotNone(sub_registry_key)
+        mapped_key = win_registry.GetKeyByPath("HKEY_LOCAL_MACHINE\\System")
+        self.assertIsNotNone(mapped_key)
 
-    expected_key_path = 'HKEY_LOCAL_MACHINE\\System'
-    self.assertEqual(sub_registry_key.path, expected_key_path)
+        sub_registry_key = mapped_key.GetSubkeyByIndex(0)
+        self.assertIsNotNone(sub_registry_key)
 
-    with self.assertRaises(IndexError):
-      registry_key.GetSubkeyByIndex(-1)
+        with self.assertRaises(IndexError):
+            mapped_key.GetSubkeyByIndex(-1)
 
-    win_registry = TestWinRegistry()
-    virtual_key = win_registry.GetKeyByPath('\\VirtualKey')
+    def testGetSubkeyByName(self):
+        """Tests the GetSubkeyByName function."""
+        registry_key = self._CreateTestKey()
 
-    with self.assertRaises(IndexError):
-      virtual_key.GetSubkeyByIndex(0)
+        sub_registry_key = registry_key.GetSubkeyByName("Software")
+        self.assertIsNotNone(sub_registry_key)
 
-  def testGetSubkeyByIndexWithMappedRegistry(self):
-    """Tests the GetSubkeyByIndex function with a mapped registry."""
-    win_registry = self._CreateTestRegistryWithMappedFile()
+        expected_key_path = "HKEY_LOCAL_MACHINE\\Software"
+        self.assertEqual(sub_registry_key.path, expected_key_path)
 
-    mapped_key = win_registry.GetKeyByPath('HKEY_LOCAL_MACHINE\\System')
-    self.assertIsNotNone(mapped_key)
+        sub_registry_key = registry_key.GetSubkeyByName("Bogus")
+        self.assertIsNone(sub_registry_key)
 
-    sub_registry_key = mapped_key.GetSubkeyByIndex(0)
-    self.assertIsNotNone(sub_registry_key)
+        win_registry = TestWinRegistry()
+        virtual_key = win_registry.GetKeyByPath("\\VirtualKey")
 
-    with self.assertRaises(IndexError):
-      mapped_key.GetSubkeyByIndex(-1)
+        sub_registry_key = virtual_key.GetSubkeyByName("Bogus")
+        self.assertIsNone(sub_registry_key)
 
-  def testGetSubkeyByName(self):
-    """Tests the GetSubkeyByName function."""
-    registry_key = self._CreateTestKey()
+    def testGetSubkeyByNameWithMappedRegistry(self):
+        """Tests the GetSubkeyByName function with a mapped registry."""
+        win_registry = self._CreateTestRegistryWithMappedFile()
 
-    sub_registry_key = registry_key.GetSubkeyByName('Software')
-    self.assertIsNotNone(sub_registry_key)
+        mapped_key = win_registry.GetKeyByPath("HKEY_LOCAL_MACHINE\\System")
+        self.assertIsNotNone(mapped_key)
 
-    expected_key_path = 'HKEY_LOCAL_MACHINE\\Software'
-    self.assertEqual(sub_registry_key.path, expected_key_path)
+        sub_registry_key = mapped_key.GetSubkeyByName("ControlSet001")
+        self.assertIsNotNone(sub_registry_key)
 
-    sub_registry_key = registry_key.GetSubkeyByName('Bogus')
-    self.assertIsNone(sub_registry_key)
+        sub_registry_key = mapped_key.GetSubkeyByName("Bogus")
+        self.assertIsNone(sub_registry_key)
 
-    win_registry = TestWinRegistry()
-    virtual_key = win_registry.GetKeyByPath('\\VirtualKey')
+    def testGetSubkeyByPath(self):
+        """Tests the GetSubkeyByPath function."""
+        registry_key = self._CreateTestKey()
 
-    sub_registry_key = virtual_key.GetSubkeyByName('Bogus')
-    self.assertIsNone(sub_registry_key)
+        sub_registry_key = registry_key.GetSubkeyByPath("Software\\Classes")
+        self.assertIsNotNone(sub_registry_key)
+        self.assertEqual(sub_registry_key.name, "Classes")
 
-  def testGetSubkeyByNameWithMappedRegistry(self):
-    """Tests the GetSubkeyByName function with a mapped registry."""
-    win_registry = self._CreateTestRegistryWithMappedFile()
+        expected_key_path = "HKEY_LOCAL_MACHINE\\Software\\Classes"
+        self.assertEqual(sub_registry_key.path, expected_key_path)
 
-    mapped_key = win_registry.GetKeyByPath('HKEY_LOCAL_MACHINE\\System')
-    self.assertIsNotNone(mapped_key)
+        sub_registry_key = registry_key.GetSubkeyByPath("Software\\Bogus")
+        self.assertIsNone(sub_registry_key)
 
-    sub_registry_key = mapped_key.GetSubkeyByName('ControlSet001')
-    self.assertIsNotNone(sub_registry_key)
+        win_registry = TestWinRegistry()
+        virtual_key = win_registry.GetKeyByPath("\\VirtualKey")
 
-    sub_registry_key = mapped_key.GetSubkeyByName('Bogus')
-    self.assertIsNone(sub_registry_key)
+        sub_registry_key = virtual_key.GetSubkeyByPath("Software\\Bogus")
+        self.assertIsNone(sub_registry_key)
 
-  def testGetSubkeyByPath(self):
-    """Tests the GetSubkeyByPath function."""
-    registry_key = self._CreateTestKey()
+    def testGetSubkeyByPathWithMappedRegistry(self):
+        """Tests the GetSubkeyByPath function with a mapped registry."""
+        win_registry = self._CreateTestRegistryWithMappedFile()
 
-    sub_registry_key = registry_key.GetSubkeyByPath('Software\\Classes')
-    self.assertIsNotNone(sub_registry_key)
-    self.assertEqual(sub_registry_key.name, 'Classes')
+        mapped_key = win_registry.GetKeyByPath("HKEY_LOCAL_MACHINE\\System")
+        self.assertIsNotNone(mapped_key)
 
-    expected_key_path = (
-        'HKEY_LOCAL_MACHINE\\Software\\Classes')
-    self.assertEqual(sub_registry_key.path, expected_key_path)
+        sub_registry_key = mapped_key.GetSubkeyByPath("ControlSet001\\Control")
+        self.assertIsNotNone(sub_registry_key)
 
-    sub_registry_key = registry_key.GetSubkeyByPath('Software\\Bogus')
-    self.assertIsNone(sub_registry_key)
+    def testGetSubkeys(self):
+        """Tests the GetSubkeys function."""
+        registry_key = self._CreateTestKey()
 
-    win_registry = TestWinRegistry()
-    virtual_key = win_registry.GetKeyByPath('\\VirtualKey')
+        sub_registry_keys = list(registry_key.GetSubkeys())
+        self.assertEqual(len(sub_registry_keys), 2)
 
-    sub_registry_key = virtual_key.GetSubkeyByPath('Software\\Bogus')
-    self.assertIsNone(sub_registry_key)
+        win_registry = TestWinRegistry()
+        virtual_key = win_registry.GetKeyByPath("\\VirtualKey")
 
-  def testGetSubkeyByPathWithMappedRegistry(self):
-    """Tests the GetSubkeyByPath function with a mapped registry."""
-    win_registry = self._CreateTestRegistryWithMappedFile()
+        sub_registry_keys = list(virtual_key.GetSubkeys())
+        self.assertEqual(len(sub_registry_keys), 0)
 
-    mapped_key = win_registry.GetKeyByPath('HKEY_LOCAL_MACHINE\\System')
-    self.assertIsNotNone(mapped_key)
+    def testGetSubkeysWithMappedRegistry(self):
+        """Tests the GetSubkeys function with a mapped registry."""
+        win_registry = self._CreateTestRegistryWithMappedFile()
 
-    sub_registry_key = mapped_key.GetSubkeyByPath('ControlSet001\\Control')
-    self.assertIsNotNone(sub_registry_key)
+        mapped_key = win_registry.GetKeyByPath("HKEY_LOCAL_MACHINE\\System")
+        self.assertIsNotNone(mapped_key)
 
-  def testGetSubkeys(self):
-    """Tests the GetSubkeys function."""
-    registry_key = self._CreateTestKey()
+        sub_registry_keys = list(mapped_key.GetSubkeys())
+        self.assertEqual(len(sub_registry_keys), 9)
 
-    sub_registry_keys = list(registry_key.GetSubkeys())
-    self.assertEqual(len(sub_registry_keys), 2)
+    def testGetValueByName(self):
+        """Tests the GetValueByName function."""
+        registry_key = self._CreateTestKey()
 
-    win_registry = TestWinRegistry()
-    virtual_key = win_registry.GetKeyByPath('\\VirtualKey')
+        registry_value = registry_key.GetValueByName("")
+        self.assertIsNone(registry_value)
 
-    sub_registry_keys = list(virtual_key.GetSubkeys())
-    self.assertEqual(len(sub_registry_keys), 0)
+        win_registry = TestWinRegistry()
+        virtual_key = win_registry.GetKeyByPath("\\VirtualKey")
 
-  def testGetSubkeysWithMappedRegistry(self):
-    """Tests the GetSubkeys function with a mapped registry."""
-    win_registry = self._CreateTestRegistryWithMappedFile()
+        registry_value = virtual_key.GetValueByName("")
+        self.assertIsNone(registry_value)
 
-    mapped_key = win_registry.GetKeyByPath('HKEY_LOCAL_MACHINE\\System')
-    self.assertIsNotNone(mapped_key)
+    def testGetValueByNameWithMappedRegistry(self):
+        """Tests the GetValueByName function with a mapped registry."""
+        win_registry = self._CreateTestRegistryWithMappedFile()
 
-    sub_registry_keys = list(mapped_key.GetSubkeys())
-    self.assertEqual(len(sub_registry_keys), 9)
+        mapped_key = win_registry.GetKeyByPath("HKEY_LOCAL_MACHINE\\System")
+        self.assertIsNotNone(mapped_key)
 
-  def testGetValueByName(self):
-    """Tests the GetValueByName function."""
-    registry_key = self._CreateTestKey()
+        registry_value = mapped_key.GetValueByName("")
+        self.assertIsNone(registry_value)
 
-    registry_value = registry_key.GetValueByName('')
-    self.assertIsNone(registry_value)
+    def testGetValueByNameWithErrorRegistry(self):
+        """Tests the GetValueByName function with a registry that fails."""
+        test_win_registry = ErrorWinRegistry()
+        registry_key = virtual.VirtualWinRegistryKey(
+            "HKEY_LOCAL_MACHINE",
+            relative_key_path="HKEY_LOCAL_MACHINE",
+            registry=test_win_registry,
+        )
 
-    win_registry = TestWinRegistry()
-    virtual_key = win_registry.GetKeyByPath('\\VirtualKey')
+        registry_value = registry_key.GetValueByName("")
+        self.assertIsNone(registry_value)
 
-    registry_value = virtual_key.GetValueByName('')
-    self.assertIsNone(registry_value)
+    def testGetValues(self):
+        """Tests the GetValues function."""
+        registry_key = self._CreateTestKey()
 
-  def testGetValueByNameWithMappedRegistry(self):
-    """Tests the GetValueByName function with a mapped registry."""
-    win_registry = self._CreateTestRegistryWithMappedFile()
+        values = list(registry_key.GetValues())
+        self.assertEqual(len(values), 0)
 
-    mapped_key = win_registry.GetKeyByPath('HKEY_LOCAL_MACHINE\\System')
-    self.assertIsNotNone(mapped_key)
+        win_registry = TestWinRegistry()
+        virtual_key = win_registry.GetKeyByPath("\\VirtualKey")
 
-    registry_value = mapped_key.GetValueByName('')
-    self.assertIsNone(registry_value)
+        values = list(virtual_key.GetValues())
+        self.assertEqual(len(values), 0)
 
-  def testGetValueByNameWithErrorRegistry(self):
-    """Tests the GetValueByName function with a registry that fails."""
-    test_win_registry = ErrorWinRegistry()
-    registry_key = virtual.VirtualWinRegistryKey(
-        'HKEY_LOCAL_MACHINE', relative_key_path='HKEY_LOCAL_MACHINE',
-        registry=test_win_registry)
+    def testGetValuesWithMappedRegistry(self):
+        """Tests the GetValues function with a mapped registry."""
+        win_registry = self._CreateTestRegistryWithMappedFile()
 
-    registry_value = registry_key.GetValueByName('')
-    self.assertIsNone(registry_value)
+        mapped_key = win_registry.GetKeyByPath("HKEY_LOCAL_MACHINE\\System")
+        self.assertIsNotNone(mapped_key)
 
-  def testGetValues(self):
-    """Tests the GetValues function."""
-    registry_key = self._CreateTestKey()
+        values = list(mapped_key.GetValues())
+        self.assertEqual(len(values), 0)
 
-    values = list(registry_key.GetValues())
-    self.assertEqual(len(values), 0)
 
-    win_registry = TestWinRegistry()
-    virtual_key = win_registry.GetKeyByPath('\\VirtualKey')
-
-    values = list(virtual_key.GetValues())
-    self.assertEqual(len(values), 0)
-
-  def testGetValuesWithMappedRegistry(self):
-    """Tests the GetValues function with a mapped registry."""
-    win_registry = self._CreateTestRegistryWithMappedFile()
-
-    mapped_key = win_registry.GetKeyByPath('HKEY_LOCAL_MACHINE\\System')
-    self.assertIsNotNone(mapped_key)
-
-    values = list(mapped_key.GetValues())
-    self.assertEqual(len(values), 0)
-
-
-if __name__ == '__main__':
-  unittest.main()
+if __name__ == "__main__":
+    unittest.main()

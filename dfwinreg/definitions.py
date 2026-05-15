@@ -1,6 +1,6 @@
 """The Windows Registry definitions."""
 
-KEY_PATH_SEPARATOR = '\\'
+KEY_PATH_SEPARATOR = "\\"
 
 # The Registry value types.
 REG_NONE = 0

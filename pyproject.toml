@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dfwinreg"
-version = "20260513"
+version = "20260515"
 description = "Digital Forensics Windows Registry (dfWinReg)"
 maintainers = [
     { name = "Log2Timeline maintainers", email = "log2timeline-maintainers@googlegroups.com" },
@@ -29,6 +29,11 @@ dependencies = [
 Documentation = "https://dfwinreg.readthedocs.io/en/latest"
 Homepage = "https://github.com/log2timeline/dfwinreg"
 Repository = "https://github.com/log2timeline/dfwinreg"
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+include = "\\.pyi?$"
 
 [tool.setuptools]
 package-dir = {"dfwinreg" = "dfwinreg"}

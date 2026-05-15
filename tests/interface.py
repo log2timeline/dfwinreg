@@ -7,27 +7,27 @@ from tests import test_lib
 
 
 class WinRegistryFileTest(test_lib.BaseTestCase):
-  """Tests for the Windows Registry file interface."""
+    """Tests for the Windows Registry file interface."""
 
-  # TODO: add tests for RecurseKeys
-  # TODO: add tests for SetKeyPathPrefix
+    # TODO: add tests for RecurseKeys
+    # TODO: add tests for SetKeyPathPrefix
 
 
 class WinRegistryKeyTest(test_lib.BaseTestCase):
-  """Tests for the Windows Registry key interface."""
+    """Tests for the Windows Registry key interface."""
 
-  # TODO: add tests for path property
-  # TODO: add tests for RecurseKeys
+    # TODO: add tests for path property
+    # TODO: add tests for RecurseKeys
 
 
 class WinRegistryValueTest(test_lib.BaseTestCase):
-  """Tests for the Windows Registry value interface."""
+    """Tests for the Windows Registry value interface."""
 
-  # TODO: add tests for DataIsBinaryData
-  # TODO: add tests for DataIsInteger
-  # TODO: add tests for DataIsMultiString
-  # TODO: add tests for DataIsString
+    # TODO: add tests for DataIsBinaryData
+    # TODO: add tests for DataIsInteger
+    # TODO: add tests for DataIsMultiString
+    # TODO: add tests for DataIsString
 
 
-if __name__ == '__main__':
-  unittest.main()
+if __name__ == "__main__":
+    unittest.main()
