@@ -322,8 +322,8 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
 class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
     """Implementation of a virtual Windows Registry key using pyregf.
 
-    Virtual Windows Registry key are used to handle keys that do not exist on-disk
-    but do exist at run-time, like HKEY_LOCAL_MACHINE\\System\\CurrentControlSet.
+    Virtual Windows Registry key are used to handle keys that do not exist on-disk but
+    do exist at run-time, like HKEY_LOCAL_MACHINE\\System\\CurrentControlSet.
     """
 
     def __init__(

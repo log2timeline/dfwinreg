@@ -8,10 +8,9 @@ from dfwinreg import key_paths
 class VirtualWinRegistryKey(interface.WinRegistryKey):
     """Virtual Windows Registry key.
 
-    Virtual Windows Registry key are keys that do not exist on-disk but do exist
-    at run-time, such an example HKEY_LOCAL_MACHINE\\System. The virtual key is
-    used to "mount" the SYSTEM Windows Registry file onto the key
-    HKEY_LOCAL_MACHINE\\System.
+    Virtual Windows Registry key are keys that do not exist on-disk but do exist at run-
+    time, such an example HKEY_LOCAL_MACHINE\\System. The virtual key is used to "mount"
+    the SYSTEM Windows Registry file onto the key HKEY_LOCAL_MACHINE\\System.
     """
 
     # TODO: move registry to key_helper
