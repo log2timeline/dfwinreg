@@ -16,13 +16,10 @@ jobs:
       uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Set up uv
-      uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
-      with:
-        enable-cache: true
-    - name: Install dependencies
+    - name: Install tox
       run: |
-        uv sync
+        python -m pip install --upgrade pip
+        python -m pip install tox tox-gh-actions
     - name: Run tests
       run: |
-        uv run run_tests.py
+        tox -epy314
