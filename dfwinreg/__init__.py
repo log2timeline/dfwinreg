@@ -4,4 +4,4 @@ dfWinReg, or Digital Forensics Windows Registry, is a Python module that provide
 only access to Windows Registry objects.
 """
 
-__version__ = "20260513"
+__version__ = "20260709"
