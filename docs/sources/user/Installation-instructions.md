@@ -14,7 +14,7 @@ cd dfwinreg_venv
 source ./bin/activate
 ```
 
-Upgrade pip and install dfWinReg dependencies:
+Upgrade pip and install dfWinReg:
 
 ```bash
 pip install --upgrade pip
