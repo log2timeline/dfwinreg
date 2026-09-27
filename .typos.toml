@@ -1,0 +1,11 @@
+[files]
+extend-exclude = [
+    "test_data/"
+]
+
+[default]
+binary = false
+check-filename = true
+check-file = true
+unicode = true
+locale = "en-us"

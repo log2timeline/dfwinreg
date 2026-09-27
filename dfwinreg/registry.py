@@ -549,7 +549,7 @@ class WinRegistry:
         """Determines the Registry file mapping based on the content of the file.
 
         Args:
-          registry_file (WinRegistyFile): Windows Registry file.
+          registry_file (WinRegistryFile): Windows Registry file.
 
         Returns:
           str: key path prefix or an empty string.
