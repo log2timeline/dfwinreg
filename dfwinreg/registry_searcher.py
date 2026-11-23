@@ -171,6 +171,22 @@ class FindSpec:
 
         return True
 
+    def _GetKeyName(self, registry_key):
+        """Retrieves the name of a key as it appears in its key path.
+
+        Args:
+          registry_key (WinRegistryKey): Windows Registry key.
+
+        Returns:
+          str: last segment of the key path of the Windows Registry key.
+        """
+        # The name is the last key path segment, unless the name is empty or
+        # contains a path separator, in which case the key path is used.
+        key_name = registry_key.name
+        if not key_name or "\\" in key_name:
+            key_name = registry_key.path.rsplit("\\", maxsplit=1)[-1]
+        return key_name
+
     def _CompareWithKeyPathSegment(self, key_path_segment, segment_index):
         """Compares a key path segment against a find specification.
 
@@ -293,7 +309,10 @@ class FindSpec:
               that of the find specification, False if not or if the find
               specification has no key path defined.
         """
-        key_name = registry_key.path.rsplit("\\", maxsplit=1)[-1]
+        if self._key_path_segments is None:
+            return False
+
+        key_name = self._GetKeyName(registry_key)
         return self._CompareWithKeyPathSegment(key_name, segment_index)
 
     def HasKeyPath(self):
@@ -379,6 +398,7 @@ class WinRegistrySearcher:
         Yields:
           str: key path of a matching Windows Registry key.
         """
+        key_path = None
         sub_find_specs = []
         for find_spec in find_specs:
             has_key_path = find_spec.HasKeyPath()
@@ -388,13 +408,15 @@ class WinRegistrySearcher:
             )
             is_last_key_path_segment = find_spec.IsLastKeyPathSegment(segment_index)
 
-            if key_path_match and is_last_key_path_segment:
-                # Check if the full key path matches.
-                key_path_match = find_spec.CompareKeyPath(registry_key)
-
+            # The ancestors of the key matched their key path segments, since
+            # find specifications are only passed down while these match, hence
+            # there is no need to compare the full key path again at the last
+            # key path segment.
             if not has_key_path or (key_path_match and is_last_key_path_segment):
                 # TODO: add support for CompareTraits.
-                yield registry_key.path
+                if key_path is None:
+                    key_path = registry_key.path
+                yield key_path
 
             at_last_key_path_segment = find_spec.AtLastKeyPathSegment(segment_index)
             if (not has_key_path or key_path_match) and not at_last_key_path_segment:

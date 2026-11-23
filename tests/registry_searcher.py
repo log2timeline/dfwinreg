@@ -234,6 +234,23 @@ class FindSpecTest(test_lib.BaseTestCase):
         result = find_spec.CompareNameWithKeyPathSegment(registry_key, 2)
         self.assertFalse(result)
 
+    def testCompareNameWithKeyPathSegmentWithoutKeyPath(self):
+        """Test CompareNameWithKeyPathSegment without a key path or key name."""
+        registry_key = fake.FakeWinRegistryKey("Microsoft")
+        find_spec = registry_searcher.FindSpec()
+        self.assertFalse(find_spec.CompareNameWithKeyPathSegment(registry_key, 0))
+
+        # A key name with a path separator uses the last key path segment.
+        registry_key = fake.FakeWinRegistryKey(
+            "Software\\Microsoft",
+            key_path_prefix="HKEY_CURRENT_USER",
+            relative_key_path="Software\\Microsoft",
+        )
+        find_spec = registry_searcher.FindSpec(
+            key_path="HKEY_CURRENT_USER\\Software\\Microsoft"
+        )
+        self.assertTrue(find_spec.CompareNameWithKeyPathSegment(registry_key, 2))
+
     def testHasKeyPath(self):
         """Test the HasKeyPath function."""
         find_spec = registry_searcher.FindSpec()
@@ -290,6 +307,31 @@ class FindSpecTest(test_lib.BaseTestCase):
         self.assertEqual(result, (True, None))
 
 
+class _CountingWinRegistryKey(fake.FakeWinRegistryKey):
+    """Fake Windows Registry key that counts reads of the path property."""
+
+    path_reads = 0
+
+    @property
+    def path(self):
+        """str: Windows Registry key path."""
+        _CountingWinRegistryKey.path_reads += 1
+        return super().path
+
+
+class _TestWinRegistry:
+    """Windows Registry stub that only provides a root key."""
+
+    def __init__(self, root_key):
+        """Initializes the Windows Registry stub."""
+        super().__init__()
+        self._root_key = root_key
+
+    def GetRootKey(self):
+        """Retrieves the root key."""
+        return self._root_key
+
+
 class WinRegistrySearcherTest(test_lib.BaseTestCase):
     """Tests for the Windows Registry searcher."""
 
@@ -301,6 +343,104 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
             registry_searcher.WinRegistrySearcher(None)
 
     # TODO: add tests for _FindInKey
+
+    def _BuildCountingRegistry(self):
+        """Builds a Windows Registry with HKEY_LOCAL_MACHINE\\Software\\*."""
+        root_key = _CountingWinRegistryKey("")
+        hklm_key = _CountingWinRegistryKey("HKEY_LOCAL_MACHINE")
+        root_key.AddSubkey("HKEY_LOCAL_MACHINE", hklm_key)
+        software_key = _CountingWinRegistryKey("Software")
+        hklm_key.AddSubkey("Software", software_key)
+        for name in ("Alpha", "Beta", "Gamma"):
+            software_key.AddSubkey(name, _CountingWinRegistryKey(name))
+        # Same name as a key above, but a different parent.
+        hklm_key.AddSubkey("Alpha", _CountingWinRegistryKey("Alpha"))
+        return _TestWinRegistry(root_key)
+
+    def testFindReadsPathOnlyForMatches(self):
+        """Tests that Find only builds the key path of matching keys."""
+        searcher = registry_searcher.WinRegistrySearcher(self._BuildCountingRegistry())
+
+        _CountingWinRegistryKey.path_reads = 0
+        find_spec = registry_searcher.FindSpec(
+            key_path="HKEY_LOCAL_MACHINE\\Software\\Alpha"
+        )
+        key_paths = list(searcher.Find(find_specs=[find_spec]))
+        self.assertEqual(key_paths, ["HKEY_LOCAL_MACHINE\\Software\\Alpha"])
+        self.assertEqual(_CountingWinRegistryKey.path_reads, 1)
+
+        _CountingWinRegistryKey.path_reads = 0
+        find_spec = registry_searcher.FindSpec(
+            key_path_glob="HKEY_LOCAL_MACHINE\\Software\\*"
+        )
+        key_paths = list(searcher.Find(find_specs=[find_spec]))
+        self.assertEqual(len(key_paths), 3)
+        self.assertEqual(_CountingWinRegistryKey.path_reads, 3)
+
+        # Several find specifications matching the same key share one path.
+        _CountingWinRegistryKey.path_reads = 0
+        find_specs = [
+            registry_searcher.FindSpec(key_path="HKEY_LOCAL_MACHINE\\Alpha"),
+            registry_searcher.FindSpec(key_path_glob="HKEY_LOCAL_MACHINE\\A*"),
+        ]
+        key_paths = list(searcher.Find(find_specs=find_specs))
+        self.assertEqual(key_paths, ["HKEY_LOCAL_MACHINE\\Alpha"] * 2)
+        self.assertEqual(_CountingWinRegistryKey.path_reads, 1)
+
+    def testFindWithNonMatchingKeyPaths(self):
+        """Tests Find with specifications that do not match."""
+        searcher = registry_searcher.WinRegistrySearcher(self._BuildCountingRegistry())
+
+        for find_spec in (
+            registry_searcher.FindSpec(key_path="HKEY_LOCAL_MACHINE\\Alpha\\Bogus"),
+            registry_searcher.FindSpec(key_path="HKEY_CURRENT_USER\\Alpha"),
+            registry_searcher.FindSpec(key_path="HKEY_LOCAL_MACHINE\\Bogus\\Alpha"),
+            registry_searcher.FindSpec(key_path="Software\\Alpha"),
+        ):
+            self.assertEqual(list(searcher.Find(find_specs=[find_spec])), [])
+
+        find_spec = registry_searcher.FindSpec(
+            key_path_regex=["HKEY_LOCAL_MACHINE", "Software", "(Alpha|Gamma)"]
+        )
+        self.assertEqual(
+            list(searcher.Find(find_specs=[find_spec])),
+            [
+                "HKEY_LOCAL_MACHINE\\Software\\Alpha",
+                "HKEY_LOCAL_MACHINE\\Software\\Gamma",
+            ],
+        )
+
+    def testFindMatchesCompareKeyPath(self):
+        """Tests Find results equal the full CompareKeyPath comparison."""
+        searcher = registry_searcher.WinRegistrySearcher(self._BuildCountingRegistry())
+
+        specs = [
+            {"key_path": "HKEY_LOCAL_MACHINE\\Software\\beta"},
+            {"key_path_glob": "HKEY_LOCAL_MACHINE\\*\\?lpha"},
+            {"key_path_glob": "*\\Software"},
+            {"key_path_regex": ["HKEY_LOCAL_MACHINE", ".*"]},
+            {"key_path": ["HKEY_LOCAL_MACHINE", "Alpha"]},
+        ]
+        for spec in specs:
+            expected = []
+            stack = list(
+                reversed(list(searcher._win_registry.GetRootKey().GetSubkeys()))
+            )
+            while stack:
+                registry_key = stack.pop()
+                reference_spec = registry_searcher.FindSpec(**spec)
+                number_of_segments = len(registry_key.path.split("\\"))
+                if (
+                    number_of_segments == reference_spec._number_of_key_path_segments
+                    and reference_spec.CompareKeyPath(registry_key)
+                ):
+                    expected.append(registry_key.path)
+                stack.extend(reversed(list(registry_key.GetSubkeys())))
+
+            find_spec = registry_searcher.FindSpec(**spec)
+            self.assertEqual(
+                sorted(searcher.Find(find_specs=[find_spec])), sorted(expected), spec
+            )
 
     def testFind(self):
         """Tests the Find function."""
