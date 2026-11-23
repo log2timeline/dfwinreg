@@ -155,6 +155,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
         self._name = name
         self._offset = offset
         self._subkeys = collections.OrderedDict()
+        self._subkeys_list = []
         self._values = collections.OrderedDict()
 
         self._BuildKeyHierarchy(subkeys, values)
@@ -205,6 +206,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
                 if name in self._subkeys:
                     continue
                 self._subkeys[name] = registry_key
+                self._subkeys_list.append(registry_key)
 
                 relative_key_path = key_paths.JoinKeyPath(
                     [self._relative_key_path, registry_key.name]
@@ -236,6 +238,7 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
             raise KeyError(f"Subkey: {name:s} already exists.")
 
         self._subkeys[name_upper] = registry_key
+        self._subkeys_list.append(registry_key)
 
         relative_key_path = key_paths.JoinKeyPath([self._relative_key_path, name])
 
@@ -270,12 +273,10 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
         Raises:
           IndexError: if the index is out of bounds.
         """
-        subkeys = list(self._subkeys.values())
-
-        if index < 0 or index >= len(subkeys):
+        if index < 0 or index >= len(self._subkeys_list):
             raise IndexError("Index out of bounds.")
 
-        return subkeys[index]
+        return self._subkeys_list[index]
 
     def GetSubkeyByName(self, name):
         """Retrieves a subkey by name.
