@@ -29,8 +29,18 @@ jobs:
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
-        apt update -q
-        apt install -y libterm-readline-gnu-perl locales software-properties-common
+        # Retry apt downloads, since the Launchpad PPAs are intermittently unavailable.
+        printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\n' > /etc/apt/apt.conf.d/80-retries
+        apt_ok=0
+        for attempt in 1 2 3; do
+          if apt update -q && apt install -y --fix-missing libterm-readline-gnu-perl locales software-properties-common; then
+            apt_ok=1
+            break
+          fi
+          echo "apt attempt ${attempt} failed"
+          sleep $((attempt * 30))
+        done
+        [ "${apt_ok}" = 1 ] || { echo 'apt failed after 3 attempts'; exit 1; }
         locale-gen en_US.UTF-8
         ln -f -s /usr/share/zoneinfo/UTC /etc/localtime
     - name: Install dependencies
@@ -40,8 +50,18 @@ jobs:
         add-apt-repository -y universe
         add-apt-repository -y ppa:deadsnakes/ppa
         add-apt-repository -y ppa:gift/dev
-        apt update -q
-        apt install -y build-essential git pkg-config python${{ matrix.python-version }} python${{ matrix.python-version }}-dev python${{ matrix.python-version }}-venv libcreg-python3 libregf-python3 python3-dfdatetime python3-dtfabric python3-pip python3-setuptools python3-yaml tox
+        # Retry apt downloads, since the Launchpad PPAs are intermittently unavailable.
+        printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\n' > /etc/apt/apt.conf.d/80-retries
+        apt_ok=0
+        for attempt in 1 2 3; do
+          if apt update -q && apt install -y --fix-missing build-essential git pkg-config python${{ matrix.python-version }} python${{ matrix.python-version }}-dev python${{ matrix.python-version }}-venv libcreg-python3 libregf-python3 python3-dfdatetime python3-dtfabric python3-pip python3-setuptools python3-yaml tox; then
+            apt_ok=1
+            break
+          fi
+          echo "apt attempt ${attempt} failed"
+          sleep $((attempt * 30))
+        done
+        [ "${apt_ok}" = 1 ] || { echo 'apt failed after 3 attempts'; exit 1; }
     - name: Run tests
       env:
         LANG: en_US.UTF-8
