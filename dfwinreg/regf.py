@@ -697,13 +697,15 @@ class REGFWinRegistryValue(interface.WinRegistryValue):
           WinRegistryValueError: if the value data cannot be read.
         """
         try:
-            if self._pyregf_value.type in self._STRING_VALUE_TYPES:
+            value_type = self._pyregf_value.type
+
+            if value_type in self._STRING_VALUE_TYPES:
                 value_data = self._pyregf_value.get_data_as_string()
 
-            elif self._pyregf_value.type in definitions.INTEGER_VALUE_TYPES:
+            elif value_type in definitions.INTEGER_VALUE_TYPES:
                 value_data = self._pyregf_value.get_data_as_integer()
 
-            elif self._pyregf_value.type == definitions.REG_MULTI_SZ:
+            elif value_type == definitions.REG_MULTI_SZ:
                 value_data = self._pyregf_value.get_data_as_multi_string()
 
             else:

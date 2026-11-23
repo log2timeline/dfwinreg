@@ -3,6 +3,7 @@
 
 import unittest
 
+from dfwinreg import definitions
 from dfwinreg import errors
 from dfwinreg import creg
 
@@ -1024,6 +1025,58 @@ class CREGWinRegistryValueTest(test_lib.BaseTestCase):
 
             finally:
                 registry_file.Close()
+
+    def testGetDataAsObjectReadsTypeOnce(self):
+        """Tests GetDataAsObject reads the value type once."""
+
+        class CountingValue:
+            """Fake pycreg value that counts reads of the type."""
+
+            # pylint: disable=invalid-name
+
+            name = "Test"
+
+            def __init__(self, value_type):
+                """Initializes a counting fake value."""
+                super().__init__()
+                self._value_type = value_type
+                self.type_reads = 0
+
+            @property
+            def type(self):
+                """str: value type."""
+                self.type_reads += 1
+                return self._value_type
+
+            def get_data_as_integer(self):
+                """Retrieves the data as an integer."""
+                return 1
+
+            def get_data_as_multi_string(self):
+                """Retrieves the data as a multi string."""
+                return ["a"]
+
+            def get_data_as_string(self):
+                """Retrieves the data as a string."""
+                return "a"
+
+            @property
+            def data(self):
+                """bytes: value data."""
+                return b"a"
+
+        expected_values = (
+            ("REG_SZ", "a"),
+            ("REG_DWORD", 1),
+            ("REG_MULTI_SZ", ["a"]),
+            ("REG_BINARY", b"a"),
+        )
+        for value_type, expected_data in expected_values:
+            fake_value = CountingValue(getattr(definitions, value_type))
+            registry_value = creg.CREGWinRegistryValue(fake_value)
+
+            self.assertEqual(registry_value.GetDataAsObject(), expected_data)
+            self.assertEqual(fake_value.type_reads, 1)
 
     def testGetDataAsObject(self):
         """Tests the GetDataAsObject function."""
