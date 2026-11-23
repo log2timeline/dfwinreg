@@ -300,7 +300,76 @@ class WinRegistrySearcherTest(test_lib.BaseTestCase):
         with self.assertRaises(ValueError):
             registry_searcher.WinRegistrySearcher(None)
 
-    # TODO: add tests for _FindInKey
+    def _FindInKeyRecursive(self, registry_key, find_specs, segment_index):
+        """Reference recursive implementation of _FindInKey."""
+        sub_find_specs = []
+        for find_spec in find_specs:
+            has_key_path = find_spec.HasKeyPath()
+            key_path_match = find_spec.CompareNameWithKeyPathSegment(
+                registry_key, segment_index
+            )
+            is_last_key_path_segment = find_spec.IsLastKeyPathSegment(segment_index)
+
+            if key_path_match and is_last_key_path_segment:
+                key_path_match = find_spec.CompareKeyPath(registry_key)
+
+            if not has_key_path or (key_path_match and is_last_key_path_segment):
+                yield registry_key.path
+
+            at_last_key_path_segment = find_spec.AtLastKeyPathSegment(segment_index)
+            if (not has_key_path or key_path_match) and not at_last_key_path_segment:
+                sub_find_specs.append(find_spec)
+
+        if sub_find_specs:
+            segment_index += 1
+            for sub_registry_key in registry_key.GetSubkeys():
+                yield from self._FindInKeyRecursive(
+                    sub_registry_key, sub_find_specs, segment_index
+                )
+
+    def testFindInKey(self):
+        """Tests the _FindInKey function against the recursive reference."""
+        root_key = fake.FakeWinRegistryKey("")
+        for name_a in ("Software", "System", "Classes"):
+            key_a = fake.FakeWinRegistryKey(name_a)
+            root_key.AddSubkey(name_a, key_a)
+            for name_b in ("Microsoft", "Vendor", "Control"):
+                key_b = fake.FakeWinRegistryKey(name_b)
+                key_a.AddSubkey(name_b, key_b)
+                for name_c in ("Run", "Version", "Settings"):
+                    key_b.AddSubkey(name_c, fake.FakeWinRegistryKey(name_c))
+
+        searcher = registry_searcher.WinRegistrySearcher(registry.WinRegistry())
+
+        test_find_specs = [
+            [registry_searcher.FindSpec()],
+            [registry_searcher.FindSpec(key_path_glob="*\\Microsoft\\*")],
+            [registry_searcher.FindSpec(key_path="System\\Control")],
+            [registry_searcher.FindSpec(key_path_regex=["^S.*", ".*", "^R.*"])],
+            [
+                registry_searcher.FindSpec(key_path_glob="Software\\*"),
+                registry_searcher.FindSpec(key_path="Classes\\Vendor\\Run"),
+                registry_searcher.FindSpec(key_path_glob="*\\*\\Version"),
+            ],
+        ]
+        for find_specs in test_find_specs:
+            expected_key_paths = list(self._FindInKeyRecursive(root_key, find_specs, 0))
+            key_paths = list(searcher._FindInKey(root_key, find_specs, 0))
+            self.assertEqual(key_paths, expected_key_paths)
+
+        self.assertGreater(
+            len(list(searcher._FindInKey(root_key, test_find_specs[0], 0))), 30
+        )
+
+        # A hierarchy deeper than the recursion limit.
+        parent_key = deep_key = fake.FakeWinRegistryKey("")
+        for index in range(1500):
+            sub_key = fake.FakeWinRegistryKey(f"K{index:d}")
+            parent_key.AddSubkey(sub_key.name, sub_key)
+            parent_key = sub_key
+
+        key_paths = list(searcher._FindInKey(deep_key, test_find_specs[0], 0))
+        self.assertEqual(len(key_paths), 1501)
 
     def testFind(self):
         """Tests the Find function."""

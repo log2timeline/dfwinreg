@@ -134,6 +134,40 @@ class FakeWinRegistryFileTest(FakeWinRegTestCase):
 
         self.assertEqual(len(registry_keys), 2)
 
+    def testRecurseKeysOrderAndDepth(self):
+        """Tests the RecurseKeys function pre-order and deep hierarchies."""
+        root_key = fake.FakeWinRegistryKey("Root")
+        expected_names = ["Root"]
+        for name_a in ("A", "B", "C"):
+            key_a = fake.FakeWinRegistryKey(name_a)
+            root_key.AddSubkey(name_a, key_a)
+            expected_names.append(name_a)
+            for name_b in ("1", "2"):
+                key_b = fake.FakeWinRegistryKey(name_b)
+                key_a.AddSubkey(name_b, key_b)
+                expected_names.append(name_b)
+                key_b.AddSubkey("x", fake.FakeWinRegistryKey("x"))
+                expected_names.append("x")
+
+        names = [registry_key.name for registry_key in root_key.RecurseKeys()]
+        self.assertEqual(names, expected_names)
+
+        # A hierarchy deeper than the recursion limit.
+        parent_key = root_key = fake.FakeWinRegistryKey("Root")
+        for index in range(1500):
+            sub_key = fake.FakeWinRegistryKey(f"K{index:d}")
+            parent_key.AddSubkey(sub_key.name, sub_key)
+            parent_key = sub_key
+
+        self.assertEqual(len(list(root_key.RecurseKeys())), 1501)
+
+        # A hierarchy that contains a cycle must fail instead of running forever.
+        cycle_key = fake.FakeWinRegistryKey("Cycle")
+        cycle_key.AddSubkey("Cycle", cycle_key)
+        with self.assertRaises(RecursionError):
+            for _ in cycle_key.RecurseKeys():
+                pass
+
 
 class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
     """Tests for a fake Windows Registry key."""

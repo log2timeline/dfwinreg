@@ -96,6 +96,12 @@ class WinRegistryFileReader:
         """
 
 
+# Maximum depth of a key hierarchy that is traversed, which guards against
+# hierarchies that contain a cycle. The previous recursive implementation failed
+# with a RecursionError at a depth of about 1000.
+MAXIMUM_KEY_DEPTH = 4096
+
+
 class WinRegistryKey:
     """Windows Registry key interface."""
 
@@ -217,8 +223,23 @@ class WinRegistryKey:
           WinRegistryKey: Windows Registry key.
         """
         yield self
-        for subkey in self.GetSubkeys():
-            yield from subkey.RecurseKeys()
+
+        # Note that the subkeys are traversed with an explicit stack instead of
+        # recursive generators, which cost O(depth) per yielded key.
+        subkey_iterators = [iter(self.GetSubkeys())]
+        while subkey_iterators:
+            try:
+                subkey = next(subkey_iterators[-1])
+            except StopIteration:
+                subkey_iterators.pop()
+                continue
+
+            yield subkey
+
+            if len(subkey_iterators) >= MAXIMUM_KEY_DEPTH:
+                raise RecursionError("Maximum key depth exceeded.")
+
+            subkey_iterators.append(iter(subkey.GetSubkeys()))
 
 
 class WinRegistryKeyHelper:

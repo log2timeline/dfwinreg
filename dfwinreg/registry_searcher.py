@@ -9,6 +9,7 @@ except ImportError:
 
 from dfwinreg import decorators
 from dfwinreg import glob2regex
+from dfwinreg import interface
 from dfwinreg import key_paths
 
 
@@ -379,33 +380,54 @@ class WinRegistrySearcher:
         Yields:
           str: key path of a matching Windows Registry key.
         """
-        sub_find_specs = []
-        for find_spec in find_specs:
-            has_key_path = find_spec.HasKeyPath()
-            # Do a quick check to see if the current key path segment matches.
-            key_path_match = find_spec.CompareNameWithKeyPathSegment(
-                registry_key, segment_index
-            )
-            is_last_key_path_segment = find_spec.IsLastKeyPathSegment(segment_index)
-
-            if key_path_match and is_last_key_path_segment:
-                # Check if the full key path matches.
-                key_path_match = find_spec.CompareKeyPath(registry_key)
-
-            if not has_key_path or (key_path_match and is_last_key_path_segment):
-                # TODO: add support for CompareTraits.
-                yield registry_key.path
-
-            at_last_key_path_segment = find_spec.AtLastKeyPathSegment(segment_index)
-            if (not has_key_path or key_path_match) and not at_last_key_path_segment:
-                sub_find_specs.append(find_spec)
-
-        if sub_find_specs:
-            segment_index += 1
-            for sub_registry_key in registry_key.GetSubkeys():
-                yield from self._FindInKey(
-                    sub_registry_key, sub_find_specs, segment_index
+        # Note that the Windows Registry is traversed with an explicit stack instead
+        # of recursive generators, which cost O(depth) per yielded key. Each stack
+        # entry holds the subkey iterator, the find specifications and the key path
+        # segment index to use for the subkeys.
+        stack = []
+        while True:
+            sub_find_specs = []
+            for find_spec in find_specs:
+                has_key_path = find_spec.HasKeyPath()
+                # Do a quick check to see if the current key path segment matches.
+                key_path_match = find_spec.CompareNameWithKeyPathSegment(
+                    registry_key, segment_index
                 )
+                is_last_key_path_segment = find_spec.IsLastKeyPathSegment(segment_index)
+
+                if key_path_match and is_last_key_path_segment:
+                    # Check if the full key path matches.
+                    key_path_match = find_spec.CompareKeyPath(registry_key)
+
+                if not has_key_path or (key_path_match and is_last_key_path_segment):
+                    # TODO: add support for CompareTraits.
+                    yield registry_key.path
+
+                at_last_key_path_segment = find_spec.AtLastKeyPathSegment(segment_index)
+                if (
+                    not has_key_path or key_path_match
+                ) and not at_last_key_path_segment:
+                    sub_find_specs.append(find_spec)
+
+            if sub_find_specs:
+                if len(stack) >= interface.MAXIMUM_KEY_DEPTH:
+                    raise RecursionError("Maximum key depth exceeded.")
+
+                stack.append(
+                    (iter(registry_key.GetSubkeys()), sub_find_specs, segment_index + 1)
+                )
+
+            registry_key = None
+            while stack:
+                subkeys_iterator, find_specs, segment_index = stack[-1]
+                try:
+                    registry_key = next(subkeys_iterator)
+                    break
+                except StopIteration:
+                    stack.pop()
+
+            if registry_key is None:
+                return
 
     def Find(self, find_specs=None):
         """Searches for matching keys within the Windows Registry.
