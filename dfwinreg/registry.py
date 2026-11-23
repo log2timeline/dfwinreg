@@ -432,48 +432,48 @@ class WinRegistry:
         if not user_profile_list_key:
             return None
 
-        for user_profile_key in user_profile_list_key.GetSubkeys():
-            if search_key_name == user_profile_key.name:
-                profile_path_value = user_profile_key.GetValueByName("ProfileImagePath")
-                if not profile_path_value:
-                    break
+        user_profile_key = user_profile_list_key.GetSubkeyByName(search_key_name)
+        if not user_profile_key:
+            return None
 
-                profile_path = profile_path_value.GetDataAsObject()
-                if not profile_path:
-                    break
+        profile_path_value = user_profile_key.GetValueByName("ProfileImagePath")
+        if not profile_path_value:
+            return None
 
-                # HKEY_USERS\%SID%_CLASSES maps to UsrClass.dat
-                if user_key_name.endswith("_CLASSES"):
-                    profile_path = definitions.KEY_PATH_SEPARATOR.join(
-                        [
-                            profile_path,
-                            "AppData",
-                            "Local",
-                            "Microsoft",
-                            "Windows",
-                            "UsrClass.dat",
-                        ]
-                    )
-                else:
-                    profile_path = definitions.KEY_PATH_SEPARATOR.join(
-                        [profile_path, "NTUSER.DAT"]
-                    )
+        profile_path = profile_path_value.GetDataAsObject()
+        if not profile_path:
+            return None
 
-                registry_file = self._GetUserFileByPath(profile_path)
-                if not registry_file:
-                    break
+        # HKEY_USERS\%SID%_CLASSES maps to UsrClass.dat
+        if user_key_name.endswith("_CLASSES"):
+            profile_path = definitions.KEY_PATH_SEPARATOR.join(
+                [
+                    profile_path,
+                    "AppData",
+                    "Local",
+                    "Microsoft",
+                    "Windows",
+                    "UsrClass.dat",
+                ]
+            )
+        else:
+            profile_path = definitions.KEY_PATH_SEPARATOR.join(
+                [profile_path, "NTUSER.DAT"]
+            )
 
-                key_path_prefix = definitions.KEY_PATH_SEPARATOR.join(
-                    ["HKEY_USERS", user_key_name]
-                )
-                key_path = definitions.KEY_PATH_SEPARATOR.join(
-                    [key_path_prefix, key_path_suffix]
-                )
+        registry_file = self._GetUserFileByPath(profile_path)
+        if not registry_file:
+            return None
 
-                registry_file.SetKeyPathPrefix(key_path_prefix)
-                return registry_file.GetKeyByPath(key_path)
+        key_path_prefix = definitions.KEY_PATH_SEPARATOR.join(
+            ["HKEY_USERS", user_key_name]
+        )
+        key_path = definitions.KEY_PATH_SEPARATOR.join(
+            [key_path_prefix, key_path_suffix]
+        )
 
-        return None
+        registry_file.SetKeyPathPrefix(key_path_prefix)
+        return registry_file.GetKeyByPath(key_path)
 
     def _GetVirtualKeyByPath(self, key_path):
         """Retrieves the virtual key for a specific path.
