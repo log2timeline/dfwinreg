@@ -198,6 +198,69 @@ class RegistryTest(test_lib.BaseTestCase):
 
     # TODO: add tests for _GetCachedUserFileByPath
 
+    def testGetUserFileByPath(self):
+        """Tests the _GetUserFileByPath function."""
+        ntuser_test_path = self._GetTestFilePath(["NTUSER.DAT"])
+        self._SkipIfPathNotExists(ntuser_test_path)
+
+        win_registry = registry.WinRegistry(
+            registry_file_reader=TestREGFWinRegistryFileReader()
+        )
+
+        registry_file = win_registry._GetUserFileByPath(ntuser_test_path + ".bogus")
+        self.assertIsNone(registry_file)
+        self.assertEqual(len(win_registry._user_registry_files), 0)
+
+        registry_file = win_registry._GetUserFileByPath(ntuser_test_path)
+        self.assertIsNotNone(registry_file)
+
+        # The opened file is cached and reused.
+        cached_registry_file = win_registry._GetCachedUserFileByPath(
+            ntuser_test_path.upper()
+        )
+        self.assertIs(cached_registry_file, registry_file)
+
+        registry_file2 = win_registry._GetUserFileByPath(ntuser_test_path)
+        self.assertIs(registry_file2, registry_file)
+
+    def testGetUsersVirtualKeyOpensUserFileOnce(self):
+        """Tests that repeated HKEY_USERS lookups open the user file once."""
+        ntuser_test_path = self._GetTestFilePath(["NTUSER.DAT"])
+        self._SkipIfPathNotExists(ntuser_test_path)
+
+        software_test_path = self._GetTestFilePath(["SOFTWARE"])
+        self._SkipIfPathNotExists(software_test_path)
+
+        class CountingFileReader(TestREGFWinRegistryFileReader):
+            """File reader that counts opens of NTUSER.DAT."""
+
+            def __init__(self):
+                super().__init__()
+                self.ntuser_open_count = 0
+
+            def Open(self, path, ascii_codepage="cp1252"):
+                if path.upper().endswith("NTUSER.DAT"):
+                    self.ntuser_open_count += 1
+                    path = ntuser_test_path
+                return super().Open(path, ascii_codepage=ascii_codepage)
+
+        file_reader = CountingFileReader()
+        win_registry = registry.WinRegistry(registry_file_reader=file_reader)
+        win_registry.OpenAndMapFile(software_test_path)
+
+        for _ in range(3):
+            registry_key = win_registry._GetUsersVirtualKey("\\S-1-5-18")
+            self.assertIsNotNone(registry_key)
+            self.assertEqual(registry_key.path, "HKEY_USERS\\S-1-5-18")
+
+            # HKEY_USERS\.DEFAULT is an alias of S-1-5-18 and shares the file but
+            # keys must carry the key path prefix that was looked up.
+            registry_key = win_registry._GetUsersVirtualKey("\\.DEFAULT")
+            self.assertIsNotNone(registry_key)
+            self.assertEqual(registry_key.path, "HKEY_USERS\\.DEFAULT")
+
+        self.assertEqual(file_reader.ntuser_open_count, 1)
+
     def testGetCandidateFileMappingsByPath(self):
         """Tests the _GetCandidateFileMappingsByPath function."""
         win_registry = registry.WinRegistry()
