@@ -98,6 +98,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
 
     def Close(self):
         """Closes the Windows Registry file."""
+        self._key_helper.ClearCaches()
         self._regf_file.close()
         self._file_object = None
 
@@ -159,6 +160,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
           bool: True if successful or False if not.
         """
         self._file_object = file_object
+        self._key_helper.ClearCaches()
         self._regf_file.open_file_object(self._file_object)
 
         return True
@@ -184,6 +186,29 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
             relative_key_path=relative_key_path,
         )
         self._pyregf_key = pyregf_key
+
+    def _GetPyregfSubkeyByName(self, name):
+        """Retrieves a pyregf subkey by name.
+
+        Uses the subkey name index of the key helper when available, otherwise
+        pyregf which scans the sub keys linearly.
+
+        Args:
+          name (str): name of the subkey.
+
+        Returns:
+          pyregf.key: pyregf subkey or None if not found.
+        """
+        if isinstance(self._key_helper, REGFWinRegistryKeyHelper):
+            is_usable, subkey_index = self._key_helper.GetSubkeyIndexByName(
+                self._pyregf_key, name
+            )
+            if is_usable:
+                if subkey_index is None:
+                    return None
+                return self._pyregf_key.get_sub_key(subkey_index)
+
+        return self._pyregf_key.get_sub_key_by_name(name)
 
     @property
     def class_name(self):
@@ -251,7 +276,7 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
         Returns:
           WinRegistryKey: Windows Registry subkey or None if not found.
         """
-        pyregf_key = self._pyregf_key.get_sub_key_by_name(name)
+        pyregf_key = self._GetPyregfSubkeyByName(name)
         if not pyregf_key:
             return None
 
@@ -271,7 +296,10 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
         Returns:
           WinRegistryKey: Windows Registry subkey or None if not found.
         """
-        pyregf_key = self._pyregf_key.get_sub_key_by_path(key_path)
+        if key_path and "\\" not in key_path:
+            pyregf_key = self._GetPyregfSubkeyByName(key_path)
+        else:
+            pyregf_key = self._pyregf_key.get_sub_key_by_path(key_path)
         if not pyregf_key:
             return None
 
@@ -523,11 +551,136 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
 class REGFWinRegistryKeyHelper(interface.WinRegistryKeyHelper):
     """Windows Registry key helper."""
 
+    # Number of lookups by name of a key before its subkey name index is built.
+    _SUBKEY_INDEX_LOOKUP_THRESHOLD = 3
+
+    # Minimum number of subkeys for a key to get a subkey name index.
+    _SUBKEY_INDEX_MINIMUM_SUBKEYS = 8
+
+    # Maximum number of names in all the subkey name indexes combined.
+    _MAXIMUM_SUBKEY_INDEX_NAMES = 100000
+
+    # Maximum number of keys to track the number of lookups by name for.
+    _MAXIMUM_SUBKEY_LOOKUP_COUNTS = 4096
+
+    # Index value of keys that cannot be indexed.
+    _NOT_INDEXED = object()
+
     def __init__(self):
         """Initializes the Windows Registry key helper."""
         super().__init__()
+        self._subkey_lookup_counts = {}
+        self._subkey_name_indexes = {}
+        self._subkey_name_indexes_size = 0
         self._virtual_keys_by_path = {}
         self._virtual_subkeys_by_parent = {}
+
+    @classmethod
+    def _IsASCII(cls, string):
+        """Determines if a string only contains ASCII characters.
+
+        Note that str.isascii() is not used since it can be false for ASCII strings
+        created by pyregf.
+
+        Args:
+          string (str): string.
+
+        Returns:
+          bool: True if the string only contains ASCII characters.
+        """
+        try:
+            string.encode("ascii")
+        except UnicodeEncodeError:
+            return False
+        return True
+
+    def _BuildSubkeyNameIndex(self, pyregf_key):
+        """Builds a case-insensitive subkey name index of a key.
+
+        Args:
+          pyregf_key (pyregf.key): pyregf key object.
+
+        Returns:
+          dict[str, int]: subkey index per upper-cased name, where the first subkey
+              takes precedence in case of duplicate names, or _NOT_INDEXED if the
+              key cannot be indexed safely, for example because it has non-ASCII
+              subkey names for which case folding of pyregf and Python could differ.
+        """
+        number_of_subkeys = pyregf_key.number_of_sub_keys
+        if number_of_subkeys < self._SUBKEY_INDEX_MINIMUM_SUBKEYS:
+            return self._NOT_INDEXED
+
+        subkey_name_index = {}
+        try:
+            for subkey_index in range(number_of_subkeys):
+                name = pyregf_key.get_sub_key(subkey_index).name
+                if not name or not self._IsASCII(name):
+                    return self._NOT_INDEXED
+
+                subkey_name_index.setdefault(name.upper(), subkey_index)
+
+        except (AttributeError, OSError):
+            return self._NOT_INDEXED
+
+        return subkey_name_index
+
+    def ClearCaches(self):
+        """Clears the subkey name indexes."""
+        self._subkey_lookup_counts.clear()
+        self._subkey_name_indexes.clear()
+        self._subkey_name_indexes_size = 0
+
+    def GetSubkeyIndexByName(self, pyregf_key, name):
+        """Retrieves the index of a subkey by name using a lazily built name index.
+
+        The name index of a key is built after a number of lookups by name.
+
+        Args:
+          pyregf_key (pyregf.key): pyregf key object.
+          name (str): name of the subkey.
+
+        Returns:
+          tuple[bool, int]: True if the name index could be used, in which case the
+              subkey index or None if there is no such subkey, or False and None
+              if the caller needs to fall back to pyregf.
+        """
+        offset = getattr(pyregf_key, "offset", None)
+        if offset is None or not name or not self._IsASCII(name):
+            return False, None
+
+        name_index = self._subkey_name_indexes.get(offset)
+        if name_index is None:
+            lookup_count = self._subkey_lookup_counts.get(offset, 0) + 1
+            if lookup_count < self._SUBKEY_INDEX_LOOKUP_THRESHOLD:
+                if len(self._subkey_lookup_counts) >= (
+                    self._MAXIMUM_SUBKEY_LOOKUP_COUNTS
+                ):
+                    self._subkey_lookup_counts.clear()
+                self._subkey_lookup_counts[offset] = lookup_count
+                return False, None
+
+            self._subkey_lookup_counts.pop(offset, None)
+
+            name_index = self._BuildSubkeyNameIndex(pyregf_key)
+            if name_index is not self._NOT_INDEXED:
+                if (
+                    self._subkey_name_indexes_size + len(name_index)
+                    > self._MAXIMUM_SUBKEY_INDEX_NAMES
+                ):
+                    self._subkey_name_indexes.clear()
+                    self._subkey_name_indexes_size = 0
+
+                if len(name_index) <= self._MAXIMUM_SUBKEY_INDEX_NAMES:
+                    self._subkey_name_indexes_size += len(name_index)
+                else:
+                    name_index = self._NOT_INDEXED
+
+            self._subkey_name_indexes[offset] = name_index
+
+        if name_index is self._NOT_INDEXED:
+            return False, None
+
+        return True, name_index.get(name.upper())
 
     def AddVirtualKey(self, relative_key_path, pyregf_key):
         """Adds a virtual key.
