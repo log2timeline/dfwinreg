@@ -111,6 +111,8 @@ class WinRegistryKey:
         self._key_helper = key_helper
         self._key_path_prefix = key_path_prefix
         self._relative_key_path = relative_key_path
+        self._path = None
+        self._path_inputs = None
 
     @property
     @abc.abstractmethod
@@ -145,7 +147,14 @@ class WinRegistryKey:
     @property
     def path(self):
         """str: Windows Registry key path."""
-        return key_paths.JoinKeyPath([self._key_path_prefix, self._relative_key_path])
+        # The prefix and relative path can be changed when the key is added to
+        # a parent key, hence the cached path is tied to the values it was
+        # built from.
+        path_inputs = (self._key_path_prefix, self._relative_key_path)
+        if self._path is None or self._path_inputs != path_inputs:
+            self._path = key_paths.JoinKeyPath(path_inputs)
+            self._path_inputs = path_inputs
+        return self._path
 
     @abc.abstractmethod
     def GetSubkeyByIndex(self, index):

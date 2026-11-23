@@ -1,6 +1,5 @@
 """Virtual Windows Registry key implementation."""
 
-from dfwinreg import definitions
 from dfwinreg import interface
 from dfwinreg import key_paths
 
@@ -104,9 +103,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
         if not self._registry:
             return
 
-        key_path = key_paths.JoinKeyPath(
-            [self._key_path_prefix, self._relative_key_path]
-        )
+        key_path = self.path
 
         try:
             self._registry_key = self._registry.GetKeyByPath(key_path)
@@ -130,21 +127,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
         Returns:
           str: key path.
         """
-        # This is an optimized way to combine the path segments into a single path
-        # and combine multiple successive path separators to one.
-
-        # Split all the path segments based on the path (segment) separator.
-        path_segments = [
-            segment.split(definitions.KEY_PATH_SEPARATOR) for segment in path_segments
-        ]
-
-        # Flatten the sublists into one list.
-        path_segments = [element for sublist in path_segments for element in sublist]
-
-        # Remove empty path segments.
-        path_segments = filter(None, path_segments)
-
-        return definitions.KEY_PATH_SEPARATOR.join(path_segments)
+        return key_paths.JoinPathSegments(path_segments)
 
     def AddSubkey(self, name, registry_key):
         """Adds a subkey.
@@ -163,7 +146,7 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
         self._subkeys_by_name[name_upper] = len(self._subkeys)
         self._subkeys.append(registry_key)
 
-        relative_key_path = self._JoinKeyPath([self._relative_key_path, name])
+        relative_key_path = key_paths.AppendPathSegment(self._relative_key_path, name)
 
         # pylint: disable=protected-access
         registry_key._key_path_prefix = self._key_path_prefix
