@@ -14,6 +14,12 @@ from dfwinreg import key_paths
 class REGFWinRegistryFile(interface.WinRegistryFile):
     """Implementation of a Windows Registry file using pyregf."""
 
+    # Maximum number of key path lookups to cache.
+    _MAXIMUM_KEY_CACHE_SIZE = 4096
+
+    # Cache value for a key path that does not exist in the file.
+    _MISSING_KEY = object()
+
     def __init__(self, ascii_codepage="cp1252", key_path_prefix=""):
         """Initializes the Windows Registry file.
 
@@ -25,6 +31,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
         self._emulate_virtual_keys = False
         self._key_helper = REGFWinRegistryKeyHelper()
         self._file_object = None
+        self._pyregf_key_cache = {}
         self._regf_file = pyregf.file()
         self._regf_file.set_ascii_codepage(ascii_codepage)
 
@@ -67,10 +74,26 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
         Returns:
           pyregf.key: Windows Registry key or None if not available.
         """
+        lookup_key_path = relative_key_path.upper()
+        pyregf_key = self._pyregf_key_cache.get(lookup_key_path)
+        if pyregf_key is not None:
+            if pyregf_key is self._MISSING_KEY:
+                return None
+            return pyregf_key
+
         try:
-            return self._regf_file.get_key_by_path(relative_key_path)
+            pyregf_key = self._regf_file.get_key_by_path(relative_key_path)
         except OSError:
-            return None
+            pyregf_key = None
+
+        if len(self._pyregf_key_cache) >= self._MAXIMUM_KEY_CACHE_SIZE:
+            # Evict the oldest entry, dictionaries preserve insertion order.
+            del self._pyregf_key_cache[next(iter(self._pyregf_key_cache))]
+
+        self._pyregf_key_cache[lookup_key_path] = (
+            self._MISSING_KEY if pyregf_key is None else pyregf_key
+        )
+        return pyregf_key
 
     def AddCurrentControlSetKey(self):
         """Adds a virtual current control set key.
@@ -95,9 +118,11 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
         """
         self._key_helper.AddVirtualKey(relative_key_path, pyregf_key)
         self._emulate_virtual_keys = True
+        self._pyregf_key_cache.clear()
 
     def Close(self):
         """Closes the Windows Registry file."""
+        self._pyregf_key_cache.clear()
         self._regf_file.close()
         self._file_object = None
 
@@ -159,6 +184,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
           bool: True if successful or False if not.
         """
         self._file_object = file_object
+        self._pyregf_key_cache.clear()
         self._regf_file.open_file_object(self._file_object)
 
         return True
