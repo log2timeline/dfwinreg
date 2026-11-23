@@ -235,8 +235,8 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
             raise IndexError("Index out of bounds.")
 
         pyregf_key = self._pyregf_key.get_sub_key(index)
-        relative_key_path = key_paths.JoinKeyPath(
-            [self._relative_key_path, pyregf_key.name]
+        relative_key_path = key_paths.AppendKeyPathSegment(
+            self._relative_key_path, pyregf_key.name
         )
         return self._key_helper.CreateKey(
             self._key_path_prefix, relative_key_path, pyregf_key
@@ -255,8 +255,8 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
         if not pyregf_key:
             return None
 
-        relative_key_path = key_paths.JoinKeyPath(
-            [self._relative_key_path, pyregf_key.name]
+        relative_key_path = key_paths.AppendKeyPathSegment(
+            self._relative_key_path, pyregf_key.name
         )
         return self._key_helper.CreateKey(
             self._key_path_prefix, relative_key_path, pyregf_key
@@ -275,7 +275,9 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
         if not pyregf_key:
             return None
 
-        relative_key_path = key_paths.JoinKeyPath([self._relative_key_path, key_path])
+        relative_key_path = key_paths.AppendKeyPathSegment(
+            self._relative_key_path, key_path
+        )
         return self._key_helper.CreateKey(
             self._key_path_prefix, relative_key_path, pyregf_key
         )
@@ -287,8 +289,8 @@ class REGFWinRegistryKey(interface.WinRegistryKey):
           WinRegistryKey: Windows Registry subkey.
         """
         for pyregf_key in self._pyregf_key.sub_keys:
-            relative_key_path = key_paths.JoinKeyPath(
-                [self._relative_key_path, pyregf_key.name]
+            relative_key_path = key_paths.AppendKeyPathSegment(
+                self._relative_key_path, pyregf_key.name
             )
             yield self._key_helper.CreateKey(
                 self._key_path_prefix, relative_key_path, pyregf_key
@@ -418,8 +420,8 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
             index -= self._pyregf_key.number_of_sub_keys
 
             virtual_name, virtual_subkey = self._virtual_subkeys[index]
-            relative_key_path = key_paths.JoinKeyPath(
-                [self._relative_key_path, virtual_name]
+            relative_key_path = key_paths.AppendKeyPathSegment(
+                self._relative_key_path, virtual_name
             )
             return VirtualREGFWinRegistryKey(
                 virtual_name,
@@ -442,8 +444,8 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
         """
         virtual_name, virtual_sub_key = self._GetVirtualSubKeyByName(name)
         if virtual_sub_key:
-            relative_key_path = key_paths.JoinKeyPath(
-                [self._relative_key_path, virtual_name]
+            relative_key_path = key_paths.AppendKeyPathSegment(
+                self._relative_key_path, virtual_name
             )
             return VirtualREGFWinRegistryKey(
                 virtual_name,
@@ -476,8 +478,8 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
             key_path_segments.pop(0)
 
             if not key_path_segments:
-                relative_key_path = key_paths.JoinKeyPath(
-                    [self._relative_key_path, virtual_name]
+                relative_key_path = key_paths.AppendKeyPathSegment(
+                    self._relative_key_path, virtual_name
                 )
                 return VirtualREGFWinRegistryKey(
                     virtual_name,
@@ -490,8 +492,8 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
             sub_key_path = "\\".join(key_path_segments)
             pyregf_key = virtual_sub_key.get_sub_key_by_path(sub_key_path)
 
-            relative_key_path = key_paths.JoinKeyPath(
-                [self._relative_key_path, key_path]
+            relative_key_path = key_paths.AppendKeyPathSegment(
+                self._relative_key_path, key_path
             )
             return self._key_helper.CreateKey(
                 self._key_path_prefix, relative_key_path, pyregf_key
@@ -508,8 +510,8 @@ class VirtualREGFWinRegistryKey(REGFWinRegistryKey):
         yield from super().GetSubkeys()
 
         for virtual_name, virtual_sub_key in self._virtual_subkeys:
-            relative_key_path = key_paths.JoinKeyPath(
-                [self._relative_key_path, virtual_name]
+            relative_key_path = key_paths.AppendKeyPathSegment(
+                self._relative_key_path, virtual_name
             )
             yield VirtualREGFWinRegistryKey(
                 virtual_name,

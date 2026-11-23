@@ -206,8 +206,8 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
                     continue
                 self._subkeys[name] = registry_key
 
-                relative_key_path = key_paths.JoinKeyPath(
-                    [self._relative_key_path, registry_key.name]
+                relative_key_path = key_paths.AppendKeyPathSegment(
+                    self._relative_key_path, registry_key.name
                 )
 
                 # pylint: disable=protected-access
@@ -237,7 +237,9 @@ class FakeWinRegistryKey(interface.WinRegistryKey):
 
         self._subkeys[name_upper] = registry_key
 
-        relative_key_path = key_paths.JoinKeyPath([self._relative_key_path, name])
+        relative_key_path = key_paths.AppendKeyPathSegment(
+            self._relative_key_path, name
+        )
 
         # pylint: disable=protected-access
         registry_key._key_path_prefix = self._key_path_prefix

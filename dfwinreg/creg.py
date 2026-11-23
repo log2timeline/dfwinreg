@@ -157,8 +157,8 @@ class CREGWinRegistryKey(interface.WinRegistryKey):
             raise IndexError("Index out of bounds.")
 
         pycreg_key = self._pycreg_key.get_sub_key(index)
-        relative_key_path = key_paths.JoinKeyPath(
-            [self._relative_key_path, pycreg_key.name]
+        relative_key_path = key_paths.AppendKeyPathSegment(
+            self._relative_key_path, pycreg_key.name
         )
         return CREGWinRegistryKey(
             pycreg_key,
@@ -180,8 +180,8 @@ class CREGWinRegistryKey(interface.WinRegistryKey):
         if not pycreg_key:
             return None
 
-        relative_key_path = key_paths.JoinKeyPath(
-            [self._relative_key_path, pycreg_key.name]
+        relative_key_path = key_paths.AppendKeyPathSegment(
+            self._relative_key_path, pycreg_key.name
         )
         return CREGWinRegistryKey(
             pycreg_key,
@@ -203,7 +203,9 @@ class CREGWinRegistryKey(interface.WinRegistryKey):
         if not pycreg_key:
             return None
 
-        relative_key_path = key_paths.JoinKeyPath([self._relative_key_path, key_path])
+        relative_key_path = key_paths.AppendKeyPathSegment(
+            self._relative_key_path, key_path
+        )
         return CREGWinRegistryKey(
             pycreg_key,
             key_helper=self._key_helper,
@@ -218,8 +220,8 @@ class CREGWinRegistryKey(interface.WinRegistryKey):
           WinRegistryKey: Windows Registry subkey.
         """
         for pycreg_key in self._pycreg_key.sub_keys:
-            relative_key_path = key_paths.JoinKeyPath(
-                [self._relative_key_path, pycreg_key.name]
+            relative_key_path = key_paths.AppendKeyPathSegment(
+                self._relative_key_path, pycreg_key.name
             )
             yield CREGWinRegistryKey(
                 pycreg_key,
