@@ -303,6 +303,70 @@ class RegistryTest(test_lib.BaseTestCase):
         registry_key = win_registry._GetUsersVirtualKey("\\S-1-5-18")
         self.assertIsNone(registry_key)
 
+    def testGetUsersVirtualKeyProfileListLookup(self):
+        """Tests that _GetUsersVirtualKey looks up the profile by name."""
+        ntuser_test_path = self._GetTestFilePath(["NTUSER.DAT"])
+        self._SkipIfPathNotExists(ntuser_test_path)
+
+        class ProfileListKey(fake.FakeWinRegistryKey):
+            """Profile list key that fails when its subkeys are enumerated."""
+
+            def GetSubkeys(self):
+                """Retrieves all subkeys.
+
+                Raises:
+                  AssertionError: always, since the subkeys must not be scanned.
+                """
+                raise AssertionError("ProfileList scanned linearly.")
+
+        profile_list_key = ProfileListKey("ProfileList")
+        for name in range(50):
+            profile_list_key.AddSubkey(
+                f"S-1-5-21-{name:d}", fake.FakeWinRegistryKey(f"S-1-5-21-{name:d}")
+            )
+
+        profile_key = fake.FakeWinRegistryKey("S-1-5-18")
+        profile_key.AddValue(
+            fake.FakeWinRegistryValue(
+                "ProfileImagePath",
+                data="C:\\systemprofile\\".encode("utf-16-le")[:-2],
+                data_type=definitions.REG_SZ,
+            )
+        )
+        profile_list_key.AddSubkey("S-1-5-18", profile_key)
+
+        # Profile without ProfileImagePath value.
+        profile_list_key.AddSubkey("S-1-5-19", fake.FakeWinRegistryKey("S-1-5-19"))
+
+        class ProfileListWinRegistry(registry.WinRegistry):
+            """Windows Registry that serves a fake ProfileList key."""
+
+            def GetKeyByPath(self, key_path):
+                """Retrieves the key for a specific path."""
+                if key_path == self._USER_PROFILE_LIST_KEY_PATH:
+                    return profile_list_key
+                return super().GetKeyByPath(key_path)
+
+        win_registry = ProfileListWinRegistry(
+            registry_file_reader=TestREGFWinRegistryFileReader()
+        )
+        registry_file = win_registry._OpenFile(ntuser_test_path)
+        win_registry.MapUserFile("C:\\systemprofile\\NTUSER.DAT", registry_file)
+
+        registry_key = win_registry._GetUsersVirtualKey("\\S-1-5-18")
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.path, "HKEY_USERS\\S-1-5-18")
+
+        registry_key = win_registry._GetUsersVirtualKey("\\.DEFAULT")
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.path, "HKEY_USERS\\.DEFAULT")
+
+        registry_key = win_registry._GetUsersVirtualKey("\\S-1-5-19")
+        self.assertIsNone(registry_key)
+
+        registry_key = win_registry._GetUsersVirtualKey("\\S-1-5-20")
+        self.assertIsNone(registry_key)
+
     def testGetFileByPath(self):
         """Tests the _GetFileByPath function."""
         test_path = self._GetTestFilePath(["SYSTEM"])
