@@ -692,6 +692,48 @@ class VirtualREGFWinRegistryKeyTest(test_lib.BaseTestCase):
                 registry_file.Close()
 
 
+class REGFWinRegistryKeyHelperTest(test_lib.BaseTestCase):
+    """Tests for the REGF Windows Registry key helper."""
+
+    # pylint: disable=protected-access
+
+    def testCreateKey(self):
+        """Tests the CreateKey function."""
+
+        class CountingPath(str):
+            """String that counts upper() calls."""
+
+            upper_calls = 0
+
+            def upper(self):
+                """Upper-cases the string and counts the call."""
+                CountingPath.upper_calls += 1
+                return super().upper()
+
+        key_helper = regf.REGFWinRegistryKeyHelper()
+
+        self.assertIsNone(key_helper.CreateKey("HKLM", "\\Software", None))
+
+        # Without virtual keys the relative path is not upper-cased.
+        relative_key_path = CountingPath("\\Software")
+        registry_key = key_helper.CreateKey("HKLM", relative_key_path, FakePyREGFKey())
+        self.assertIsInstance(registry_key, regf.REGFWinRegistryKey)
+        self.assertNotIsInstance(registry_key, regf.VirtualREGFWinRegistryKey)
+        self.assertEqual(CountingPath.upper_calls, 0)
+
+        # With virtual keys the relative path is looked up case insensitively.
+        key_helper.AddVirtualKey("\\Software\\Virtual", FakePyREGFKey())
+
+        registry_key = key_helper.CreateKey(
+            "HKLM", CountingPath("\\SOFTWARE"), FakePyREGFKey()
+        )
+        self.assertIsInstance(registry_key, regf.VirtualREGFWinRegistryKey)
+        self.assertEqual(CountingPath.upper_calls, 1)
+
+        registry_key = key_helper.CreateKey("HKLM", "\\Other", FakePyREGFKey())
+        self.assertNotIsInstance(registry_key, regf.VirtualREGFWinRegistryKey)
+
+
 class REGFWinRegistryValueTest(test_lib.BaseTestCase):
     """Tests for the REGF Windows Registry value."""
 

@@ -569,8 +569,10 @@ class REGFWinRegistryKeyHelper(interface.WinRegistryKeyHelper):
         if not pyregf_key:
             return None
 
-        lookup_key_path = relative_key_path.upper()
-        virtual_subkeys = self._virtual_subkeys_by_parent.get(lookup_key_path)
+        virtual_subkeys = None
+        if self._virtual_subkeys_by_parent:
+            lookup_key_path = relative_key_path.upper()
+            virtual_subkeys = self._virtual_subkeys_by_parent.get(lookup_key_path)
 
         if not virtual_subkeys:
             return REGFWinRegistryKey(
