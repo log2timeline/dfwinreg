@@ -395,6 +395,11 @@ class WinRegistry:
             except OSError:
                 registry_file = None
 
+            # Cache the file so that it is opened once and closed with the
+            # Windows Registry object.
+            if registry_file:
+                self.MapUserFile(path, registry_file)
+
         return registry_file
 
     def _GetUsersVirtualKey(self, key_path_suffix):
