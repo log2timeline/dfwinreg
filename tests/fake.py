@@ -273,6 +273,43 @@ class FakeWinRegistryKeyTest(test_lib.BaseTestCase):
         with self.assertRaises(IndexError):
             registry_key.GetSubkeyByIndex(-1)
 
+        # Index order matches GetSubkeys, including subkeys added later.
+        registry_key.AddSubkey("Added", fake.FakeWinRegistryKey("Added"))
+
+        subkeys = list(registry_key.GetSubkeys())
+        self.assertEqual(len(subkeys), registry_key.number_of_subkeys)
+        for index, expected_key in enumerate(subkeys):
+            self.assertIs(registry_key.GetSubkeyByIndex(index), expected_key)
+
+        self.assertEqual(subkeys[-1].name, "Added")
+
+        with self.assertRaises(IndexError):
+            registry_key.GetSubkeyByIndex(len(subkeys))
+
+    def testGetSubkeyByIndexDoesNotCopy(self):
+        """Tests that GetSubkeyByIndex does not copy the subkeys."""
+        registry_key = fake.FakeWinRegistryKey("Test")
+        for index in range(50):
+            name = f"Key{index:d}"
+            registry_key.AddSubkey(name, fake.FakeWinRegistryKey(name))
+
+        class CountingDict(dict):
+            """Dictionary counting calls that copy its content."""
+
+            number_of_copies = 0
+
+            def values(self):
+                """Returns the values and counts the call."""
+                CountingDict.number_of_copies += 1
+                return super().values()
+
+        registry_key._subkeys = CountingDict(registry_key._subkeys)
+
+        for index in range(50):
+            self.assertEqual(registry_key.GetSubkeyByIndex(index).name, f"Key{index:d}")
+
+        self.assertEqual(CountingDict.number_of_copies, 0)
+
     def testGetSubkeyByName(self):
         """Tests the GetSubkeyByName function."""
         registry_key = self._CreateTestKey()
