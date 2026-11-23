@@ -613,9 +613,12 @@ class REGFWinRegistryKeyHelper(interface.WinRegistryKeyHelper):
         for virtual_key_path in self._virtual_keys_by_path:
             # Note that the virtual key path starts with a key path segment
             # separator # but relative key path does not.
-            if relative_key_path_upper.startswith(virtual_key_path[1:]):
+            virtual_key_path_length = len(virtual_key_path) - 1
+            if relative_key_path_upper.startswith(
+                virtual_key_path[1:]
+            ) and relative_key_path_upper[virtual_key_path_length:][:1] in ("", "\\"):
                 lookup_key_path = virtual_key_path
-                relative_sub_key_path = relative_key_path[len(virtual_key_path[1:]) :]
+                relative_sub_key_path = relative_key_path[virtual_key_path_length:]
                 break
 
         if not lookup_key_path:

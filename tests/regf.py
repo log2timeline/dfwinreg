@@ -184,6 +184,33 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
             finally:
                 registry_file.Close()
 
+    def testGetKeyByPathWithVirtualKeySegmentBoundary(self):
+        """Tests the GetKeyByPath function with a virtual key path segment."""
+        test_path = self._GetTestFilePath(["SYSTEM"])
+        self._SkipIfPathNotExists(test_path)
+
+        registry_file = regf.REGFWinRegistryFile(
+            key_path_prefix="HKEY_LOCAL_MACHINE\\System"
+        )
+
+        with open(test_path, "rb") as file_object:
+            registry_file.Open(file_object)
+            registry_file.AddCurrentControlSetKey()
+
+            try:
+                registry_key = registry_file.GetKeyByPath(
+                    "\\CurrentControlSet\\Services"
+                )
+                self.assertIsNotNone(registry_key)
+                self.assertEqual(registry_key.name, "Services")
+
+                # The virtual key name must match a complete path segment.
+                registry_key = registry_file.GetKeyByPath("\\CurrentControlSetServices")
+                self.assertIsNone(registry_key)
+
+            finally:
+                registry_file.Close()
+
     def testGetKeyByPath(self):
         """Tests the GetKeyByPath function."""
         test_path = self._GetTestFilePath(["SYSTEM"])
