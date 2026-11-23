@@ -28,6 +28,7 @@ class WinRegistryFileMapping:
         """
         super().__init__()
         self.key_path_prefix = key_path_prefix
+        self.key_path_prefix_upper = key_path_prefix.upper()
         self.unique_key_paths = unique_key_paths
         self.windows_path = windows_path
 
@@ -142,6 +143,12 @@ class WinRegistry:
 
     _VIRTUAL_KEYS = [("HKEY_USERS", "_GetUsersVirtualKey")]
 
+    # Virtual key paths in upper case, with the virtual key path length.
+    _VIRTUAL_KEYS_UPPER = [
+        (virtual_key_path.upper(), len(virtual_key_path), virtual_key_callback)
+        for virtual_key_path, virtual_key_callback in _VIRTUAL_KEYS
+    ]
+
     def __init__(self, ascii_codepage="cp1252", registry_file_reader=None):
         """Initializes the Windows Registry.
 
@@ -225,7 +232,7 @@ class WinRegistry:
 
         candidate_mappings = []
         for mapping in self._REGISTRY_FILE_MAPPINGS:
-            if key_path_upper.startswith(mapping.key_path_prefix.upper()):
+            if key_path_upper.startswith(mapping.key_path_prefix_upper):
                 candidate_mappings.append(mapping)
 
         return candidate_mappings
@@ -260,7 +267,7 @@ class WinRegistry:
         matching_mappings = []
 
         for mapping in candidate_mappings:
-            mapping_key_path_prefix = mapping.key_path_prefix.upper()
+            mapping_key_path_prefix = mapping.key_path_prefix_upper
             if mapping_key_path_prefix in self._registry_files:
                 # Skip the Windows Registry file if it is already cached.
                 continue
@@ -310,11 +317,13 @@ class WinRegistry:
 
         return key_path_prefix_upper, registry_file
 
-    def _GetKeyByPathFromFile(self, key_path):
+    def _GetKeyByPathFromFile(self, key_path, key_path_upper=None):
         """Retrieves the key for a specific path from file.
 
         Args:
           key_path (str): Windows Registry key path.
+          key_path_upper (Optional[str]): Windows Registry key path in upper case,
+              where None indicates it needs to be determined from the key path.
 
         Returns:
           WinRegistryKey: Windows Registry key or None if not available.
@@ -322,7 +331,8 @@ class WinRegistry:
         Raises:
           RuntimeError: if the key path prefix does not match the key path.
         """
-        key_path_upper = key_path.upper()
+        if key_path_upper is None:
+            key_path_upper = key_path.upper()
 
         key_path_prefix_upper, registry_file = self._GetFileByPath(key_path_upper)
         if not registry_file:
@@ -475,22 +485,28 @@ class WinRegistry:
 
         return None
 
-    def _GetVirtualKeyByPath(self, key_path):
+    def _GetVirtualKeyByPath(self, key_path, key_path_upper=None):
         """Retrieves the virtual key for a specific path.
 
         Args:
           key_path (str): Windows Registry key path.
+          key_path_upper (Optional[str]): Windows Registry key path in upper case,
+              where None indicates it needs to be determined from the key path.
 
         Returns:
           VirtualWinRegistryKey: virtual Windows Registry key or None if not
               available.
         """
-        key_path_upper = key_path.upper()
+        if key_path_upper is None:
+            key_path_upper = key_path.upper()
 
-        for virtual_key_path, virtual_key_callback in self._VIRTUAL_KEYS:
-            virtual_key_path_upper = virtual_key_path.upper()
+        for (
+            virtual_key_path_upper,
+            virtual_key_path_length,
+            virtual_key_callback,
+        ) in self._VIRTUAL_KEYS_UPPER:
             if key_path_upper.startswith(virtual_key_path_upper):
-                key_path_suffix = key_path[len(virtual_key_path) :]
+                key_path_suffix = key_path[virtual_key_path_length:]
 
                 callback_function = getattr(self, virtual_key_callback)
                 virtual_key = callback_function(key_path_suffix)
@@ -539,9 +555,12 @@ class WinRegistry:
 
         key_path = definitions.KEY_PATH_SEPARATOR.join([root_key_path, key_path])
 
-        registry_key = self._GetKeyByPathFromFile(key_path)
+        # The root key path is already in upper case.
+        key_path_upper = key_path.upper()
+
+        registry_key = self._GetKeyByPathFromFile(key_path, key_path_upper)
         if not registry_key:
-            registry_key = self._GetVirtualKeyByPath(key_path)
+            registry_key = self._GetVirtualKeyByPath(key_path, key_path_upper)
 
         return registry_key
 
