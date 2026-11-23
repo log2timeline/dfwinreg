@@ -57,6 +57,7 @@ class FindSpec:
 
         super().__init__()
         self._is_regex = False
+        self._compiled_key_path_segments = None
         self._key_path_segments = None
         self._number_of_key_path_segments = 0
 
@@ -116,6 +117,35 @@ class FindSpec:
 
         if self._key_path_segments is not None:
             self._number_of_key_path_segments = len(self._key_path_segments)
+            self._compiled_key_path_segments = self._CompileKeyPathSegments()
+
+    def _CompileKeyPathSegments(self):
+        """Compiles or upper-cases the key path segments once.
+
+        Returns:
+          list[object]: compiled regular expressions if the find specification
+              is a regular expression, where None indicates an invalid regular
+              expression, or upper-cased key path segments otherwise.
+        """
+        compiled_segments = []
+        for segment_name in self._key_path_segments:
+            if self._is_regex:
+                if isinstance(segment_name, str):
+                    # Allow '\n' to be matched by '.' and make '\w', '\W', '\b',
+                    # '\B', '\d', '\D', '\s' and '\S' Unicode safe.
+                    flags = re.DOTALL | re.UNICODE | re.IGNORECASE
+
+                    try:
+                        segment_name = re.compile(f"^{segment_name:s}$", flags=flags)
+                    except sre_constants.error:
+                        segment_name = None
+
+            else:
+                segment_name = segment_name.upper()
+
+            compiled_segments.append(segment_name)
+
+        return compiled_segments
 
     def _CheckKeyPath(self, registry_key, search_depth):
         """Checks the key path find specification.
@@ -191,34 +221,17 @@ class FindSpec:
         ):
             return False
 
-        segment_name = self._key_path_segments[segment_index]
+        segment_name = self._compiled_key_path_segments[segment_index]
 
         if self._is_regex:
-            if isinstance(segment_name, str):
-                # Allow '\n' to be matched by '.' and make '\w', '\W', '\b', '\B',
-                # '\d', '\D', '\s' and '\S' Unicode safe.
-                flags = re.DOTALL | re.UNICODE | re.IGNORECASE
+            if segment_name is None:
+                return False
 
-                try:
-                    segment_name = re.compile(f"^{segment_name:s}$", flags=flags)
-                except sre_constants.error:
-                    # TODO: set self._key_path_segments[segment_index] to None ?
-                    return False
-
-                self._key_path_segments[segment_index] = segment_name
-
-        else:
-            segment_name = segment_name.upper()
-            self._key_path_segments[segment_index] = segment_name
-
-        if self._is_regex:
-            result = bool(
+            return bool(
                 segment_name.match(key_path_segment)
             )  # pylint: disable=no-member
-            return result
 
-        result = bool(segment_name == key_path_segment.upper())
-        return result
+        return segment_name == key_path_segment.upper()
 
     def AtLastKeyPathSegment(self, segment_index):
         """Determines if the a key path segment is the last one or greater.
