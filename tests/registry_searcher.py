@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Tests for the Windows Registry searcher."""
 
+import re
 import unittest
+from unittest import mock
 
 from dfwinreg import fake
 from dfwinreg import registry
@@ -154,6 +156,45 @@ class FindSpecTest(test_lib.BaseTestCase):
 
         result = find_spec._CompareWithKeyPathSegment("Microsoft", 2)
         self.assertFalse(result)
+
+    def testCompareWithKeyPathSegmentPrecompiled(self):
+        """Test _CompareWithKeyPathSegment compiles at most once per segment."""
+        key_path_segments = ["HKEY_CURRENT_USER", "Software", "Micro.*"]
+
+        with mock.patch.object(
+            registry_searcher.re, "compile", wraps=re.compile
+        ) as mock_compile:
+            find_spec = registry_searcher.FindSpec(key_path_regex=key_path_segments)
+            self.assertEqual(mock_compile.call_count, 3)
+
+            for _ in range(5):
+                self.assertTrue(find_spec._CompareWithKeyPathSegment("microsoft", 2))
+                self.assertFalse(find_spec._CompareWithKeyPathSegment("Other", 2))
+
+            self.assertEqual(mock_compile.call_count, 3)
+
+        # The key path segments of the caller are not modified.
+        self.assertEqual(
+            key_path_segments, ["HKEY_CURRENT_USER", "Software", "Micro.*"]
+        )
+
+        # An invalid regular expression is compiled once and never matches.
+        with mock.patch.object(
+            registry_searcher.re, "compile", wraps=re.compile
+        ) as mock_compile:
+            find_spec = registry_searcher.FindSpec(
+                key_path_regex=["HKEY_CURRENT_USER", "Mi(rosoft"]
+            )
+            for _ in range(5):
+                self.assertFalse(find_spec._CompareWithKeyPathSegment("Microsoft", 1))
+
+            self.assertEqual(mock_compile.call_count, 2)
+
+        # Test with a key path that is not a regular expression.
+        key_path_segments = ["HKEY_CURRENT_USER", "Software"]
+        find_spec = registry_searcher.FindSpec(key_path=key_path_segments)
+        self.assertTrue(find_spec._CompareWithKeyPathSegment("SOFTWARE", 1))
+        self.assertEqual(key_path_segments, ["HKEY_CURRENT_USER", "Software"])
 
     def testAtLastKeyPathSegment(self):
         """Test the AtLastKeyPathSegment function."""
