@@ -63,14 +63,102 @@ class FakePyREGFValue:
         raise OSError("raised for testing purposes.")
 
 
+class FakePyREGFSelectValue:
+    """Fake pyregf integer value for testing."""
+
+    # pylint: disable=invalid-name
+
+    def __init__(self, integer):
+        """Initializes a fake pyregf integer value.
+
+        Args:
+          integer (int): integer value.
+        """
+        super().__init__()
+        self._integer = integer
+        self.type = 4
+
+    def get_data_as_integer(self):
+        """Retrieves the data as an integer.
+
+        Returns:
+          int: integer value.
+        """
+        return self._integer
+
+
+class FakePyREGFSelectKey:
+    """Fake pyregf Select key for testing."""
+
+    # pylint: disable=invalid-name
+
+    def __init__(self, values):
+        """Initializes a fake pyregf Select key.
+
+        Args:
+          values (dict[str, int]): integer values per name.
+        """
+        super().__init__()
+        self._values = values
+
+    def get_value_by_name(self, name):
+        """Retrieves a value by name.
+
+        Args:
+          name (str): name of the value.
+
+        Returns:
+          FakePyREGFSelectValue: value or None if not available.
+        """
+        integer = self._values.get(name, None)
+        if integer is None:
+            return None
+
+        return FakePyREGFSelectValue(integer)
+
+
 class REGFWinRegistryFileTest(test_lib.BaseTestCase):
     """Tests for the REGF Windows Registry file."""
 
     # pylint: disable=protected-access
 
     # TODO: add tests for _CreateKey
-    # TODO: add tests for _GetCurrentControlSetKeyPath
     # TODO: add tests for _GetKeyByPathFromFile
+
+    def testGetCurrentControlSetKey(self):
+        """Tests the _GetCurrentControlSetKey function."""
+        # pylint: disable=invalid-name
+        registry_file = regf.REGFWinRegistryFile()
+
+        requested_paths = []
+
+        def GetKeyByPathFromFile(relative_key_path):
+            requested_paths.append(relative_key_path)
+            if relative_key_path == "\\Select":
+                return FakePyREGFSelectKey(select_values)
+            return relative_key_path
+
+        setattr(registry_file, "_GetKeyByPathFromFile", GetKeyByPathFromFile)
+
+        select_values = {"Current": 2, "Default": 1}
+        result = registry_file._GetCurrentControlSetKey()
+        self.assertEqual(result, "\\ControlSet002")
+
+        # An invalid Current value must fall back to the Default value.
+        for current_value in (0, 1000):
+            select_values = {"Current": current_value, "Default": 1}
+            result = registry_file._GetCurrentControlSetKey()
+            self.assertEqual(result, "\\ControlSet001")
+
+        # Fall back to the LastKnownGood value.
+        select_values = {"Current": 0, "Default": 1000, "LastKnownGood": 3}
+        result = registry_file._GetCurrentControlSetKey()
+        self.assertEqual(result, "\\ControlSet003")
+
+        # No valid value.
+        select_values = {"Current": 0, "Default": 1000}
+        result = registry_file._GetCurrentControlSetKey()
+        self.assertIsNone(result)
 
     def testAddCurrentControlSetKey(self):
         """Tests the AddCurrentControlSetKey function."""
