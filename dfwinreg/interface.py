@@ -22,6 +22,38 @@ class WinRegistryFile:
         self._key_path_prefix_length = len(key_path_prefix)
         self._key_path_prefix_upper = key_path_prefix.upper()
 
+    def _GetRelativeKeyPath(self, key_path):
+        """Retrieves the key path relative to the Windows Registry file.
+
+        Args:
+          key_path (str): Windows Registry key path, either with the key path
+              prefix of the file or relative to the file with a leading key path
+              segment separator.
+
+        Returns:
+          str: key path relative to the file or None if the key path does not
+              match the key path prefix of the file.
+        """
+        key_path_prefix_upper = self._key_path_prefix_upper
+
+        # A relative key path cannot start with the key path prefix, unless the
+        # prefix is empty or starts with a key path segment separator, hence
+        # there is no need to upper-case the key path.
+        if (
+            key_path_prefix_upper
+            and key_path_prefix_upper[0] != definitions.KEY_PATH_SEPARATOR
+            and key_path.startswith(definitions.KEY_PATH_SEPARATOR)
+        ):
+            return key_path
+
+        if key_path.upper().startswith(key_path_prefix_upper):
+            return key_path[self._key_path_prefix_length :]
+
+        if key_path.startswith(definitions.KEY_PATH_SEPARATOR):
+            return key_path
+
+        return None
+
     @abc.abstractmethod
     def Close(self):
         """Closes the Windows Registry file."""

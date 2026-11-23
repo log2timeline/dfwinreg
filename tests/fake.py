@@ -115,6 +115,45 @@ class FakeWinRegistryFileTest(FakeWinRegTestCase):
 
         registry_file.Close()
 
+    def testGetKeyByPathUpperCase(self):
+        """Tests the GetKeyByPath function upper-cases only when needed."""
+
+        class CountingPath(str):
+            """String that counts upper() calls."""
+
+            upper_calls = 0
+
+            def upper(self):
+                """Upper-cases the string and counts the call."""
+                CountingPath.upper_calls += 1
+                return super().upper()
+
+        registry_file = self._OpenFakeRegistryFile(key_path_prefix="HKEY_LOCAL_MACHINE")
+
+        # A key path relative to the file does not need to be upper-cased.
+        registry_key = registry_file.GetKeyByPath(CountingPath("\\Software"))
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(CountingPath.upper_calls, 0)
+
+        # A key path with a prefix is matched case insensitively.
+        registry_key = registry_file.GetKeyByPath(
+            CountingPath("hkey_local_machine\\Software")
+        )
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(registry_key.path, "\\Software")
+        self.assertEqual(CountingPath.upper_calls, 1)
+
+        # Without a prefix every key path is relative to the file.
+        registry_file = self._OpenFakeRegistryFile()
+        CountingPath.upper_calls = 0
+        registry_key = registry_file.GetKeyByPath(CountingPath("\\Software"))
+        self.assertIsNotNone(registry_key)
+
+        # A key path that does not match the prefix is not found.
+        registry_file = self._OpenFakeRegistryFile(key_path_prefix="HKEY_LOCAL_MACHINE")
+        registry_key = registry_file.GetKeyByPath("Software")
+        self.assertIsNone(registry_key)
+
     def testGetRootKey(self):
         """Tests the GetRootKey function."""
         registry_file = self._OpenFakeRegistryFile()

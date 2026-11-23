@@ -244,6 +244,53 @@ class RegistryTest(test_lib.BaseTestCase):
         )
         self.assertIsNone(registry_key)
 
+    def testGetKeyByPathFromFileWithKeyPathUpper(self):
+        """Tests _GetKeyByPathFromFile does not upper-case a given key path."""
+
+        class CountingPath(str):
+            """String that counts upper() calls."""
+
+            upper_calls = 0
+
+            def upper(self):
+                """Upper-cases the string and counts the call."""
+                CountingPath.upper_calls += 1
+                return super().upper()
+
+        test_path = self._GetTestFilePath(["NTUSER.DAT"])
+        self._SkipIfPathNotExists(test_path)
+
+        win_registry = registry.WinRegistry(
+            registry_file_reader=TestREGFWinRegistryFileReader()
+        )
+        win_registry.OpenAndMapFile(test_path)
+
+        key_path = CountingPath("HKEY_CURRENT_USER\\Software\\Microsoft")
+        registry_key = win_registry._GetKeyByPathFromFile(
+            key_path, key_path_upper=str(key_path).upper()
+        )
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(CountingPath.upper_calls, 0)
+
+        registry_key = win_registry._GetKeyByPathFromFile(key_path)
+        self.assertIsNotNone(registry_key)
+        self.assertEqual(CountingPath.upper_calls, 1)
+
+    def testFileMappingKeyPathPrefixUpper(self):
+        """Tests the file mapping and virtual key upper case key path prefixes."""
+        for mapping in registry.WinRegistry._REGISTRY_FILE_MAPPINGS:
+            self.assertEqual(
+                mapping.key_path_prefix_upper, mapping.key_path_prefix.upper()
+            )
+
+        for (
+            virtual_key_path,
+            virtual_key_path_length,
+            _,
+        ) in registry.WinRegistry._VIRTUAL_KEYS_UPPER:
+            self.assertEqual(virtual_key_path, virtual_key_path.upper())
+            self.assertGreater(virtual_key_path_length, 0)
+
     def testGetUsersVirtualKey(self):
         """Tests the _GetUsersVirtualKey function."""
         ntuser_test_path = self._GetTestFilePath(["NTUSER.DAT"])
