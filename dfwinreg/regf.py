@@ -50,7 +50,7 @@ class REGFWinRegistryFile(interface.WinRegistryFile):
 
             control_set = value.get_data_as_integer()
             # If the control set is 0 then we need to check the other values.
-            if control_set > 0 or control_set <= 999:
+            if 0 < control_set <= 999:
                 break
 
         if not control_set or control_set <= 0 or control_set > 999:
