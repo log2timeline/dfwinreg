@@ -72,6 +72,71 @@ class REGFWinRegistryFileTest(test_lib.BaseTestCase):
     # TODO: add tests for _GetCurrentControlSetKeyPath
     # TODO: add tests for _GetKeyByPathFromFile
 
+    def testGetKeyByPathFromFileCache(self):
+        """Tests the _GetKeyByPathFromFile function caching."""
+        # pylint: disable=invalid-name
+        test_path = self._GetTestFilePath(["NTUSER.DAT"])
+        self._SkipIfPathNotExists(test_path)
+
+        registry_file = regf.REGFWinRegistryFile()
+
+        with open(test_path, "rb") as file_object:
+            registry_file.Open(file_object)
+
+            try:
+                calls = []
+                real_regf_file = registry_file._regf_file
+                original_function = real_regf_file.get_key_by_path
+
+                class CountingFile:
+                    """Wrapper that counts get_key_by_path calls."""
+
+                    def get_key_by_path(self, path):
+                        """Retrieves a key by path and records the call."""
+                        calls.append(path)
+                        return original_function(path)
+
+                registry_file._regf_file = CountingFile()
+
+                pyregf_key = registry_file._GetKeyByPathFromFile("Software")
+                self.assertIsNotNone(pyregf_key)
+                self.assertEqual(calls, ["Software"])
+
+                # Case-insensitive hit on the cache, same pyregf key object.
+                self.assertIs(
+                    registry_file._GetKeyByPathFromFile("SOFTWARE"), pyregf_key
+                )
+                self.assertIs(
+                    registry_file._GetKeyByPathFromFile("Software"), pyregf_key
+                )
+                self.assertEqual(len(calls), 1)
+
+                # Missing keys are cached as well.
+                self.assertIsNone(registry_file._GetKeyByPathFromFile("Bogus\\Key"))
+                self.assertIsNone(registry_file._GetKeyByPathFromFile("bogus\\key"))
+                self.assertEqual(len(calls), 2)
+
+                # The wrappers are not cached, only the pyregf keys.
+                registry_key1 = registry_file.GetKeyByPath("\\Software")
+                registry_key2 = registry_file.GetKeyByPath("\\Software")
+                self.assertIsNot(registry_key1, registry_key2)
+                self.assertEqual(registry_key1.name, registry_key2.name)
+
+                # The cache is bounded.
+                setattr(registry_file, "_MAXIMUM_KEY_CACHE_SIZE", 3)
+                for index in range(10):
+                    registry_file._GetKeyByPathFromFile(f"Bogus{index:d}")
+                self.assertEqual(len(registry_file._pyregf_key_cache), 3)
+
+                # The cache is cleared by AddVirtualKey.
+                registry_file.AddVirtualKey("\\VirtualKey", pyregf_key)
+                self.assertEqual(len(registry_file._pyregf_key_cache), 0)
+
+            finally:
+                registry_file._regf_file = real_regf_file
+                registry_file.Close()
+                self.assertEqual(len(registry_file._pyregf_key_cache), 0)
+
     def testAddCurrentControlSetKey(self):
         """Tests the AddCurrentControlSetKey function."""
         test_path = self._GetTestFilePath(["SYSTEM"])
