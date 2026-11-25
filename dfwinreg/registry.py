@@ -276,16 +276,16 @@ class WinRegistry:
             if not registry_file:
                 continue
 
-            match = True
-            if mapping.unique_key_paths:
-                # If all unique key paths are found consider the file to match.
-                for unique_key_path in mapping.unique_key_paths:
-                    registry_key = registry_file.GetKeyByPath(unique_key_path)
-                    if not registry_key:
-                        match = False
+            # If all unique key paths are found consider the file to match.
+            match = all(
+                registry_file.GetKeyByPath(unique_key_path)
+                for unique_key_path in mapping.unique_key_paths or []
+            )
 
             if match:
                 matching_mappings.append((mapping, registry_file))
+            else:
+                registry_file.Close()
 
         if not matching_mappings:
             return key_path_prefix, cached_registry_file
@@ -304,6 +304,8 @@ class WinRegistry:
 
                 key_path_prefix = mapping.key_path_prefix
                 registry_file = matching_registry_file
+            else:
+                matching_registry_file.Close()
 
         key_path_prefix_upper = key_path_prefix.upper()
         self.MapFile(key_path_prefix_upper, registry_file)
@@ -567,11 +569,10 @@ class WinRegistry:
                 continue
 
             # If all unique key paths are found consider the file to match.
-            match = True
-            for key_path in mapping.unique_key_paths:
-                registry_key = registry_file.GetKeyByPath(key_path)
-                if not registry_key:
-                    match = False
+            match = all(
+                registry_file.GetKeyByPath(key_path)
+                for key_path in mapping.unique_key_paths
+            )
 
             if match:
                 candidate_mappings.append(mapping)

@@ -79,6 +79,56 @@ class TestWinRegistryKeyPathPrefixMismatch(registry.WinRegistry):
         return "BOGUS", registry_file
 
 
+class CountingWinRegistryFile:
+    """Windows Registry file stub without any keys that counts its usage.
+
+    Attributes:
+      close_count (int): number of times the file was closed.
+      get_key_count (int): number of times a key was looked up.
+    """
+
+    def __init__(self):
+        """Initializes the Windows Registry file stub."""
+        super().__init__()
+        self.close_count = 0
+        self.get_key_count = 0
+
+    def Close(self):
+        """Closes the Windows Registry file."""
+        self.close_count += 1
+
+    def GetKeyByPath(self, key_path):  # pylint: disable=unused-argument
+        """Counts a lookup of a key for a specific path, no key is available.
+
+        Args:
+          key_path (str): Windows Registry key path.
+        """
+        self.get_key_count += 1
+
+
+class CountingWinRegistryFileReader(interface.WinRegistryFileReader):
+    """Windows Registry file reader that opens CountingWinRegistryFile."""
+
+    def __init__(self):
+        """Initializes the Windows Registry file reader."""
+        super().__init__()
+        self.opened_files = []
+
+    def Open(self, path, ascii_codepage="cp1252"):
+        """Opens a Windows Registry file stub.
+
+        Args:
+          path (str): path of the Windows Registry file.
+          ascii_codepage (Optional[str]): ASCII string codepage.
+
+        Returns:
+          CountingWinRegistryFile: Windows Registry file stub.
+        """
+        registry_file = CountingWinRegistryFile()
+        self.opened_files.append(registry_file)
+        return registry_file
+
+
 class TestREGFWinRegistryFileReader(interface.WinRegistryFileReader):
     """Windows Registry file reader that reads a single test file."""
 
@@ -383,6 +433,23 @@ class RegistryTest(test_lib.BaseTestCase):
         self.assertEqual(key_path_prefix, key_path)
         self.assertIsNotNone(registry_file)
 
+    def testGetFileByPathClosesNonMatchingFiles(self):
+        """Tests that _GetFileByPath closes files that do not match."""
+        file_reader = CountingWinRegistryFileReader()
+        win_registry = registry.WinRegistry(registry_file_reader=file_reader)
+
+        key_path = "HKEY_LOCAL_MACHINE\\SYSTEM"
+
+        key_path_prefix, registry_file = win_registry._GetFileByPath(key_path)
+        self.assertEqual(key_path_prefix, key_path)
+        self.assertIsNone(registry_file)
+
+        self.assertGreater(len(file_reader.opened_files), 0)
+        for opened_file in file_reader.opened_files:
+            # Probing stops on the first missing unique key and the file is closed.
+            self.assertEqual(opened_file.get_key_count, 1)
+            self.assertEqual(opened_file.close_count, 1)
+
     def testGetKeyByPathOnNTUserDat(self):
         """Tests the GetKeyByPath function on a NTUSER.DAT file."""
         test_path = self._GetTestFilePath(["NTUSER.DAT"])
@@ -518,6 +585,24 @@ class RegistryTest(test_lib.BaseTestCase):
 
         finally:
             registry_file.Close()
+
+    def testGetRegistryFileMappingStopsOnFirstMissingKey(self):
+        """Tests that GetRegistryFileMapping stops probing on the first miss."""
+        win_registry = registry.WinRegistry()
+
+        registry_file = CountingWinRegistryFile()
+
+        key_path_prefix = win_registry.GetRegistryFileMapping(registry_file)
+        self.assertEqual(key_path_prefix, "")
+
+        number_of_mappings = len(
+            [
+                mapping
+                for mapping in win_registry._REGISTRY_FILE_MAPPINGS
+                if mapping.unique_key_paths
+            ]
+        )
+        self.assertEqual(registry_file.get_key_count, number_of_mappings)
 
     # TODO: add GetRegistryFileMapping on UsrClass file test.
 
