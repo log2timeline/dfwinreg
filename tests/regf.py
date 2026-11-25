@@ -4,6 +4,7 @@
 import unittest
 
 from dfwinreg import errors
+from dfwinreg import interface
 from dfwinreg import regf
 
 from tests import test_lib
@@ -61,6 +62,71 @@ class FakePyREGFValue:
     def data(self):
         """bytes: value data."""
         raise OSError("raised for testing purposes.")
+
+
+class FakeNamedPyREGFKey:
+    """Fake pyregf key with named sub keys that counts linear name lookups."""
+
+    # pylint: disable=invalid-name
+
+    def __init__(self, offset, name, sub_key_names=None):
+        """Initializes a fake pyregf key.
+
+        Args:
+          offset (int): offset of the key.
+          name (str): name of the key.
+          sub_key_names (Optional[list[str]]): names of the sub keys.
+        """
+        super().__init__()
+        self.by_name_calls = 0
+        self.name = name
+        self.offset = offset
+        self.sub_keys = [
+            FakeNamedPyREGFKey(offset + 1 + index, sub_key_name)
+            for index, sub_key_name in enumerate(sub_key_names or [])
+        ]
+
+    @property
+    def number_of_sub_keys(self):
+        """int: number of sub keys."""
+        return len(self.sub_keys)
+
+    def get_sub_key(self, sub_key_index):
+        """Retrieves a specific sub key.
+
+        Args:
+          sub_key_index (int): index of the sub key.
+
+        Returns:
+          FakeNamedPyREGFKey: sub key.
+        """
+        return self.sub_keys[sub_key_index]
+
+    def get_sub_key_by_name(self, name):
+        """Retrieves a sub key by name using a linear case-insensitive scan.
+
+        Args:
+          name (str): name of the sub key.
+
+        Returns:
+          FakeNamedPyREGFKey: sub key or None if not found.
+        """
+        self.by_name_calls += 1
+        for sub_key in self.sub_keys:
+            if sub_key.name.upper() == name.upper():
+                return sub_key
+        return None
+
+    def get_sub_key_by_path(self, path):
+        """Retrieves a sub key by path.
+
+        Args:
+          path (str): path of the sub key.
+
+        Returns:
+          FakeNamedPyREGFKey: sub key or None if not found.
+        """
+        return self.get_sub_key_by_name(path)
 
 
 class REGFWinRegistryFileTest(test_lib.BaseTestCase):
@@ -372,6 +438,137 @@ class REGFWinRegistryKeyTest(test_lib.BaseTestCase):
 
             finally:
                 registry_file.Close()
+
+    def testGetSubkeyByNameIndex(self):
+        """Tests the GetSubkeyByName function with the subkey name index."""
+        names = [f"Key{index:d}" for index in range(20)] + ["Dup", "dup"]
+        pyregf_key = FakeNamedPyREGFKey(100, "Parent", names)
+        key_helper = regf.REGFWinRegistryKeyHelper()
+        registry_key = regf.REGFWinRegistryKey(
+            pyregf_key, key_helper=key_helper, relative_key_path="\\Parent"
+        )
+
+        threshold = key_helper._SUBKEY_INDEX_LOOKUP_THRESHOLD
+
+        # The index is only built after a number of lookups by name.
+        for _ in range(threshold - 1):
+            self.assertIsNotNone(registry_key.GetSubkeyByName("Key3"))
+        self.assertEqual(pyregf_key.by_name_calls, threshold - 1)
+        self.assertEqual(len(key_helper._subkey_name_indexes), 0)
+
+        calls = pyregf_key.by_name_calls
+        for name in names + ["KEY7", "key19", "Bogus", "bogus", "Key", "Key100"]:
+            expected = pyregf_key.get_sub_key_by_name(name)
+            pyregf_key.by_name_calls -= 1
+
+            sub_registry_key = registry_key.GetSubkeyByName(name)
+            if expected is None:
+                self.assertIsNone(sub_registry_key)
+            else:
+                self.assertEqual(sub_registry_key.name, expected.name)
+                self.assertEqual(sub_registry_key.path, f"\\Parent\\{expected.name:s}")
+
+        # Only the lookup that built the index used the linear scan.
+        self.assertLessEqual(pyregf_key.by_name_calls, calls + 1)
+        self.assertEqual(len(key_helper._subkey_name_indexes), 1)
+
+        # Duplicate names resolve to the first sub key.
+        self.assertEqual(registry_key.GetSubkeyByName("DUP").name, "Dup")
+        self.assertEqual(registry_key.GetSubkeyByName("dup").name, "Dup")
+
+        # Single segment paths use the index, multi segment paths do not.
+        calls = pyregf_key.by_name_calls
+        sub_registry_key = registry_key.GetSubkeyByPath("kEy5")
+        self.assertEqual(sub_registry_key.name, "Key5")
+        self.assertEqual(sub_registry_key.path, "\\Parent\\kEy5")
+        self.assertIsNone(registry_key.GetSubkeyByPath("Bogus"))
+        self.assertEqual(pyregf_key.by_name_calls, calls)
+
+        # Non-ASCII names fall back to pyregf.
+        registry_key.GetSubkeyByName("K\u00e9y")
+        self.assertEqual(pyregf_key.by_name_calls, calls + 1)
+
+        key_helper.ClearCaches()
+        self.assertEqual(len(key_helper._subkey_name_indexes), 0)
+
+    def testGetSubkeyByNameIndexFallbacks(self):
+        """Tests the subkey name index fallbacks and memory bounds."""
+        # pylint: disable=invalid-name
+        key_helper = regf.REGFWinRegistryKeyHelper()
+        setattr(key_helper, "_SUBKEY_INDEX_LOOKUP_THRESHOLD", 1)
+
+        # Keys with few sub keys are not indexed.
+        pyregf_key = FakeNamedPyREGFKey(100, "Small", ["A", "B"])
+        registry_key = regf.REGFWinRegistryKey(pyregf_key, key_helper=key_helper)
+        self.assertIsNotNone(registry_key.GetSubkeyByName("a"))
+        self.assertIsNone(registry_key.GetSubkeyByName("c"))
+        self.assertEqual(pyregf_key.by_name_calls, 2)
+
+        # Keys with non-ASCII sub key names are not indexed.
+        names = [f"Key{index:d}" for index in range(10)] + ["K\u00e9y"]
+        pyregf_key = FakeNamedPyREGFKey(200, "Unicode", names)
+        registry_key = regf.REGFWinRegistryKey(pyregf_key, key_helper=key_helper)
+        self.assertIsNotNone(registry_key.GetSubkeyByName("key1"))
+        self.assertIsNotNone(registry_key.GetSubkeyByName("key2"))
+        self.assertEqual(pyregf_key.by_name_calls, 2)
+
+        # Keys with a helper without a name index use pyregf.
+        pyregf_key = FakeNamedPyREGFKey(300, "NoHelper", names)
+        registry_key = regf.REGFWinRegistryKey(
+            pyregf_key, key_helper=interface.WinRegistryKeyHelper()
+        )
+        registry_key._key_helper.CreateKey = lambda *args: args[-1]
+        for _ in range(5):
+            self.assertIsNotNone(registry_key.GetSubkeyByName("key1"))
+        self.assertEqual(pyregf_key.by_name_calls, 5)
+
+        # The total size of the indexes is bounded.
+        key_helper.ClearCaches()
+        setattr(key_helper, "_MAXIMUM_SUBKEY_INDEX_NAMES", 25)
+        names = [f"Key{index:d}" for index in range(10)]
+        for offset in (1000, 2000, 3000, 4000):
+            pyregf_key = FakeNamedPyREGFKey(offset, "Wide", names)
+            registry_key = regf.REGFWinRegistryKey(pyregf_key, key_helper=key_helper)
+            self.assertIsNotNone(registry_key.GetSubkeyByName("key9"))
+            self.assertLessEqual(key_helper._subkey_name_indexes_size, 25)
+
+    def testGetSubkeyByNameIndexFile(self):
+        """Tests the subkey name index against pyregf on a wide key."""
+        test_path = self._GetTestFilePath(["SYSTEM"])
+        self._SkipIfPathNotExists(test_path)
+
+        registry_file = regf.REGFWinRegistryFile()
+
+        with open(test_path, "rb") as file_object:
+            registry_file.Open(file_object)
+
+            try:
+                registry_key = registry_file.GetKeyByPath("\\ControlSet001\\Services")
+                self.assertIsNotNone(registry_key)
+
+                names = [subkey.name for subkey in registry_key.GetSubkeys()]
+                self.assertGreater(len(names), 100)
+
+                pyregf_key = registry_key._pyregf_key
+                for name in names + [name.lower() for name in names] + ["Bogus"]:
+                    expected = pyregf_key.get_sub_key_by_name(name)
+                    for function in (
+                        registry_key.GetSubkeyByName,
+                        registry_key.GetSubkeyByPath,
+                    ):
+                        sub_registry_key = function(name)
+                        if expected is None:
+                            self.assertIsNone(sub_registry_key)
+                        else:
+                            self.assertEqual(sub_registry_key.name, expected.name)
+                            self.assertEqual(sub_registry_key.offset, expected.offset)
+
+                self.assertEqual(len(registry_file._key_helper._subkey_name_indexes), 1)
+
+            finally:
+                registry_file.Close()
+
+            self.assertEqual(len(registry_file._key_helper._subkey_name_indexes), 0)
 
     def testGetSubkeyByPath(self):
         """Tests the GetSubkeyByPath function."""
