@@ -39,6 +39,8 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
         self._name = name
         self._registry = registry
         self._registry_key = None
+        self._registry_subkeys_pending = False
+        self._unresolved_version = None
         self._subkeys = []
         self._subkeys_by_name = {}
 
@@ -75,6 +77,8 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
         if not self._registry_key and self._registry:
             self._GetKeyFromRegistry()
 
+        self._AddRegistrySubkeys()
+
         return len(self._subkeys)
 
     @property
@@ -99,9 +103,29 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
 
         return self._registry_key.offset
 
+    def _AddRegistrySubkeys(self):
+        """Adds the subkeys of the resolved Windows Registry key, if pending."""
+        if not self._registry_subkeys_pending:
+            return
+
+        self._registry_subkeys_pending = False
+
+        for sub_registry_key in self._registry_key.GetSubkeys():
+            self.AddSubkey(sub_registry_key.name, sub_registry_key)
+
     def _GetKeyFromRegistry(self):
-        """Determines the key from the Windows Registry."""
+        """Determines the key from the Windows Registry.
+
+        The subkeys of the Windows Registry key are only added to the virtual key
+        when they are first needed. A failed lookup is not repeated until the
+        mappings of the Windows Registry have changed.
+        """
         if not self._registry:
+            return
+
+        # pylint: disable=protected-access
+        mapping_version = getattr(self._registry, "_mapping_version", None)
+        if mapping_version is not None and self._unresolved_version == mapping_version:
             return
 
         key_path = key_paths.JoinKeyPath(
@@ -114,11 +138,10 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
             pass
 
         if not self._registry_key:
+            self._unresolved_version = mapping_version
             return
 
-        for sub_registry_key in self._registry_key.GetSubkeys():
-            self.AddSubkey(sub_registry_key.name, sub_registry_key)
-
+        self._registry_subkeys_pending = True
         self._registry = None
 
     def _JoinKeyPath(self, path_segments):
@@ -156,6 +179,8 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
         Raises:
           KeyError: if the subkey already exists.
         """
+        self._AddRegistrySubkeys()
+
         name_upper = name.upper()
         if name_upper in self._subkeys_by_name:
             raise KeyError(f"Subkey: {name:s} already exists.")
@@ -184,6 +209,8 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
         if not self._registry_key and self._registry:
             self._GetKeyFromRegistry()
 
+        self._AddRegistrySubkeys()
+
         if index < 0 or index >= len(self._subkeys):
             raise IndexError("Index out of bounds.")
 
@@ -200,6 +227,8 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
         """
         if not self._registry_key and self._registry:
             self._GetKeyFromRegistry()
+
+        self._AddRegistrySubkeys()
 
         index = self._subkeys_by_name.get(name.upper())
         if index is None:
@@ -219,6 +248,8 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
         if not self._registry_key and self._registry:
             self._GetKeyFromRegistry()
 
+        self._AddRegistrySubkeys()
+
         subkey = self
         for path_segment in key_paths.SplitKeyPath(key_path):
             subkey = subkey.GetSubkeyByName(path_segment)
@@ -235,6 +266,8 @@ class VirtualWinRegistryKey(interface.WinRegistryKey):
         """
         if not self._registry_key and self._registry:
             self._GetKeyFromRegistry()
+
+        self._AddRegistrySubkeys()
 
         yield from self._subkeys
 

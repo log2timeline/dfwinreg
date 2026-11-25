@@ -53,6 +53,30 @@ class ErrorWinRegistry:
         raise RuntimeError("Not supported for testing")
 
 
+class CountingWinRegistry(registry.WinRegistry):
+    """Windows Registry that counts the key lookups."""
+
+    # pylint: disable=redundant-returns-doc
+
+    def __init__(self, *args, **kwargs):
+        """Initializes the Windows Registry."""
+        super().__init__(*args, **kwargs)
+        self.number_of_lookups = 0
+
+    def GetKeyByPath(self, key_path):
+        """Retrieves the key for a specific path.
+
+        Args:
+          key_path (str): Windows Registry key path.
+
+        Returns:
+          WinRegistryKey: Windows Registry key or None if not available.
+        """
+        if key_path == "HKEY_USERS":
+            self.number_of_lookups += 1
+        return super().GetKeyByPath(key_path)
+
+
 class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
     """Tests for a virtual Windows Registry key."""
 
@@ -406,6 +430,89 @@ class VirtualWinRegistryKeyTest(test_lib.BaseTestCase):
 
         values = list(mapped_key.GetValues())
         self.assertEqual(len(values), 0)
+
+    def testUnresolvedKeyIsNotResolvedAgain(self):
+        """Tests that an unresolvable key is looked up once per mapping."""
+        win_registry = CountingWinRegistry()
+        virtual_key = win_registry.GetRootKey().GetSubkeyByName("HKEY_USERS")
+        self.assertIsNotNone(virtual_key)
+
+        win_registry.number_of_lookups = 0
+        for _ in range(5):
+            self.assertIsNone(virtual_key.offset)
+            self.assertEqual(virtual_key.number_of_values, 0)
+            self.assertEqual(virtual_key.number_of_subkeys, 0)
+            self.assertEqual(list(virtual_key.GetSubkeys()), [])
+
+        self.assertEqual(win_registry.number_of_lookups, 1)
+
+    def testUnresolvedKeyResolvedAfterMapping(self):
+        """Tests that a key is resolved when its hive is mapped later."""
+        test_path = self._GetTestFilePath(["SYSTEM"])
+        self._SkipIfPathNotExists(test_path)
+
+        win_registry = CountingWinRegistry(
+            registry_file_reader=test_registry.TestREGFWinRegistryFileReader()
+        )
+        system_key = (
+            win_registry.GetRootKey()
+            .GetSubkeyByName("HKEY_LOCAL_MACHINE")
+            .GetSubkeyByName("System")
+        )
+        self.assertIsInstance(system_key, virtual.VirtualWinRegistryKey)
+
+        self.assertIsNone(system_key.offset)
+        self.assertEqual(system_key.number_of_subkeys, 0)
+
+        win_registry.OpenAndMapFile(test_path)
+
+        self.assertIsNotNone(system_key.offset)
+        self.assertEqual(system_key.number_of_subkeys, 9)
+
+    def testSubkeysAreWrappedLazily(self):
+        """Tests that the subkeys are only added when they are needed."""
+        sub_registry_key = virtual.VirtualWinRegistryKey("Sub")
+
+        class TestRegistryKey:
+            """Registry key counting subkey enumeration."""
+
+            offset = 12
+            class_name = None
+            last_written_time = None
+            number_of_values = 3
+            number_of_enumerations = 0
+
+            def GetSubkeys(self):
+                """Retrieves the subkeys."""
+                self.number_of_enumerations += 1
+                yield sub_registry_key
+
+        test_key = TestRegistryKey()
+
+        class TestRegistry:
+            """Registry returning the test key."""
+
+            # pylint: disable=unused-argument
+
+            def GetKeyByPath(self, key_path):
+                """Retrieves the key."""
+                return test_key
+
+        virtual_key = virtual.VirtualWinRegistryKey(
+            "Key", registry=TestRegistry(), relative_key_path="Key"
+        )
+        self.assertEqual(virtual_key.offset, 12)
+        self.assertEqual(virtual_key.number_of_values, 3)
+        self.assertEqual(test_key.number_of_enumerations, 0)
+
+        self.assertEqual(virtual_key.number_of_subkeys, 1)
+        self.assertEqual(test_key.number_of_enumerations, 1)
+        self.assertIs(virtual_key.GetSubkeyByName("sub"), sub_registry_key)
+        self.assertIs(virtual_key.GetSubkeyByIndex(0), sub_registry_key)
+        self.assertEqual(test_key.number_of_enumerations, 1)
+
+        with self.assertRaises(KeyError):
+            virtual_key.AddSubkey("SUB", virtual.VirtualWinRegistryKey("SUB"))
 
 
 if __name__ == "__main__":

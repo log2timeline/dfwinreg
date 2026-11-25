@@ -154,6 +154,7 @@ class WinRegistry:
         self._ascii_codepage = ascii_codepage
         self._registry_file_reader = registry_file_reader
         self._registry_files = {}
+        self._mapping_version = 0
         self._root_key = None
         self._user_registry_files = {}
 
@@ -612,6 +613,7 @@ class WinRegistry:
         """
         key_path_prefix_upper = key_path_prefix.upper()
 
+        self._mapping_version += 1
         self._registry_files[key_path_prefix_upper] = registry_file
         registry_file.SetKeyPathPrefix(key_path_prefix)
 
@@ -649,6 +651,7 @@ class WinRegistry:
           profile_path (str): profile path.
           registry_file (WinRegistryFile): user Windows Registry file.
         """
+        self._mapping_version += 1
         self._user_registry_files[profile_path.upper()] = registry_file
 
     def OpenAndMapFile(self, path):
